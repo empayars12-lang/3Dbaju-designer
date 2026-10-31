@@ -118,6 +118,7 @@
       width: 1.5px;
       background: #38bdf8;
       pointer-events: none;
+      transform-origin: bottom center;
     }
 
     #view-toggles {
@@ -247,11 +248,12 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ===== 1. SETUP =====
+// ===== 1. SETUP ASAS =====
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
@@ -338,9 +340,10 @@ let ftStartScale = 1;
 let ftStartAngle = 0;
 let ftCenterScreen = new THREE.Vector2();
 
-// ===== CREATE SIMPLE T-SHIRT (NO EXTERNAL FILE) =====
-function createShirt() {
+// ===== FALLBACK SIMPLE T-SHIRT (jika fail .gltf tak jumpa) =====
+function createFallbackShirt() {
   const group = new THREE.Group();
+
   const mat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     roughness: 0.8,
@@ -348,30 +351,30 @@ function createShirt() {
     side: THREE.DoubleSide
   });
 
-  // Torso
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(1.45, 1.85, 0.32), mat);
-  torso.position.y = 0.15;
+  // Badan (torso)
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 0.35), mat);
+  torso.position.y = 0.1;
   torso.castShadow = true;
   torso.receiveShadow = true;
   group.add(torso);
 
-  // Left sleeve
-  const sleeveL = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.42, 0.32), mat);
-  sleeveL.position.set(-0.98, 0.72, 0);
+  // Lengan kiri
+  const sleeveL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
+  sleeveL.position.set(-0.95, 0.65, 0);
   sleeveL.castShadow = true;
   sleeveL.receiveShadow = true;
   group.add(sleeveL);
 
-  // Right sleeve
-  const sleeveR = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.42, 0.32), mat);
-  sleeveR.position.set(0.98, 0.72, 0);
+  // Lengan kanan
+  const sleeveR = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
+  sleeveR.position.set(0.95, 0.65, 0);
   sleeveR.castShadow = true;
   sleeveR.receiveShadow = true;
   group.add(sleeveR);
 
-  // Neck
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.30, 0.22, 16), mat);
-  neck.position.y = 1.12;
+  // Bahagian leher (lebih realistik sikit)
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.25, 16), mat);
+  neck.position.y = 1.05;
   neck.castShadow = true;
   neck.receiveShadow = true;
   group.add(neck);
@@ -383,7 +386,7 @@ function setupShirt(model) {
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
-  model.scale.setScalar(2.35 / maxDim);
+  model.scale.setScalar(2.4 / maxDim);
   model.updateMatrixWorld(true);
 
   box.setFromObject(model);
@@ -395,6 +398,20 @@ function setupShirt(model) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
+
+      // Pastikan material standard
+      if (!child.material || !child.material.isMeshStandardMaterial) {
+        child.material = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          roughness: 0.8,
+          metalness: 0.1
+        });
+      } else {
+        child.material.color.set(0xffffff);
+        child.material.roughness = 0.8;
+        child.material.metalness = 0.1;
+      }
+
       shirtMaterials.push(child.material);
       shirtMeshes.push(child);
     }
@@ -412,12 +429,27 @@ function finishLoading() {
   const el = document.getElementById('loading');
   if (el) {
     el.style.opacity = '0';
-    setTimeout(() => el.remove(), 400);
+    setTimeout(() => el.remove(), 500);
   }
 }
 
-// Always use built-in shirt (no fetch / no external file)
-setupShirt(createShirt());
+// ===== LOAD MODEL DENGAN FALLBACK =====
+const loader = new GLTFLoader();
+
+loader.load(
+  './T_shirt_gltf.gltf',
+  (gltf) => {
+    console.log('Model GLTF berjaya dimuatkan');
+    setupShirt(gltf.scene);
+  },
+  undefined,
+  (error) => {
+    console.warn('Gagal load T_shirt_gltf.gltf → guna fallback shirt', error);
+    // Cipta baju mudah supaya studio masih boleh digunakan
+    const fallback = createFallbackShirt();
+    setupShirt(fallback);
+  }
+);
 
 // ===== 3. LAYER SYSTEM =====
 function addBaseLayer() {
@@ -512,7 +544,7 @@ function deleteLayer(dummy, el) {
 
 // ===== 4. DECAL =====
 function isOnSleeve(dummy) {
-  return Math.abs(dummy.position.x) > 0.45;
+  return Math.abs(dummy.position.x) > 0.34;
 }
 
 function createDecal(dummy) {
@@ -529,8 +561,8 @@ function createDecal(dummy) {
   dummy.userData.decals = [];
 
   const onSleeve = isOnSleeve(dummy);
-  const baseSize = onSleeve ? 0.75 : 0.55;
-  const depth    = onSleeve ? 0.35 : 0.22;
+  const baseSize = onSleeve ? 0.92 : 0.58;
+  const depth    = onSleeve ? 0.38 : 0.22;
 
   const w = baseSize * dummy.scale.x;
   const h = (baseSize / dummy.userData.aspect) * dummy.scale.y;
@@ -624,7 +656,7 @@ function hideFreeTransform() {
 }
 
 function getLogoCorners(dummy) {
-  const base = isOnSleeve(dummy) ? 0.75 : 0.55;
+  const base = isOnSleeve(dummy) ? 0.92 : 0.58;
   const halfW = (base * dummy.scale.x) * 0.5;
   const halfH = ((base / dummy.userData.aspect) * dummy.scale.y) * 0.5;
 
@@ -832,7 +864,7 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
     const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
     dummy.quaternion.setFromRotationMatrix(matrix);
   } else {
-    dummy.position.set(0, 0.2, 0.25);
+    dummy.position.set(0, 0.1, 0.4);
   }
 
   logoCount++;
@@ -847,7 +879,7 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   saveToLocalStorage();
 }
 
-// ===== 7. UI =====
+// ===== 7. UI CONTROLS =====
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -1009,7 +1041,7 @@ async function restoreState(state) {
           dummy.userData.name = ldata.name || 'Logo';
           dummy.userData.icon = ldata.icon || '🖼️';
 
-          dummy.position.fromArray(ldata.position || [0, 0.2, 0.25]);
+          dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
           dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
           dummy.scale.fromArray(ldata.scale || [1, 1, 1]);
 
