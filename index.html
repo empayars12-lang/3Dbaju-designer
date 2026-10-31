@@ -65,8 +65,7 @@
     }
     .save-btn:hover { background: #059669; transform: translateY(-2px); }
 
-    /* ===== NEW: Background & Light Controls ===== */
-    .bg-controls, .light-controls {
+    .bg-controls, .light-controls, .bg-image-controls {
       background: #27272a;
       padding: 14px;
       border-radius: 8px;
@@ -140,6 +139,25 @@
     .small-btn:hover { background: #52525b; }
     .small-btn.danger { background: #7f1d1d; border-color: #991b1b; color: #fecaca; }
     .small-btn.danger:hover { background: #991b1b; }
+
+    .fill-modes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .fill-btn {
+      background: #3f3f46;
+      border: none;
+      color: #d4d4d8;
+      padding: 8px 4px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .fill-btn:hover { background: #52525b; }
+    .fill-btn.active { background: #38bdf8; color: #000; }
 
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
@@ -288,6 +306,41 @@
       </div>
     </div>
 
+    <!-- ===== BG IMAGE CONTROLS (muncul bila ada image) ===== -->
+    <div id="bgImagePanel" style="display:none;">
+      <div class="section-title">Kawalan Imej Latar</div>
+      <div class="bg-image-controls">
+        <div class="slider-row">
+          <label>
+            <span>Opacity</span>
+            <span id="bgOpacityValue">1.00</span>
+          </label>
+          <input type="range" id="bgOpacitySlider" min="0" max="1" step="0.01" value="1">
+        </div>
+
+        <div class="slider-row">
+          <label>
+            <span>Saiz (Scale)</span>
+            <span id="bgScaleValue">1.00</span>
+          </label>
+          <input type="range" id="bgScaleSlider" min="0.2" max="5" step="0.05" value="1">
+        </div>
+
+        <div class="section-title" style="margin:8px 0 4px;">Fill Mode</div>
+        <div class="fill-modes">
+          <button class="fill-btn active" data-mode="stretch">Stretch</button>
+          <button class="fill-btn" data-mode="cover">Cover</button>
+          <button class="fill-btn" data-mode="contain">Contain</button>
+          <button class="fill-btn" data-mode="free">Free</button>
+        </div>
+
+        <div class="hint" style="margin-top:4px;">
+          • <b>Free</b>: boleh drag & scale bebas<br>
+          • Pilih layer "Latar Imej" di kanan untuk gerak
+        </div>
+      </div>
+    </div>
+
     <!-- ===== CAHAYA ===== -->
     <div>
       <div class="section-title">Kawalan Cahaya</div>
@@ -325,7 +378,7 @@
       </div>
       <div class="hint">
         • <b>Gerak</b>: tarik logo pada permukaan baju<br>
-        • <b>Free Transform</b>: 4 petak bucu + putar (macam Photoshop)<br>
+        • <b>Free Transform</b>: 4 petak bucu + putar<br>
         • Tekan <b>Ctrl + T</b> untuk Free Transform
       </div>
       <div class="action-row">
@@ -393,7 +446,7 @@ renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.setClearColor(0x09090b, 1); // default background
+renderer.setClearColor(0x09090b, 1);
 container.appendChild(renderer.domElement);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
@@ -458,14 +511,18 @@ const MAX_HISTORY = 40;
 
 // Background state
 let currentBgColor = '#09090b';
-let bgImageTexture = null;
 let isTransparentBg = false;
+let bgPlane = null;           // the actual mesh for background image
+let bgFillMode = 'stretch';   // stretch | cover | contain | free
+let bgOpacity = 1;
+let bgBaseScale = 1;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
 const gizmoControlsUI = document.getElementById('gizmoControls');
 const btnUndo = document.getElementById('btnUndo');
 const btnRedo = document.getElementById('btnRedo');
+const bgImagePanel = document.getElementById('bgImagePanel');
 
 const ftEl = document.getElementById('free-transform');
 const ftBox = document.getElementById('ftBox');
@@ -480,37 +537,21 @@ let ftCenterScreen = new THREE.Vector2();
 // ===== FALLBACK SIMPLE T-SHIRT =====
 function createFallbackShirt() {
   const group = new THREE.Group();
-
   const mat = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    roughness: 0.8,
-    metalness: 0.1,
-    side: THREE.DoubleSide
+    color: 0xffffff, roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide
   });
 
   const torso = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 0.35), mat);
-  torso.position.y = 0.1;
-  torso.castShadow = true;
-  torso.receiveShadow = true;
-  group.add(torso);
+  torso.position.y = 0.1; torso.castShadow = true; torso.receiveShadow = true; group.add(torso);
 
   const sleeveL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
-  sleeveL.position.set(-0.95, 0.65, 0);
-  sleeveL.castShadow = true;
-  sleeveL.receiveShadow = true;
-  group.add(sleeveL);
+  sleeveL.position.set(-0.95, 0.65, 0); sleeveL.castShadow = true; sleeveL.receiveShadow = true; group.add(sleeveL);
 
   const sleeveR = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
-  sleeveR.position.set(0.95, 0.65, 0);
-  sleeveR.castShadow = true;
-  sleeveR.receiveShadow = true;
-  group.add(sleeveR);
+  sleeveR.position.set(0.95, 0.65, 0); sleeveR.castShadow = true; sleeveR.receiveShadow = true; group.add(sleeveR);
 
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.25, 16), mat);
-  neck.position.y = 1.05;
-  neck.castShadow = true;
-  neck.receiveShadow = true;
-  group.add(neck);
+  neck.position.y = 1.05; neck.castShadow = true; neck.receiveShadow = true; group.add(neck);
 
   return group;
 }
@@ -531,19 +572,13 @@ function setupShirt(model) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
-
       if (!child.material || !child.material.isMeshStandardMaterial) {
-        child.material = new THREE.MeshStandardMaterial({
-          color: 0xffffff,
-          roughness: 0.8,
-          metalness: 0.1
-        });
+        child.material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1 });
       } else {
         child.material.color.set(0xffffff);
         child.material.roughness = 0.8;
         child.material.metalness = 0.1;
       }
-
       shirtMaterials.push(child.material);
       shirtMeshes.push(child);
     }
@@ -565,20 +600,14 @@ function finishLoading() {
   }
 }
 
-// ===== LOAD MODEL DENGAN FALLBACK =====
 const loader = new GLTFLoader();
-
 loader.load(
   './T_shirt_gltf.gltf',
-  (gltf) => {
-    console.log('Model GLTF berjaya dimuatkan');
-    setupShirt(gltf.scene);
-  },
+  (gltf) => { setupShirt(gltf.scene); },
   undefined,
   (error) => {
-    console.warn('Gagal load T_shirt_gltf.gltf → guna fallback shirt', error);
-    const fallback = createFallbackShirt();
-    setupShirt(fallback);
+    console.warn('Gagal load model → guna fallback', error);
+    setupShirt(createFallbackShirt());
   }
 );
 
@@ -599,11 +628,12 @@ function addBaseLayer() {
   layerListUI.appendChild(el);
 }
 
-function addDesignLayer(dummy, name, icon) {
+function addDesignLayer(dummy, name, icon, isBg = false) {
   const id = 'layer-' + Date.now() + Math.random().toString(36).substr(2, 5);
   dummy.userData.layerId = id;
   dummy.userData.name = name;
   dummy.userData.icon = icon;
+  dummy.userData.isBg = isBg;
 
   const el = document.createElement('div');
   el.className = 'layer-item';
@@ -624,7 +654,11 @@ function addDesignLayer(dummy, name, icon) {
 
   el.querySelector('.delete-btn').onclick = (e) => {
     e.stopPropagation();
-    deleteLayer(dummy, el);
+    if (isBg) {
+      clearBgImage();
+    } else {
+      deleteLayer(dummy, el);
+    }
   };
 
   layerListUI.prepend(el);
@@ -637,6 +671,13 @@ function selectLayer(dummy, el) {
   
   activeDummy = dummy;
   gizmoControlsUI.classList.add('active');
+
+  // Background plane uses world space translate + scale
+  if (dummy.userData.isBg) {
+    transformControls.setSpace('world');
+  } else {
+    transformControls.setSpace('local');
+  }
 
   if (currentMode === 'free') {
     transformControls.detach();
@@ -679,7 +720,7 @@ function isOnSleeve(dummy) {
 }
 
 function createDecal(dummy) {
-  if (!shirtMeshes.length) return;
+  if (!shirtMeshes.length || dummy.userData.isBg) return;
 
   if (dummy.userData.decals) {
     dummy.userData.decals.forEach(decal => {
@@ -735,7 +776,17 @@ function createDecal(dummy) {
 }
 
 transformControls.addEventListener('objectChange', () => {
-  if (!activeDummy || !shirtMeshes.length) return;
+  if (!activeDummy) return;
+
+  if (activeDummy.userData.isBg) {
+    // Background plane – just update scale display
+    const s = activeDummy.scale.x;
+    document.getElementById('bgScaleSlider').value = s;
+    document.getElementById('bgScaleValue').textContent = s.toFixed(2);
+    return;
+  }
+
+  if (!shirtMeshes.length) return;
 
   if (transformControls.getMode() === 'scale') {
     const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
@@ -787,6 +838,19 @@ function hideFreeTransform() {
 }
 
 function getLogoCorners(dummy) {
+  if (dummy.userData.isBg) {
+    // For bg plane we use a simple bounding box
+    const box = new THREE.Box3().setFromObject(dummy);
+    const min = box.min;
+    const max = box.max;
+    return [
+      new THREE.Vector3(min.x, max.y, min.z),
+      new THREE.Vector3(max.x, max.y, min.z),
+      new THREE.Vector3(max.x, min.y, min.z),
+      new THREE.Vector3(min.x, min.y, min.z),
+    ];
+  }
+
   const base = isOnSleeve(dummy) ? 0.92 : 0.58;
   const halfW = (base * dummy.scale.x) * 0.5;
   const halfH = ((base / dummy.userData.aspect) * dummy.scale.y) * 0.5;
@@ -888,13 +952,19 @@ window.addEventListener('pointermove', (e) => {
     const startDist = Math.sqrt(startDx*startDx + startDy*startDy) || 1;
 
     let newScale = ftStartScale * (dist / startDist);
-    newScale = Math.max(0.12, Math.min(newScale, 4.5));
+    newScale = Math.max(0.12, Math.min(newScale, 8));
     activeDummy.scale.setScalar(newScale);
-    createDecal(activeDummy);
+
+    if (activeDummy.userData.isBg) {
+      document.getElementById('bgScaleSlider').value = newScale;
+      document.getElementById('bgScaleValue').textContent = newScale.toFixed(2);
+    } else {
+      createDecal(activeDummy);
+    }
     updateFreeTransformHandles();
   }
 
-  if (ftDragging === 'rotate') {
+  if (ftDragging === 'rotate' && !activeDummy.userData.isBg) {
     const dx = e.clientX - ftCenterScreen.x;
     const dy = e.clientY - ftCenterScreen.y;
     const angle = Math.atan2(dy, dx);
@@ -1010,16 +1080,12 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   saveToLocalStorage();
 }
 
-// ===== 7. BACKGROUND CONTROLS =====
-function applyBackground() {
+// ===== 7. BACKGROUND IMAGE SYSTEM =====
+function applySolidBackground() {
   if (isTransparentBg) {
     scene.background = null;
     renderer.setClearColor(0x000000, 0);
     container.style.background = 'transparent';
-  } else if (bgImageTexture) {
-    scene.background = bgImageTexture;
-    renderer.setClearColor(0x000000, 1);
-    container.style.background = '';
   } else {
     scene.background = new THREE.Color(currentBgColor);
     renderer.setClearColor(currentBgColor, 1);
@@ -1027,14 +1093,99 @@ function applyBackground() {
   }
 }
 
+function createBgPlane(texture, aspect) {
+  // Remove old
+  if (bgPlane) {
+    scene.remove(bgPlane);
+    if (bgPlane.material.map) bgPlane.material.map.dispose();
+    bgPlane.material.dispose();
+    bgPlane.geometry.dispose();
+    // remove from layers list
+    const oldEl = document.getElementById(bgPlane.userData.layerId);
+    if (oldEl) oldEl.remove();
+    layers = layers.filter(l => l !== bgPlane);
+  }
+
+  const geo = new THREE.PlaneGeometry(1, 1);
+  const mat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    opacity: bgOpacity,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+
+  bgPlane = new THREE.Mesh(geo, mat);
+  bgPlane.position.set(0, 0, -6); // far behind the shirt
+  bgPlane.scale.set(12, 12 / aspect, 1);
+  bgPlane.renderOrder = -10;
+  bgPlane.userData.isBg = true;
+  bgPlane.userData.aspect = aspect;
+  bgPlane.userData.texture = texture;
+
+  scene.add(bgPlane);
+  layers.push(bgPlane);
+
+  addDesignLayer(bgPlane, 'Latar Imej', '🖼️', true);
+  bgImagePanel.style.display = 'block';
+
+  // Apply current fill mode
+  applyFillMode(bgFillMode);
+}
+
+function clearBgImage() {
+  if (bgPlane) {
+    scene.remove(bgPlane);
+    if (bgPlane.material.map) bgPlane.material.map.dispose();
+    bgPlane.material.dispose();
+    bgPlane.geometry.dispose();
+
+    const el = document.getElementById(bgPlane.userData.layerId);
+    if (el) el.remove();
+    layers = layers.filter(l => l !== bgPlane);
+    bgPlane = null;
+  }
+  bgImagePanel.style.display = 'none';
+  transformControls.detach();
+  activeDummy = null;
+  gizmoControlsUI.classList.remove('active');
+  applySolidBackground();
+  pushHistory();
+  saveToLocalStorage();
+}
+
+function applyFillMode(mode) {
+  if (!bgPlane) return;
+  bgFillMode = mode;
+
+  document.querySelectorAll('.fill-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  const aspect = bgPlane.userData.aspect || 1;
+
+  if (mode === 'stretch') {
+    bgPlane.scale.set(16, 16 / aspect, 1);
+    bgPlane.position.set(0, 0, -6);
+  } else if (mode === 'cover') {
+    // Cover-ish: make it larger
+    bgPlane.scale.set(20, 20 / aspect, 1);
+    bgPlane.position.set(0, 0, -6);
+  } else if (mode === 'contain') {
+    bgPlane.scale.set(10, 10 / aspect, 1);
+    bgPlane.position.set(0, 0, -6);
+  }
+  // free = leave current transform
+
+  // Update slider
+  document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
+  document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
+}
+
 document.getElementById('bgColor').addEventListener('input', (e) => {
   currentBgColor = e.target.value;
-  if (!isTransparentBg) {
-    bgImageTexture = null; // color overrides image when changing color
-    applyBackground();
-  }
+  if (!bgPlane) applySolidBackground();
 });
-
 document.getElementById('bgColor').addEventListener('change', () => {
   pushHistory();
   saveToLocalStorage();
@@ -1048,13 +1199,15 @@ document.getElementById('bgImageUpload').addEventListener('change', (e) => {
   reader.onload = (ev) => {
     const img = new Image();
     img.onload = () => {
-      if (bgImageTexture) bgImageTexture.dispose();
-      bgImageTexture = new THREE.Texture(img);
-      bgImageTexture.colorSpace = THREE.SRGBColorSpace;
-      bgImageTexture.needsUpdate = true;
+      const texture = new THREE.Texture(img);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+
       isTransparentBg = false;
       document.getElementById('toggleTransparent').classList.remove('active');
-      applyBackground();
+      applySolidBackground(); // keep solid color behind the plane if needed
+
+      createBgPlane(texture, img.width / img.height);
       pushHistory();
       saveToLocalStorage();
     };
@@ -1064,23 +1217,51 @@ document.getElementById('bgImageUpload').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-document.getElementById('btnClearBgImage').onclick = () => {
-  if (bgImageTexture) {
-    bgImageTexture.dispose();
-    bgImageTexture = null;
-  }
-  applyBackground();
-  pushHistory();
-  saveToLocalStorage();
-};
+document.getElementById('btnClearBgImage').onclick = clearBgImage;
 
 document.getElementById('toggleTransparent').onclick = function() {
   isTransparentBg = !isTransparentBg;
   this.classList.toggle('active', isTransparentBg);
-  applyBackground();
+  if (isTransparentBg && bgPlane) {
+    // still keep plane, just make clear color transparent
+  }
+  applySolidBackground();
   pushHistory();
   saveToLocalStorage();
 };
+
+// Opacity & Scale for bg image
+document.getElementById('bgOpacitySlider').addEventListener('input', (e) => {
+  bgOpacity = parseFloat(e.target.value);
+  document.getElementById('bgOpacityValue').textContent = bgOpacity.toFixed(2);
+  if (bgPlane) bgPlane.material.opacity = bgOpacity;
+});
+document.getElementById('bgOpacitySlider').addEventListener('change', () => {
+  pushHistory();
+  saveToLocalStorage();
+});
+
+document.getElementById('bgScaleSlider').addEventListener('input', (e) => {
+  const s = parseFloat(e.target.value);
+  document.getElementById('bgScaleValue').textContent = s.toFixed(2);
+  if (bgPlane) {
+    const aspect = bgPlane.userData.aspect || 1;
+    bgPlane.scale.set(s, s / aspect, 1);
+  }
+});
+document.getElementById('bgScaleSlider').addEventListener('change', () => {
+  pushHistory();
+  saveToLocalStorage();
+});
+
+// Fill mode buttons
+document.querySelectorAll('.fill-btn').forEach(btn => {
+  btn.onclick = () => {
+    applyFillMode(btn.dataset.mode);
+    pushHistory();
+    saveToLocalStorage();
+  };
+});
 
 // ===== 8. LIGHT CONTROLS =====
 document.getElementById('ambientSlider').addEventListener('input', (e) => {
@@ -1088,13 +1269,11 @@ document.getElementById('ambientSlider').addEventListener('input', (e) => {
   ambientLight.intensity = val;
   document.getElementById('ambientValue').textContent = val.toFixed(2);
 });
-
 document.getElementById('dirSlider').addEventListener('input', (e) => {
   const val = parseFloat(e.target.value);
   mainLight.intensity = val;
   document.getElementById('dirValue').textContent = val.toFixed(2);
 });
-
 document.getElementById('shadowSlider').addEventListener('input', (e) => {
   const val = parseFloat(e.target.value);
   mainLight.shadow.intensity = val;
@@ -1193,7 +1372,13 @@ function getCurrentState() {
     ambient: ambientLight.intensity,
     directional: mainLight.intensity,
     shadow: mainLight.shadow.intensity,
-    layers: layers.map(d => ({
+    bgOpacity: bgOpacity,
+    bgFillMode: bgFillMode,
+    bgTransform: bgPlane ? {
+      position: bgPlane.position.toArray(),
+      scale: bgPlane.scale.toArray()
+    } : null,
+    layers: layers.filter(d => !d.userData.isBg).map(d => ({
       position: d.position.toArray(),
       quaternion: d.quaternion.toArray(),
       scale: d.scale.toArray(),
@@ -1220,6 +1405,7 @@ function pushHistory() {
 
 function clearAllLayers() {
   [...layers].forEach(d => {
+    if (d.userData.isBg) return; // handled separately
     if (d.userData.decals) {
       d.userData.decals.forEach(decal => {
         shirtGroup.remove(decal);
@@ -1231,10 +1417,12 @@ function clearAllLayers() {
     if (d.userData.texture) d.userData.texture.dispose();
     shirtGroup.remove(d);
   });
-  layers = [];
+  layers = layers.filter(l => l.userData.isBg);
   logoCount = 0;
   [...layerListUI.children].forEach(el => {
-    if (el.id !== 'layer-base') el.remove();
+    if (el.id !== 'layer-base' && !el.querySelector('.layer-info span:last-child')?.textContent.includes('Latar')) {
+      el.remove();
+    }
   });
 }
 
@@ -1249,7 +1437,6 @@ async function restoreState(state) {
     b.classList.toggle('active', b.style.background === currentShirtColor);
   });
 
-  // Restore background & lights
   currentBgColor = state.bgColor || '#09090b';
   document.getElementById('bgColor').value = currentBgColor;
   isTransparentBg = !!state.isTransparentBg;
@@ -1267,9 +1454,22 @@ async function restoreState(state) {
   document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2);
   document.getElementById('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
 
-  // Note: background image is not persisted in localStorage (too large)
-  bgImageTexture = null;
-  applyBackground();
+  bgOpacity = state.bgOpacity ?? 1;
+  document.getElementById('bgOpacitySlider').value = bgOpacity;
+  document.getElementById('bgOpacityValue').textContent = bgOpacity.toFixed(2);
+
+  bgFillMode = state.bgFillMode || 'stretch';
+
+  // Note: background image itself is not restored from localStorage (too heavy)
+  // User needs to re-upload if wanted. We only restore transform if plane exists.
+  if (bgPlane && state.bgTransform) {
+    bgPlane.position.fromArray(state.bgTransform.position);
+    bgPlane.scale.fromArray(state.bgTransform.scale);
+    bgPlane.material.opacity = bgOpacity;
+    applyFillMode(bgFillMode);
+  } else {
+    applySolidBackground();
+  }
 
   const promises = (state.layers || []).map((ldata) => {
     return new Promise((resolve) => {
@@ -1403,9 +1603,6 @@ document.getElementById('saveBtn').onclick = () => {
   hideFreeTransform();
   const currentSize = renderer.getSize(new THREE.Vector2());
   
-  // Temporary force transparent if user wants clean export
-  const wasTransparent = isTransparentBg;
-  
   renderer.setSize(2000, 2000, false);
   renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
@@ -1442,8 +1639,8 @@ window.addEventListener('resize', () => {
   if (currentMode === 'free') updateFreeTransformHandles();
 });
 
-// Initial background
-applyBackground();
+// Initial
+applySolidBackground();
 </script>
 
 </body>
