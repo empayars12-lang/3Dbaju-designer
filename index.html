@@ -65,6 +65,82 @@
     }
     .save-btn:hover { background: #059669; transform: translateY(-2px); }
 
+    /* ===== NEW: Background & Light Controls ===== */
+    .bg-controls, .light-controls {
+      background: #27272a;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #3f3f46;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .slider-row label {
+      font-size: 12px;
+      color: #d4d4d8;
+      display: flex;
+      justify-content: space-between;
+    }
+    .slider-row input[type="range"] {
+      width: 100%;
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      color: #d4d4d8;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #3f3f46;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .toggle-switch.active {
+      background: #38bdf8;
+    }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: 0.2s;
+    }
+    .toggle-switch.active::after {
+      left: 23px;
+    }
+    .small-btn {
+      background: #3f3f46;
+      color: #d4d4d8;
+      border: 1px solid #52525b;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+    }
+    .small-btn:hover { background: #52525b; }
+    .small-btn.danger { background: #7f1d1d; border-color: #991b1b; color: #fecaca; }
+    .small-btn.danger:hover { background: #991b1b; }
+
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
 
@@ -188,6 +264,58 @@
       <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
     </div>
 
+    <!-- ===== LATAR BELAKANG ===== -->
+    <div>
+      <div class="section-title">Latar Belakang</div>
+      <div class="bg-controls">
+        <div class="custom-color-wrapper" style="margin-top:0;">
+          <input type="color" id="bgColor" value="#09090b">
+          <span>Warna Latar</span>
+        </div>
+
+        <div class="upload-btn" style="padding:12px; font-size:13px;">
+          + Imej Latar Belakang
+          <input type="file" id="bgImageUpload" accept="image/*">
+        </div>
+
+        <button class="small-btn" id="btnClearBgImage">Buang Imej Latar</button>
+
+        <div class="toggle-row">
+          <span>Transparent Background</span>
+          <div class="toggle-switch" id="toggleTransparent"></div>
+        </div>
+        <div class="hint">Transparent berguna bila export PNG (tiada background)</div>
+      </div>
+    </div>
+
+    <!-- ===== CAHAYA ===== -->
+    <div>
+      <div class="section-title">Kawalan Cahaya</div>
+      <div class="light-controls">
+        <div class="slider-row">
+          <label>
+            <span>Ambient Light</span>
+            <span id="ambientValue">0.50</span>
+          </label>
+          <input type="range" id="ambientSlider" min="0" max="2" step="0.05" value="0.5">
+        </div>
+        <div class="slider-row">
+          <label>
+            <span>Directional Light</span>
+            <span id="dirValue">2.00</span>
+          </label>
+          <input type="range" id="dirSlider" min="0" max="5" step="0.1" value="2">
+        </div>
+        <div class="slider-row">
+          <label>
+            <span>Bayang (Shadow)</span>
+            <span id="shadowValue">1.00</span>
+          </label>
+          <input type="range" id="shadowSlider" min="0" max="1" step="0.05" value="1">
+        </div>
+      </div>
+    </div>
+
     <div class="gizmo-controls" id="gizmoControls">
       <div class="section-title" style="margin-bottom: 0;">Kawalan Logo</div>
       <div class="mode-buttons">
@@ -265,17 +393,21 @@ renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x09090b, 1); // default background
 container.appendChild(renderer.domElement);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
 
 const mainLight = new THREE.DirectionalLight(0xffffff, 2);
 mainLight.position.set(5, 10, 5);
 mainLight.castShadow = true;
 mainLight.shadow.mapSize.width = 2048;
 mainLight.shadow.mapSize.height = 2048;
+mainLight.shadow.intensity = 1;
 scene.add(mainLight);
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.ShadowMaterial({ opacity: 0.3 }));
@@ -324,6 +456,11 @@ let history = [];
 let historyIndex = -1;
 const MAX_HISTORY = 40;
 
+// Background state
+let currentBgColor = '#09090b';
+let bgImageTexture = null;
+let isTransparentBg = false;
+
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
 const gizmoControlsUI = document.getElementById('gizmoControls');
@@ -340,7 +477,7 @@ let ftStartScale = 1;
 let ftStartAngle = 0;
 let ftCenterScreen = new THREE.Vector2();
 
-// ===== FALLBACK SIMPLE T-SHIRT (jika fail .gltf tak jumpa) =====
+// ===== FALLBACK SIMPLE T-SHIRT =====
 function createFallbackShirt() {
   const group = new THREE.Group();
 
@@ -351,28 +488,24 @@ function createFallbackShirt() {
     side: THREE.DoubleSide
   });
 
-  // Badan (torso)
   const torso = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 0.35), mat);
   torso.position.y = 0.1;
   torso.castShadow = true;
   torso.receiveShadow = true;
   group.add(torso);
 
-  // Lengan kiri
   const sleeveL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
   sleeveL.position.set(-0.95, 0.65, 0);
   sleeveL.castShadow = true;
   sleeveL.receiveShadow = true;
   group.add(sleeveL);
 
-  // Lengan kanan
   const sleeveR = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
   sleeveR.position.set(0.95, 0.65, 0);
   sleeveR.castShadow = true;
   sleeveR.receiveShadow = true;
   group.add(sleeveR);
 
-  // Bahagian leher (lebih realistik sikit)
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.25, 16), mat);
   neck.position.y = 1.05;
   neck.castShadow = true;
@@ -399,7 +532,6 @@ function setupShirt(model) {
       child.castShadow = true;
       child.receiveShadow = true;
 
-      // Pastikan material standard
       if (!child.material || !child.material.isMeshStandardMaterial) {
         child.material = new THREE.MeshStandardMaterial({
           color: 0xffffff,
@@ -445,7 +577,6 @@ loader.load(
   undefined,
   (error) => {
     console.warn('Gagal load T_shirt_gltf.gltf → guna fallback shirt', error);
-    // Cipta baju mudah supaya studio masih boleh digunakan
     const fallback = createFallbackShirt();
     setupShirt(fallback);
   }
@@ -879,7 +1010,99 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   saveToLocalStorage();
 }
 
-// ===== 7. UI CONTROLS =====
+// ===== 7. BACKGROUND CONTROLS =====
+function applyBackground() {
+  if (isTransparentBg) {
+    scene.background = null;
+    renderer.setClearColor(0x000000, 0);
+    container.style.background = 'transparent';
+  } else if (bgImageTexture) {
+    scene.background = bgImageTexture;
+    renderer.setClearColor(0x000000, 1);
+    container.style.background = '';
+  } else {
+    scene.background = new THREE.Color(currentBgColor);
+    renderer.setClearColor(currentBgColor, 1);
+    container.style.background = currentBgColor;
+  }
+}
+
+document.getElementById('bgColor').addEventListener('input', (e) => {
+  currentBgColor = e.target.value;
+  if (!isTransparentBg) {
+    bgImageTexture = null; // color overrides image when changing color
+    applyBackground();
+  }
+});
+
+document.getElementById('bgColor').addEventListener('change', () => {
+  pushHistory();
+  saveToLocalStorage();
+});
+
+document.getElementById('bgImageUpload').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      if (bgImageTexture) bgImageTexture.dispose();
+      bgImageTexture = new THREE.Texture(img);
+      bgImageTexture.colorSpace = THREE.SRGBColorSpace;
+      bgImageTexture.needsUpdate = true;
+      isTransparentBg = false;
+      document.getElementById('toggleTransparent').classList.remove('active');
+      applyBackground();
+      pushHistory();
+      saveToLocalStorage();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+document.getElementById('btnClearBgImage').onclick = () => {
+  if (bgImageTexture) {
+    bgImageTexture.dispose();
+    bgImageTexture = null;
+  }
+  applyBackground();
+  pushHistory();
+  saveToLocalStorage();
+};
+
+document.getElementById('toggleTransparent').onclick = function() {
+  isTransparentBg = !isTransparentBg;
+  this.classList.toggle('active', isTransparentBg);
+  applyBackground();
+  pushHistory();
+  saveToLocalStorage();
+};
+
+// ===== 8. LIGHT CONTROLS =====
+document.getElementById('ambientSlider').addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value);
+  ambientLight.intensity = val;
+  document.getElementById('ambientValue').textContent = val.toFixed(2);
+});
+
+document.getElementById('dirSlider').addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value);
+  mainLight.intensity = val;
+  document.getElementById('dirValue').textContent = val.toFixed(2);
+});
+
+document.getElementById('shadowSlider').addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value);
+  mainLight.shadow.intensity = val;
+  ground.material.opacity = 0.3 * val;
+  document.getElementById('shadowValue').textContent = val.toFixed(2);
+});
+
+// ===== 9. UI CONTROLS =====
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -961,10 +1184,15 @@ document.getElementById('viewLeft').onclick = () => {
   setActiveViewBtn('viewLeft');
 };
 
-// ===== 8. HISTORY =====
+// ===== 10. HISTORY =====
 function getCurrentState() {
   return {
     color: currentShirtColor,
+    bgColor: currentBgColor,
+    isTransparentBg: isTransparentBg,
+    ambient: ambientLight.intensity,
+    directional: mainLight.intensity,
+    shadow: mainLight.shadow.intensity,
     layers: layers.map(d => ({
       position: d.position.toArray(),
       quaternion: d.quaternion.toArray(),
@@ -1020,6 +1248,28 @@ async function restoreState(state) {
   document.querySelectorAll('.color-btn').forEach(b => {
     b.classList.toggle('active', b.style.background === currentShirtColor);
   });
+
+  // Restore background & lights
+  currentBgColor = state.bgColor || '#09090b';
+  document.getElementById('bgColor').value = currentBgColor;
+  isTransparentBg = !!state.isTransparentBg;
+  document.getElementById('toggleTransparent').classList.toggle('active', isTransparentBg);
+  
+  ambientLight.intensity = state.ambient ?? 0.5;
+  mainLight.intensity = state.directional ?? 2;
+  mainLight.shadow.intensity = state.shadow ?? 1;
+  ground.material.opacity = 0.3 * (state.shadow ?? 1);
+  
+  document.getElementById('ambientSlider').value = ambientLight.intensity;
+  document.getElementById('dirSlider').value = mainLight.intensity;
+  document.getElementById('shadowSlider').value = mainLight.shadow.intensity;
+  document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2);
+  document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2);
+  document.getElementById('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
+
+  // Note: background image is not persisted in localStorage (too large)
+  bgImageTexture = null;
+  applyBackground();
 
   const promises = (state.layers || []).map((ldata) => {
     return new Promise((resolve) => {
@@ -1119,7 +1369,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// ===== 9. LOCAL STORAGE =====
+// ===== 11. LOCAL STORAGE =====
 function saveToLocalStorage() {
   try {
     localStorage.setItem('proDesigner3D_state', JSON.stringify(getCurrentState()));
@@ -1147,11 +1397,14 @@ async function loadFromLocalStorage() {
   }
 }
 
-// ===== 10. SAVE HD =====
+// ===== 12. SAVE HD =====
 document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false;
   hideFreeTransform();
   const currentSize = renderer.getSize(new THREE.Vector2());
+  
+  // Temporary force transparent if user wants clean export
+  const wasTransparent = isTransparentBg;
   
   renderer.setSize(2000, 2000, false);
   renderer.render(scene, camera);
@@ -1163,12 +1416,12 @@ document.getElementById('saveBtn').onclick = () => {
   renderer.render(scene, camera);
 
   const link = document.createElement('a');
-  link.download = 'design-baju-hd.png';
+  link.download = isTransparentBg ? 'design-baju-transparent.png' : 'design-baju-hd.png';
   link.href = dataURL;
   link.click();
 };
 
-// ===== 11. ANIMATE =====
+// ===== 13. ANIMATE =====
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
@@ -1188,6 +1441,9 @@ window.addEventListener('resize', () => {
   renderer.setSize(width, height);
   if (currentMode === 'free') updateFreeTransformHandles();
 });
+
+// Initial background
+applyBackground();
 </script>
 
 </body>
