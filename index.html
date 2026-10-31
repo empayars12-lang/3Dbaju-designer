@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Pro Baju Designer 3D</title>
+  <title>Baju Designer 3D - Layer System</title>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
@@ -13,97 +13,112 @@
     
     #app { display: flex; height: 100vh; background: #121212; color: #fff; }
     
-    /* PANEL KIRI */
-    #sidebar {
-      width: 320px; background: #1e1e24; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-      border-right: 1px solid #333; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto;
+    /* PANEL KIRI (TOOLS) */
+    #sidebar-left {
+      width: 280px; background: #1e1e24; padding: 20px; display: flex; flex-direction: column; gap: 15px;
+      border-right: 1px solid #333; z-index: 10; overflow-y: auto;
     }
-    #sidebar h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 5px;}
+    #sidebar-left h2 { font-size: 13px; text-transform: uppercase; color: #aaa; margin-bottom: 5px;}
     
-    /* Warna */
-    .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 5px; }
+    .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 5px; }
     .color-btn {
-      aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
-      transition: all 0.2s; position: relative;
+      aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s;
     }
-    .color-btn:hover { transform: scale(1.1); }
-    .color-btn.active { border-color: #38bdf8; transform: scale(1.1); }
+    .color-btn:hover, .color-btn.active { border-color: #38bdf8; transform: scale(1.1); }
     
     .custom-color-wrapper { display: flex; align-items: center; gap: 10px; background: #2a2a35; padding: 5px 10px; border-radius: 6px;}
     .custom-color-wrapper input[type="color"] { width: 40px; height: 30px; border: none; background: none; cursor: pointer;}
-    .custom-color-wrapper span { font-size: 12px; color: #aaa;}
-
-    /* Upload Logo */
+    
     .upload-btn {
       background: #38bdf8; color: #000; text-align: center; padding: 12px; border-radius: 6px;
-      font-weight: 600; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; margin-bottom: 10px;
+      font-weight: 600; cursor: pointer; position: relative; overflow: hidden;
     }
-    .upload-btn:hover { background: #0ea5e9; }
     .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    
-    /* Slider */
-    .slider-container { display: flex; flex-direction: column; gap: 5px; background: #2a2a35; padding: 10px; border-radius: 6px;}
-    input[type=range] { width: 100%; accent-color: #38bdf8; }
-    
-    /* Butang Save */
+
     .save-btn {
       margin-top: auto; background: #10b981; color: white; border: none; padding: 15px;
-      border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;
+      border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer;
     }
-    .save-btn:hover { background: #059669; }
 
-    /* KAWASAN 3D */
+    /* KAWASAN 3D (TENGAH) */
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle, #2a2a35 0%, #121212 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
+
+    /* PANEL KANAN (LAYERS) */
+    #sidebar-right {
+      width: 220px; background: #1e1e24; border-left: 1px solid #333; z-index: 10;
+      display: flex; flex-direction: column;
+    }
+    #sidebar-right h2 { font-size: 13px; text-transform: uppercase; color: #aaa; padding: 15px; border-bottom: 1px solid #333;}
+    
+    #layers-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .layer-item {
+      padding: 12px 15px; border-bottom: 1px solid #2a2a35; cursor: pointer; display: flex; align-items: center; gap: 10px;
+      transition: 0.2s;
+    }
+    .layer-item:hover { background: #2a2a35; }
+    .layer-item.active { background: #0ea5e9; color: #fff; }
+    .layer-icon { font-size: 18px; }
+    .layer-name { font-size: 13px; font-weight: 600; }
 
     /* Loading */
     #loading {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: #121212; color: #38bdf8; z-index: 100; font-weight: 600; letter-spacing: 1px;
+      background: #121212; color: #38bdf8; z-index: 100; font-weight: 600;
     }
 
     /* Responsive */
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       #app { flex-direction: column; }
-      #sidebar { width: 100%; height: 40vh; border-right: none; border-top: 1px solid #333; order: 2; padding: 15px;}
-      #viewer-container { order: 1; flex: 1; }
-      .save-btn { margin-top: 10px; }
-      .color-grid { grid-template-columns: repeat(6, 1fr); }
+      #sidebar-left { width: 100%; height: auto; padding: 10px; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid #333; }
+      #sidebar-left h2, .custom-color-wrapper { display: none; }
+      .color-grid { display: flex; gap: 5px; margin: 0; }
+      .color-btn { width: 30px; height: 30px; }
+      .upload-btn { padding: 8px; font-size: 12px; }
+      #sidebar-right { width: 100%; height: 120px; border-left: none; border-top: 1px solid #333; flex-direction: row; }
+      #sidebar-right h2 { display: none; }
+      #layers-list { flex-direction: row; overflow-x: auto; }
+      .layer-item { border-bottom: none; border-right: 1px solid #2a2a35; white-space: nowrap; }
+      .save-btn { padding: 8px; font-size: 12px; margin: 0; }
     }
   </style>
 </head>
 <body>
 
 <div id="app">
-  <div id="sidebar">
+  <!-- PANEL KIRI -->
+  <div id="sidebar-left">
     <div>
-      <h2>1. Warna Baju</h2>
+      <h2>Warna Baju</h2>
       <div class="color-grid" id="colorGrid"></div>
       <div class="custom-color-wrapper">
         <input type="color" id="customColor" value="#ffffff">
-        <span>Warna Custom</span>
+        <span>Custom</span>
       </div>
     </div>
     
-    <div>
-      <h2>2. Upload Logo</h2>
+    <div style="margin-top: 10px;">
+      <h2>Upload Logo</h2>
       <div class="upload-btn">
-        + Tambah Gambar/Logo
+        + Tambah Gambar
         <input type="file" id="logoUpload" accept="image/*" multiple>
       </div>
-      <p style="font-size: 11px; color: #888; margin-top: 5px;">Klik pada logo di skrin 3D untuk gerakkan.</p>
-    </div>
-    
-    <div class="slider-container">
-      <h2>3. Saiz Logo</h2>
-      <input type="range" id="logoSize" min="0.1" max="2.0" step="0.05" value="0.5">
     </div>
     
     <button class="save-btn" onclick="saveImage()">⬇️ Save Design</button>
   </div>
   
+  <!-- KAWASAN 3D -->
   <div id="viewer-container">
     <div id="loading">MEMUATKAN 3D...</div>
+  </div>
+
+  <!-- PANEL KANAN (LAYERS) -->
+  <div id="sidebar-right">
+    <h2>Layers</h2>
+    <div id="layers-list">
+      <!-- Layer akan dijana di sini -->
+    </div>
   </div>
 </div>
 
@@ -122,29 +137,25 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
-// ===== DATA WARNA =====
+// ===== DATA =====
 const COLORS = [
   { name: 'Putih', hex: '#ffffff' }, { name: 'Hitam', hex: '#1a1a1a' }, { name: 'Kelabu', hex: '#64748b' },
-  { name: 'Merah', hex: '#dc2626' }, { name: 'Biru', hex: '#2563eb' }, { name: 'Hijau', hex: '#16a34a' },
-  { name: 'Kuning', hex: '#ca8a04' }, { name: 'Ungu', hex: '#9333ea' }
+  { name: 'Merah', hex: '#dc2626' }, { name: 'Biru', hex: '#2563eb' }, { name: 'Hijau', hex: '#16a34a' }
 ];
 
-// ===== SETUP ASAS THREE.JS =====
+// ===== SETUP THREE.JS =====
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
-scene.background = null; 
-
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
 camera.position.set(0, 0, 5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.shadowMap.enabled = true;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
-// ===== LAMPU =====
+// Lampu
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 const dirLight = new THREE.DirectionalLight(0xffffff, 2);
 dirLight.position.set(5, 10, 7);
@@ -153,93 +164,170 @@ const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
 fillLight.position.set(-5, 5, -5);
 scene.add(fillLight);
 
-// ===== KAWALAN KAMERA =====
+// Kawalan Kamera
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
-controls.enableZoom = true;
 controls.minDistance = 2;
-controls.maxDistance = 8;
-controls.target.set(0, 0, 0);
+controls.maxDistance = 10;
 
-// ===== KAWALAN GIZMO =====
+// Transform Controls (Gizmo)
 const transformControls = new TransformControls(camera, renderer.domElement);
-transformControls.setMode('translate'); 
-transformControls.showZ = false; // KUNCI PAKSA: Sembunyikan anak panah Z supaya tak terapung
+transformControls.setMode('translate');
+transformControls.showZ = false; // Sembunyikan Z supaya tak terapung
 scene.add(transformControls);
 
-transformControls.addEventListener('dragging-changed', function (event) {
+transformControls.addEventListener('dragging-changed', (event) => {
   controls.enabled = !event.value;
 });
 
-// ===== VARIABEL GLOBAL =====
-let shirtMesh = null;
-let shirtMaterials = [];
-let activeLogo = null;
-let shirtBox = new THREE.Box3(); // Simpan saiz baju
-let shirtCenter = new THREE.Vector3(); // Simpan posisi tengah baju
+// ===== SISTEM LAYER =====
+// Kita bungkus baju 3D dalam satu Group. Logo akan dimasukkan dalam Group ini.
+const shirtGroup = new THREE.Group(); 
+scene.add(shirtGroup);
 
-// ===== LOAD MODEL 3D =====
+let shirtMaterials = [];
+let activeObject = null; // Layer yang sedang dipilih
+
+// Data Layer UI
+const layersData = [];
+
+// ===== LOAD BAJU 3D =====
 const loader = new GLTFLoader();
 const MODEL_URL = './T_shirt_gltf.gltf';
 
-loader.load(
-  MODEL_URL,
-  (gltf) => {
-    shirtMesh = gltf.scene;
-    
-    // Auto-fit size model
-    shirtBox.setFromObject(shirtMesh);
-    const size = shirtBox.getSize(new THREE.Vector3());
-    shirtCenter = shirtBox.getCenter(new THREE.Vector3());
-    const maxSize = Math.max(size.x, size.y, size.z);
-    const scaleFactor = 2.5 / maxSize; 
-    
-    shirtMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
-    // Update box selepas scale
-    shirtMesh.updateMatrixWorld(true);
-    shirtBox.setFromObject(shirtMesh);
-    shirtCenter = shirtBox.getCenter(new THREE.Vector3());
-    const newSize = shirtBox.getSize(new THREE.Vector3());
+loader.load(MODEL_URL, (gltf) => {
+  const shirtMesh = gltf.scene;
+  
+  // Auto-fit saiz
+  const box = new THREE.Box3().setFromObject(shirtMesh);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const maxSize = Math.max(size.x, size.y, size.z);
+  const scaleFactor = 2.5 / maxSize; 
+  
+  shirtMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+  shirtMesh.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
+  
+  camera.position.set(0, 0, maxSize * 1.8);
+  controls.update();
 
-    // Set posisi baju ke tengah skrin
-    shirtMesh.position.set(-shirtCenter.x, -shirtCenter.y, -shirtCenter.z);
-    
-    // Kira semula box selepas posisi diubah
-    shirtMesh.updateMatrixWorld(true);
-    shirtBox.setFromObject(shirtMesh);
-    shirtCenter = shirtBox.getCenter(new THREE.Vector3());
+  // Material baju
+  shirtMesh.traverse((child) => {
+    if (child.isMesh) {
+      child.material = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9 });
+      shirtMaterials.push(child.material);
+    }
+  });
+  
+  // Masukkan baju ke dalam Group
+  shirtGroup.add(shirtMesh);
+  document.getElementById('loading').style.display = 'none';
 
-    camera.position.set(0, 0, newSize.z * 3.5);
-    controls.update();
+  // Daftarkan Baju 3D sebagai Layer Utama
+  addLayerUI('Baju 3D', '👕', shirtGroup, true);
 
-    // Setup material baju
-    shirtMesh.traverse((child) => {
-      if (child.isMesh) {
-        child.material = new THREE.MeshStandardMaterial({
-          color: '#ffffff', roughness: 0.9, metalness: 0.0
-        });
-        shirtMaterials.push(child.material);
-      }
+}, undefined, (error) => {
+  console.error('Error:', error);
+  document.getElementById('loading').innerText = 'Gagal muat model.';
+});
+
+// ===== FUNGSI UI LAYER =====
+function addLayerUI(name, icon, object, isShirt = false) {
+  const layerId = 'layer-' + Date.now() + Math.random();
+  object.userData.layerId = layerId;
+  object.userData.isShirt = isShirt;
+
+  layersData.push({ id: layerId, name, icon, object });
+
+  const list = document.getElementById('layers-list');
+  const item = document.createElement('div');
+  item.className = 'layer-item';
+  item.id = layerId;
+  item.innerHTML = `<span class="layer-icon">${icon}</span><span class="layer-name">${name}</span>`;
+  
+  // Bila layer diklik
+  item.addEventListener('click', () => {
+    // Buang 'active' dari semua layer
+    document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('active'));
+    item.classList.add('active');
+
+    // Attach Gizmo ke objek layer ini
+    activeObject = object;
+    transformControls.attach(activeObject);
+  });
+
+  // Masukkan layer baru di atas sekali (sebab baru di-upload)
+  list.insertBefore(item, list.firstChild);
+
+  // Auto-select layer yang baru ditambah
+  item.click();
+}
+
+// ===== UPLOAD LOGO =====
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+document.getElementById('logoUpload').addEventListener('change', (e) => {
+  const files = e.target.files;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      createLogoLayer(event.target.result, `Logo ${layersData.length}`);
+    };
+    reader.readAsDataURL(file);
+  }
+  e.target.value = '';
+});
+
+function createLogoLayer(imageUrl, name) {
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load(imageUrl, (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    const aspect = texture.image.width / texture.image.height;
+    const baseWidth = 0.5;
+    const baseHeight = baseWidth / aspect;
+
+    const geometry = new THREE.PlaneGeometry(baseWidth, baseHeight);
+    const material = new THREE.MeshBasicMaterial({ 
+      map: texture, transparent: true, depthTest: false, depthWrite: false
     });
     
-    scene.add(shirtMesh);
-    document.getElementById('loading').style.display = 'none';
-  },
-  undefined,
-  (error) => {
-    console.error('Error:', error);
-    document.getElementById('loading').innerText = 'Gagal muat model.';
-  }
-);
+    const logo3D = new THREE.Mesh(geometry, material);
+    
+    // CARI POSISI TENGAH SKRIN UNTUK LETAK LOGO
+    mouse.x = 0; // Tengah skrin X
+    mouse.y = 0; // Tengah skrin Y
+    raycaster.setFromCamera(mouse, camera);
 
-// ===== BINA BUTANG WARNA =====
+    // Tembak laser ke baju 3D
+    const intersects = raycaster.intersectObject(shirtGroup, true);
+    
+    if (intersects.length > 0) {
+      const point = intersects[0].point;
+      // Letak logo sedikit ke depan dari permukaan baju supaya tak tenggelam
+      logo3D.position.copy(point);
+      logo3D.position.z += 0.02; 
+    } else {
+      // Kalau tak jumpa baju (contoh: kamera pusing), letak di tengah group
+      logo3D.position.set(0, 0, 1.5);
+    }
+
+    // Masukkan logo ke dalam baju Group (supaya ia bergerak bersama baju)
+    shirtGroup.add(logo3D);
+    
+    // Daftarkan sebagai layer baru
+    addLayerUI(name, '🖼️', logo3D, false);
+  });
+}
+
+// ===== TUKAR WARNA =====
 const colorGrid = document.getElementById('colorGrid');
 COLORS.forEach((c, i) => {
   const btn = document.createElement('button');
   btn.className = 'color-btn' + (i === 0 ? ' active' : '');
   btn.style.background = c.hex;
-  btn.title = c.name;
-  
   btn.addEventListener('click', () => {
     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -248,100 +336,9 @@ COLORS.forEach((c, i) => {
   colorGrid.appendChild(btn);
 });
 
-// Custom Color
 document.getElementById('customColor').addEventListener('input', (e) => {
   document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
   shirtMaterials.forEach(mat => mat.color.set(e.target.value));
-});
-
-// ===== LOGIK UPLOAD & DRAG LOGO =====
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-const logoList = []; 
-
-// Event Klik pada Skrin 3D
-renderer.domElement.addEventListener('pointerdown', (e) => {
-  mouse.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
-  mouse.y = -(e.clientY / renderer.domElement.clientHeight) * 2 + 1;
-  
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(logoList);
-  
-  if (intersects.length > 0) {
-    activeLogo = intersects[0].object;
-    transformControls.attach(activeLogo);
-    document.getElementById('logoSize').value = activeLogo.scale.x;
-  } else {
-    transformControls.detach();
-    activeLogo = null;
-  }
-});
-
-// Event Upload Gambar
-document.getElementById('logoUpload').addEventListener('change', (e) => {
-  const files = e.target.files;
-  for (let i = 0; i < files.length; i++) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      create3DLogo(event.target.result);
-    };
-    reader.readAsDataURL(files[i]);
-  }
-  e.target.value = ''; 
-});
-
-// Fungsi Buat Logo 3D (Duduk tepat atas dada baju)
-function create3DLogo(imageUrl) {
-  const textureLoader = new THREE.TextureLoader();
-  textureLoader.load(imageUrl, (texture) => {
-    texture.colorSpace = THREE.SRGBColorSpace;
-
-    const img = texture.image;
-    const aspect = img.width / img.height;
-    const baseWidth = 0.4; // Saiz asal logo
-    const baseHeight = baseWidth / aspect;
-
-    const geometry = new THREE.PlaneGeometry(baseWidth, baseHeight);
-    const material = new THREE.MeshBasicMaterial({ 
-      map: texture, 
-      transparent: true, 
-      depthTest: false, // Supaya sentiasa nampak depan
-      depthWrite: false
-    });
-    
-    const logo3D = new THREE.Mesh(geometry, material);
-    
-    // KIRA POSISI TENGAH BAJU SECARA AUTOMATIK
-    if (shirtMesh) {
-      const shirtSize = shirtBox.getSize(new THREE.Vector3());
-      
-      // Letak di tengah X, dan sikit ke atas (dada) untuk Y
-      // Untuk Z, letak di bahagian paling depan baju
-      const posX = shirtCenter.x;
-      const posY = shirtCenter.y + (shirtSize.y * 0.15); // Naik sikit ke dada
-      const posZ = shirtCenter.z + (shirtSize.z / 2) + 0.05; // Sikit depan dari baju
-      
-      logo3D.position.set(posX, posY, posZ);
-    } else {
-      logo3D.position.set(0, 0.5, 1.5);
-    }
-    
-    logo3D.scale.set(1, 1, 1);
-
-    scene.add(logo3D);
-    logoList.push(logo3D);
-
-    activeLogo = logo3D;
-    transformControls.attach(activeLogo);
-  });
-}
-
-// Slider Saiz
-document.getElementById('logoSize').addEventListener('input', (e) => {
-  if (activeLogo) {
-    const val = parseFloat(e.target.value);
-    activeLogo.scale.set(val, val, val);
-  }
 });
 
 // ===== SIMPAN GAMBAR =====
