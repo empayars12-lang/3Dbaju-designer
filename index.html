@@ -12,49 +12,52 @@
     
     #app { display: flex; height: 100vh; }
     
-    /* PANEL KIRI */
     #sidebar-left {
-      width: 300px; background: #18181b; padding: 24px; display: flex; flex-direction: column; gap: 20px;
+      width: 300px; background: #18181b; padding: 20px; display: flex; flex-direction: column; gap: 16px;
       border-right: 1px solid #27272a; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto;
     }
-    .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #a1a1aa; margin-bottom: 12px; }
+    .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #a1a1aa; margin-bottom: 8px; }
     
-    .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
     .color-btn:hover { transform: scale(1.1); }
     .color-btn.active { border-color: #38bdf8; transform: scale(1.1); box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
     
-    .custom-color-wrapper { display: flex; align-items: center; gap: 12px; background: #27272a; padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46; margin-top: 12px;}
+    .custom-color-wrapper { display: flex; align-items: center; gap: 12px; background: #27272a; padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46; margin-top: 8px;}
     .custom-color-wrapper input[type="color"] { width: 32px; height: 32px; border: none; background: none; cursor: pointer; border-radius: 4px; }
     .custom-color-wrapper span { font-size: 13px; color: #d4d4d8; }
 
     .upload-btn {
-      background: #38bdf8; color: #000; text-align: center; padding: 14px; border-radius: 8px;
-      font-weight: 600; font-size: 14px; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
+      background: #38bdf8; color: #000; text-align: center; padding: 12px; border-radius: 8px;
+      font-weight: 600; font-size: 13px; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s;
     }
-    .upload-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
+    .upload-btn:hover { background: #0ea5e9; }
     .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
-    .text-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
-    .text-input-group input[type="text"] { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #3f3f46; background: #27272a; color: #fff; font-family: inherit; font-size: 13px; }
-    .text-input-group input[type="color"] { width: 40px; height: 40px; border: none; background: #27272a; border-radius: 6px; cursor: pointer; padding: 2px; }
-    .add-text-btn { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
+    .text-input-group { display: flex; gap: 6px; margin-bottom: 6px; }
+    .text-input-group input[type="text"] { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #3f3f46; background: #27272a; color: #fff; font-family: inherit; font-size: 12px; }
+    .text-input-group input[type="color"] { width: 36px; height: 36px; border: none; background: #27272a; border-radius: 6px; cursor: pointer; padding: 2px; }
+    .add-text-btn { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
     .add-text-btn:hover { background: #3f3f46; }
 
-    .gizmo-controls { display: none; background: #27272a; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46; }
-    .gizmo-controls.active { display: block; }
-    .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-    .mode-btn { background: #3f3f46; border: none; color: #d4d4d8; padding: 10px 4px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit; }
-    .mode-btn:hover { background: #52525b; }
-    .mode-btn.active { background: #38bdf8; color: #000; }
+    /* Panel Kawalan Logo */
+    .control-panel { display: none; background: #27272a; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46; }
+    .control-panel.active { display: flex; flex-direction: column; gap: 10px; }
+    
+    .slider-group { display: flex; flex-direction: column; gap: 4px; }
+    .slider-group label { font-size: 11px; color: #a1a1aa; display: flex; justify-content: space-between;}
+    .slider-group input[type="range"] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
+
+    .action-row { display: flex; gap: 8px; margin-top: 8px; }
+    .action-row .btn { flex: 1; padding: 10px; font-size: 12px; }
+    .btn-undo { background: #3f3f46; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .btn-undo:hover { background: #52525b; }
 
     .save-btn {
-      margin-top: auto; background: #10b981; color: #fff; border: none; padding: 16px;
-      border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+      margin-top: auto; background: #10b981; color: #fff; border: none; padding: 14px;
+      border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s;
     }
-    .save-btn:hover { background: #059669; transform: translateY(-2px); }
+    .save-btn:hover { background: #059669; }
 
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
@@ -63,26 +66,24 @@
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 10px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px);
     }
-    #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
+    #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
     #view-toggles button:hover { background: #52525b; }
 
     #sidebar-right {
-      width: 280px; background: #18181b; border-left: 1px solid #27272a; z-index: 10;
+      width: 260px; background: #18181b; border-left: 1px solid #27272a; z-index: 10;
       display: flex; flex-direction: column; box-shadow: -4px 0 15px rgba(0,0,0,0.3);
     }
-    #layers-header { padding: 24px 24px 16px 24px; border-bottom: 1px solid #27272a; }
-    #layers-header h2 { font-size: 13px; font-weight: 600; color: #e4e4e7; text-transform: uppercase; letter-spacing: 1px;}
+    #layers-header { padding: 20px 20px 12px 20px; border-bottom: 1px solid #27272a; }
+    #layers-header h2 { font-size: 12px; font-weight: 600; color: #e4e4e7; text-transform: uppercase; }
     
     #layers-list { flex: 1; overflow-y: auto; }
-    .layer-item { padding: 14px 24px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; font-size: 13px; color: #d4d4d8; }
+    .layer-item { padding: 12px 20px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; font-size: 12px; color: #d4d4d8; }
     .layer-item:hover { background: #27272a; }
     .layer-item.active { background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38bdf8; color: #38bdf8; font-weight: 600;}
-    .layer-info { display: flex; align-items: center; gap: 12px; }
-    .layer-icon { font-size: 16px; }
+    .layer-info { display: flex; align-items: center; gap: 10px; }
     
     .delete-btn { color: #ef4444; font-size: 14px; font-weight: bold; opacity: 0; transition: 0.2s; padding: 4px; background: none; border: none; cursor: pointer;}
     .layer-item:hover .delete-btn { opacity: 1; }
-    .delete-btn:hover { transform: scale(1.2); }
 
     #loading {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -120,12 +121,25 @@
       <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
     </div>
 
-    <div class="gizmo-controls" id="gizmoControls">
+    <!-- Panel Kawalan Logo -->
+    <div class="control-panel" id="controlPanel">
       <div class="section-title" style="margin-bottom: 0;">Kawalan Logo</div>
-      <div class="mode-buttons">
-        <button class="mode-btn active" id="btnTranslate" title="Gerak">✥ Gerak</button>
-        <button class="mode-btn" id="btnScale" title="Saiz">⤢ Saiz</button>
-        <button class="mode-btn" id="btnRotate" title="Putar">⟳ Putar</button>
+      
+      <div class="slider-group">
+        <label>Saiz Lebar (X) <span id="valScaleX">1.0</span></label>
+        <input type="range" id="scaleX" min="0.1" max="3" step="0.05" value="1">
+      </div>
+      <div class="slider-group">
+        <label>Saiz Tinggi (Y) <span id="valScaleY">1.0</span></label>
+        <input type="range" id="scaleY" min="0.1" max="3" step="0.05" value="1">
+      </div>
+      <div class="slider-group">
+        <label>Putar <span id="valRotate">0°</span></label>
+        <input type="range" id="rotate" min="-180" max="180" step="1" value="0">
+      </div>
+
+      <div class="action-row">
+        <button class="btn-undo" id="undoBtn">↩ Undo (Ctrl+Z)</button>
       </div>
     </div>
     
@@ -184,8 +198,6 @@ scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const mainLight = new THREE.DirectionalLight(0xffffff, 2);
 mainLight.position.set(5, 10, 5);
 mainLight.castShadow = true;
-mainLight.shadow.mapSize.width = 2048;
-mainLight.shadow.mapSize.height = 2048;
 scene.add(mainLight);
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.ShadowMaterial({ opacity: 0.3 }));
@@ -198,22 +210,12 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = false;
-controls.minDistance = 1.5;
-controls.maxDistance = 10;
 
 const transformControls = new TransformControls(camera, renderer.domElement);
-transformControls.setMode('translate');
+transformControls.setMode('translate'); // Kita kekalkan Gizmo Gerak sahaja
 transformControls.setSize(0.8);
 const transformHelper = transformControls.getHelper();
 scene.add(transformHelper);
-
-// Bendera untuk mengesan jika tetikus sedang menyeret Gizmo
-let isDragging = false;
-
-transformControls.addEventListener('dragging-changed', (event) => {
-  controls.enabled = !event.value;
-  isDragging = event.value;
-});
 
 // ===== 2. STATE & MODEL =====
 const shirtGroup = new THREE.Group();
@@ -225,10 +227,25 @@ let layers = [];
 let activeDummy = null;
 let logoCount = 0;
 
+// Sistem Undo/Redo
+let history = [];
+let historyIndex = -1;
+
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
-const gizmoControlsUI = document.getElementById('gizmoControls');
+const controlPanel = document.getElementById('controlPanel');
 
+// Slider Elements
+const scaleXSlider = document.getElementById('scaleX');
+const scaleYSlider = document.getElementById('scaleY');
+const rotateSlider = document.getElementById('rotate');
+const valScaleX = document.getElementById('valScaleX');
+const valScaleY = document.getElementById('valScaleY');
+const valRotate = document.getElementById('valRotate');
+
+let currentShirtColor = '#ffffff';
+
+// Load Model
 new GLTFLoader().load('./T_shirt_gltf.gltf', 
   (gltf) => setupShirt(gltf.scene), 
   undefined, 
@@ -254,7 +271,7 @@ function setupShirt(model) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
-      const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1 });
+      const mat = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
       child.material = mat;
       shirtMaterials.push(mat);
       shirtMeshes.push(child);
@@ -265,7 +282,7 @@ function setupShirt(model) {
   ground.position.y = box.min.y - 0.1;
 
   finishLoading();
-  addBaseLayer();
+  loadFromLocalStorage(); // Muat semula design jika ada
 }
 
 function finishLoading() {
@@ -274,7 +291,7 @@ function finishLoading() {
   setTimeout(() => el.remove(), 500);
 }
 
-// ===== 3. SISTEM LAYER =====
+// ===== 3. SISTEM LAYER & UI =====
 function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active';
@@ -282,14 +299,15 @@ function addBaseLayer() {
   el.onclick = () => {
     transformControls.detach();
     activeDummy = null;
-    gizmoControlsUI.classList.remove('active');
+    controlPanel.classList.remove('active');
     document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
   };
   layerListUI.appendChild(el);
 }
+addBaseLayer();
 
-function addDesignLayer(dummy, name, icon) {
+function addDesignLayer(dummy, name, icon, type) {
   const id = 'layer-' + Date.now() + Math.random().toString(36).substr(2, 5);
   dummy.userData.layerId = id;
 
@@ -313,6 +331,7 @@ function addDesignLayer(dummy, name, icon) {
   el.querySelector('.delete-btn').onclick = (e) => {
     e.stopPropagation();
     deleteLayer(dummy, el);
+    saveToLocalStorage();
   };
 
   layerListUI.prepend(el);
@@ -325,31 +344,38 @@ function selectLayer(dummy, el) {
   
   activeDummy = dummy;
   transformControls.attach(dummy);
-  gizmoControlsUI.classList.add('active');
+  controlPanel.classList.add('active');
+
+  // Segerakkan slider dengan state logo
+  scaleXSlider.value = dummy.userData.scaleX || 1;
+  scaleYSlider.value = dummy.userData.scaleY || 1;
+  rotateSlider.value = dummy.userData.rotate || 0;
+  
+  valScaleX.innerText = scaleXSlider.value;
+  valScaleY.innerText = scaleYSlider.value;
+  valRotate.innerText = rotateSlider.value + '°';
 }
 
 function deleteLayer(dummy, el) {
   transformControls.detach();
-  
   if (dummy.userData.decals) {
     dummy.userData.decals.forEach(decal => {
       shirtGroup.remove(decal);
       decal.geometry.dispose();
-      if (decal.material.map) decal.material.map.dispose(); // Buang texture klon
+      if (decal.material.map) decal.material.map.dispose();
       decal.material.dispose();
     });
   }
-  
   if (dummy.userData.texture) dummy.userData.texture.dispose();
   shirtGroup.remove(dummy);
   
   el.remove();
   layers = layers.filter(l => l !== dummy);
-  gizmoControlsUI.classList.remove('active');
+  controlPanel.classList.remove('active');
   activeDummy = null;
 }
 
-// ===== 4. SISTEM DECAL =====
+// ===== 4. SISTEM DECAL (SEMPURNA) =====
 function createDecal(dummy) {
   if (!shirtMeshes.length) return;
 
@@ -357,30 +383,38 @@ function createDecal(dummy) {
     dummy.userData.decals.forEach(decal => {
       shirtGroup.remove(decal);
       decal.geometry.dispose();
-      if (decal.material.map) decal.material.map.dispose(); // Dispose texture klon lama
+      if (decal.material.map) decal.material.map.dispose();
       decal.material.dispose();
     });
   }
   dummy.userData.decals = [];
 
-  const w = 0.6 * dummy.scale.x;
-  const h = (0.6 / dummy.userData.aspect) * dummy.scale.y;
+  const sX = dummy.userData.scaleX || 1;
+  const sY = dummy.userData.scaleY || 1;
+  const rotAngle = dummy.userData.rotate || 0;
+
+  // Saiz Decal (Lebar dan Tinggi berasingan)
+  const w = 0.6 * sX;
+  const h = (0.6 / dummy.userData.aspect) * sY;
   const size = new THREE.Vector3(w, h, 0.2);
 
   // Semak jika logo berada di belakang baju
   const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-  const isBack = currentNormal.z < -0.1; // Jika paksi Z menghadap ke belakang
+  const isBack = currentNormal.z < -0.1;
+
+  // Kira Putaran Tambahan (User Slider)
+  const userRotQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(rotAngle));
+  const finalQuat = dummy.quaternion.clone().multiply(userRotQ);
 
   shirtMeshes.forEach(mesh => {
     try {
-      const decalGeo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
+      const decalGeo = new DecalGeometry(mesh, dummy.position, finalQuat, size);
       
       if (decalGeo.attributes.position && decalGeo.attributes.position.count > 0) {
-        // KLON TEXTURE supaya kita boleh flip tanpa merosakkan logo lain
         const tex = dummy.userData.texture.clone();
         if (isBack) {
           tex.wrapS = THREE.RepeatWrapping;
-          tex.repeat.x = -1; // Flip gambar secara automatik (Anti-Mirror)
+          tex.repeat.x = -1; // Anti-Mirror
         }
 
         const decalMat = new THREE.MeshStandardMaterial({
@@ -400,13 +434,11 @@ function createDecal(dummy) {
       } else {
         decalGeo.dispose();
       }
-    } catch(e) {
-      console.warn("Decal gagal pada mesh ini:", e);
-    }
+    } catch(e) {}
   });
 }
 
-// Kemas kini posisi & putaran semasa Gizmo digunakan
+// Pergerakan Gizmo (Gerak)
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy || !shirtMeshes.length) return;
 
@@ -421,26 +453,38 @@ transformControls.addEventListener('objectChange', () => {
   if (hits.length > 0) {
     const hit = hits[0];
     const localHit = shirtGroup.worldToLocal(hit.point.clone());
-    activeDummy.position.copy(localHit); // Snap ke baju
+    activeDummy.position.copy(localHit);
 
-    // Jika dalam mod "Gerak", selaraskan putaran logo mengikut lekuk baju (Lengan/Leher)
-    if (isDragging && transformControls.getMode() === 'translate') {
-      const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-      const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-      
-      const up = new THREE.Vector3(0, 1, 0);
-      let right = new THREE.Vector3().crossVectors(up, localNormal);
-      if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-      right.normalize();
-      const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-      
-      const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
-      activeDummy.quaternion.setFromRotationMatrix(matrix);
-    }
+    // Orientasi mengikut permukaan lengan/badan
+    const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+    
+    // Gunakan Quaternion Alignment yang lebih licin (elak logo rosak di lengan)
+    const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), localNormal);
+    activeDummy.quaternion.copy(baseQ);
   }
 
   createDecal(activeDummy);
 });
+
+// Slider Events
+function onSliderChange() {
+  if (!activeDummy) return;
+  activeDummy.userData.scaleX = parseFloat(scaleXSlider.value);
+  activeDummy.userData.scaleY = parseFloat(scaleYSlider.value);
+  activeDummy.userData.rotate = parseFloat(rotateSlider.value);
+
+  valScaleX.innerText = scaleXSlider.value;
+  valScaleY.innerText = scaleYSlider.value;
+  valRotate.innerText = rotateSlider.value + '°';
+
+  createDecal(activeDummy);
+  saveToLocalStorage();
+}
+
+scaleXSlider.addEventListener('input', onSliderChange);
+scaleYSlider.addEventListener('input', onSliderChange);
+rotateSlider.addEventListener('input', onSliderChange);
 
 // ===== 5. FUNGSI TAMBAH LOGO & TEKS =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
@@ -450,12 +494,29 @@ document.getElementById('logoUpload').addEventListener('change', (e) => {
   for(let i=0; i<files.length; i++) {
     const reader = new FileReader();
     reader.onload = (ev) => {
+      // Mampatkan gambar supaya muat dalam LocalStorage
       const img = new Image();
       img.onload = () => {
-        const texture = new THREE.Texture(img);
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 512; // Saiz maksimum untuk save
+        let width = img.width;
+        let height = img.height;
+        if (width > height && width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+        } else if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const texture = new THREE.Texture(canvas);
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.needsUpdate = true;
-        addLogoToScene(texture, img.width / img.height);
+        addLogoToScene(texture, width / height, false, ev.target.result);
       };
       img.src = ev.target.result;
     };
@@ -481,84 +542,188 @@ document.getElementById('addTextBtn').onclick = () => {
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  addLogoToScene(texture, canvas.width / canvas.height, true);
+  addLogoToScene(texture, canvas.width / canvas.height, true, canvas.toDataURL());
   document.getElementById('textInput').value = '';
 };
 
-function addLogoToScene(texture, aspect, isText = false) {
+function addLogoToScene(texture, aspect, isText = false, base64 = null, posArray = null, quatArray = null, sX = 1, sY = 1, rot = 0) {
   const dummy = new THREE.Object3D();
   dummy.userData.texture = texture;
   dummy.userData.aspect = aspect;
+  dummy.userData.isText = isText;
+  dummy.userData.base64 = base64;
+  dummy.userData.scaleX = sX;
+  dummy.userData.scaleY = sY;
+  dummy.userData.rotate = rot;
+  
   shirtGroup.add(dummy);
+  logoCount++;
 
-  const offsetX = (logoCount % 2 === 0) ? 0.15 : -0.15;
-  const offsetY = Math.floor(logoCount / 2) * -0.2;
-
-  raycaster.setFromCamera(new THREE.Vector2(offsetX, offsetY), camera);
-  const hits = raycaster.intersectObjects(shirtMeshes, true);
-
-  if (hits.length > 0) {
-    const hit = hits[0];
-    const localHit = shirtGroup.worldToLocal(hit.point.clone());
-    dummy.position.copy(localHit);
-
-    const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-    
-    const up = new THREE.Vector3(0, 1, 0);
-    let right = new THREE.Vector3().crossVectors(up, localNormal);
-    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-    right.normalize();
-    const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-    
-    const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
-    dummy.quaternion.setFromRotationMatrix(matrix);
+  if (posArray && quatArray) {
+    // Restore dari LocalStorage
+    dummy.position.fromArray(posArray);
+    dummy.quaternion.fromArray(quatArray);
   } else {
-    dummy.position.set(0, 0, 0.5);
+    // Letak baru
+    const offsetX = (logoCount % 2 === 0) ? 0.15 : -0.15;
+    const offsetY = Math.floor(logoCount / 2) * -0.2;
+    raycaster.setFromCamera(new THREE.Vector2(offsetX, offsetY), camera);
+    const hits = raycaster.intersectObjects(shirtMeshes, true);
+
+    if (hits.length > 0) {
+      const hit = hits[0];
+      dummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+      const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+      const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+      dummy.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), localNormal);
+    } else {
+      dummy.position.set(0, 0, 0.5);
+    }
   }
 
-  logoCount++;
   createDecal(dummy);
+  layers.push(dummy);
 
-  const layerName = isText ? `Teks ${logoCount}` : `Logo ${logoCount}`;
+  const layerName = isText ? `Teks` : `Logo ${logoCount}`;
   const icon = isText ? '📝' : '🖼️';
   addDesignLayer(dummy, layerName, icon);
+  
+  if(!posArray) {
+    saveToLocalStorage();
+    pushHistory();
+  }
 }
 
-// ===== 6. KAWALAN UI LAIN =====
-document.getElementById('btnTranslate').onclick = (e) => {
-  transformControls.setMode('translate');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnScale').onclick = (e) => {
-  transformControls.setMode('scale');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnRotate').onclick = (e) => {
-  transformControls.setMode('rotate');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
+// ===== 6. SIMPAN & MUAT (LOCALSTORAGE) =====
+function saveToLocalStorage() {
+  const state = layers.map(l => ({
+    isText: l.userData.isText,
+    base64: l.userData.base64,
+    aspect: l.userData.aspect,
+    pos: l.position.toArray(),
+    quat: l.quaternion.toArray(),
+    sX: l.userData.scaleX,
+    sY: l.userData.scaleY,
+    rot: l.userData.rotate
+  }));
+  localStorage.setItem('shirtDesignLayers', JSON.stringify(state));
+  localStorage.setItem('shirtColor', currentShirtColor);
+}
+
+function loadFromLocalStorage() {
+  const savedColor = localStorage.getItem('shirtColor');
+  if (savedColor) {
+    currentShirtColor = savedColor;
+    shirtMaterials.forEach(m => m.color.set(savedColor));
+  }
+
+  const saved = localStorage.getItem('shirtDesignLayers');
+  if (!saved) return;
+
+  try {
+    const state = JSON.parse(saved);
+    state.forEach(item => {
+      const img = new Image();
+      img.onload = () => {
+        const texture = new THREE.Texture(img);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.needsUpdate = true;
+        addLogoToScene(texture, item.aspect, item.isText, item.base64, item.pos, item.quat, item.sX, item.sY, item.rot);
+      };
+      img.src = item.base64;
+    });
+  } catch(e) { console.log("Gagal restore", e); }
+}
+
+// ===== 7. UNDO / REDO (HISTORY) =====
+function pushHistory() {
+  const state = layers.map(l => ({
+    isText: l.userData.isText,
+    base64: l.userData.base64,
+    aspect: l.userData.aspect,
+    pos: l.position.toArray(),
+    quat: l.quaternion.toArray(),
+    sX: l.userData.scaleX,
+    sY: l.userData.scaleY,
+    rot: l.userData.rotate
+  }));
+  
+  // Buang redo stack jika ada tindakan baru
+  history = history.slice(0, historyIndex + 1);
+  history.push(JSON.stringify(state));
+  historyIndex++;
+}
+
+document.getElementById('undoBtn').onclick = () => {
+  if (historyIndex <= 0) return;
+  historyIndex--;
+  const state = JSON.parse(history[historyIndex]);
+  restoreState(state);
 };
 
+// Shortcut Ctrl+Z
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault();
+    document.getElementById('undoBtn').click();
+  }
+});
+
+function restoreState(state) {
+  // Padam semua layer semasa
+  layers.forEach(l => {
+    if (l.userData.decals) {
+      l.userData.decals.forEach(d => { shirtGroup.remove(d); d.geometry.dispose(); d.material.dispose(); });
+    }
+    shirtGroup.remove(l);
+    if(l.userData.layerId) {
+      const el = document.getElementById(l.userData.layerId);
+      if(el) el.remove();
+    }
+  });
+  layers = [];
+  logoCount = 0;
+  transformControls.detach();
+  activeDummy = null;
+  controlPanel.classList.remove('active');
+
+  // Muat semula dari state
+  state.forEach(item => {
+    const img = new Image();
+    img.onload = () => {
+      const texture = new THREE.Texture(img);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+      addLogoToScene(texture, item.aspect, item.isText, item.base64, item.pos, item.quat, item.sX, item.sY, item.rot);
+    };
+    img.src = item.base64;
+  });
+  
+  saveToLocalStorage();
+}
+
+// ===== 8. KAWALAN UI & WARNA =====
 const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 const colorGrid = document.getElementById('colorGrid');
 colors.forEach((hex, i) => {
   const btn = document.createElement('button');
-  btn.className = 'color-btn' + (i === 0 ? ' active' : '');
+  btn.className = 'color-btn' + (hex === currentShirtColor ? ' active' : '');
   btn.style.background = hex;
   btn.onclick = () => {
     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    currentShirtColor = hex;
     shirtMaterials.forEach(m => m.color.set(hex));
+    saveToLocalStorage();
   };
   colorGrid.appendChild(btn);
 });
 
 document.getElementById('customColor').addEventListener('input', (e) => {
   document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-  shirtMaterials.forEach(m => m.color.set(e.target.value));
+  currentShirtColor = e.target.value;
+  shirtMaterials.forEach(m => m.color.set(currentShirtColor));
+  saveToLocalStorage();
 });
 
 document.getElementById('viewFront').onclick = () => { camera.position.set(0, 0, 4.5); controls.target.set(0, 0, 0); };
