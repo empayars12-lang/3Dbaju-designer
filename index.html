@@ -1,1 +1,226 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Baju Designer 3D</title>
 
+  <!-- PWA Setup -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"Baju Designer","short_name":"BajuApp","display":"standalone","theme_color":"%231e293b","background_color":"%230f172a","start_url":"./","icons":[{"src":"https://via.placeholder.com/192","sizes":"192x192","type":"image/png"},{"src":"https://via.placeholder.com/512","sizes":"512x512","type":"image/png"}]}'>
+  <meta name="theme-color" content="#1e293b" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #app { display: flex; flex-direction: column; height: 100vh; }
+    header {
+      padding: 12px 20px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      font-size: 18px;
+      font-weight: 600;
+      z-index: 10;
+    }
+    #viewer { flex: 1; position: relative; }
+    #viewer canvas { display: block; }
+    .controls {
+      padding: 16px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      z-index: 10;
+    }
+    .controls p { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+    .colors { display: flex; gap: 10px; flex-wrap: wrap; }
+    .colors button {
+      width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+      border: 2px solid #475569; transition: transform 0.15s;
+    }
+    .colors button.active { border: 3px solid #38bdf8; transform: scale(1.1); }
+    #loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: #0f172a; color: #38bdf8; font-size: 14px; z-index: 5;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <header>👕 Baju Designer 3D</header>
+  <div id="viewer">
+    <div id="loading">Memuatkan baju 3D...</div>
+  </div>
+  <div class="controls">
+    <p>Pilih warna baju:</p>
+    <div class="colors" id="colorBar"></div>
+  </div>
+</div>
+
+<!-- Import Three.js dari CDN (tak perlu npm install) -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// ===== SENARAI WARNA =====
+const COLORS = [
+  { name: 'Hijau', hex: '#4a6b5a' },
+  { name: 'Hitam', hex: '#1a1a1a' },
+  { name: 'Putih', hex: '#f0f0f0' },
+  { name: 'Merah', hex: '#b91c1c' },
+  { name: 'Biru', hex: '#1e40af' },
+  { name: 'Kelabu', hex: '#64748b' }
+];
+
+// ===== SETUP SCENE =====
+const viewer = document.getElementById('viewer');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#1a2438');
+
+const camera = new THREE.PerspectiveCamera(45, viewer.clientWidth / viewer.clientHeight, 0.1, 100);
+camera.position.set(0, 0.5, 4);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.shadowMap.enabled = true;
+viewer.appendChild(renderer.domElement);
+
+// ===== LAMPU =====
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const dir1 = new THREE.DirectionalLight(0xffffff, 1.2);
+dir1.position.set(5, 5, 5);
+scene.add(dir1);
+const dir2 = new THREE.DirectionalLight(0xffffff, 0.4);
+dir2.position.set(-5, 3, -5);
+scene.add(dir2);
+
+// ===== KAWALAN PUSING (Drag) =====
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enablePan = false;
+controls.enableZoom = true;
+controls.minDistance = 2;
+controls.maxDistance = 7;
+controls.target.set(0, 0, 0);
+
+// ===== LOAD MODEL 3D =====
+let shirtMesh = null;
+const loader = new GLTFLoader();
+
+// ⚠️ GANTI URL DI BAWAH DENGAN URL MODEL .GLB ANDA
+// Contoh model percuma: https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/...
+const MODEL_URL = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/SheenChair/glTF-Binary/SheenChair.glb';
+
+// Untuk sementara: baju guna bentuk mudah dulu (sebab belum ada model .glb)
+function createFallbackShirt(color) {
+  const group = new THREE.Group();
+
+  // Badan baju
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.8, 0.9, 2, 32),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.85 })
+  );
+  group.add(body);
+
+  // Lengan kiri
+  const armGeo = new THREE.CylinderGeometry(0.25, 0.3, 1.4, 24);
+  const armMat = new THREE.MeshStandardMaterial({ color, roughness: 0.85 });
+  const leftArm = new THREE.Mesh(armGeo, armMat);
+  leftArm.position.set(-1, 0.3, 0);
+  leftArm.rotation.z = Math.PI / 6;
+  group.add(leftArm);
+
+  // Lengan kanan
+  const rightArm = leftArm.clone();
+  rightArm.position.x = 1;
+  rightArm.rotation.z = -Math.PI / 6;
+  group.add(rightArm);
+
+  return group;
+}
+
+let currentShirt = createFallbackShirt(COLORS[0].hex);
+scene.add(currentShirt);
+document.getElementById('loading').style.display = 'none';
+
+// Cuba load model sebenar (kalau ada)
+loader.load(
+  MODEL_URL,
+  (gltf) => {
+    // Berjaya load — tukar kepada model sebenar
+    scene.remove(currentShirt);
+    shirtMesh = gltf.scene;
+    shirtMesh.traverse((child) => {
+      if (child.isMesh) {
+        child.material = new THREE.MeshStandardMaterial({
+          color: COLORS[0].hex, roughness: 0.85, metalness: 0.05
+        });
+      }
+    });
+    scene.add(shirtMesh);
+  },
+  undefined,
+  () => {
+    // Gagal load — kekal dengan bentuk fallback
+    console.warn('Model 3D tidak dapat dimuat, guna bentuk asas.');
+  }
+);
+
+// ===== TUKAR WARNA =====
+function setColor(hex) {
+  const target = shirtMesh || currentShirt;
+  target.traverse((child) => {
+    if (child.isMesh && child.material) {
+      child.material.color.set(hex);
+    }
+  });
+}
+
+// ===== BINA BUTANG WARNA =====
+const colorBar = document.getElementById('colorBar');
+COLORS.forEach((c, i) => {
+  const btn = document.createElement('button');
+  btn.style.background = c.hex;
+  btn.title = c.name;
+  if (i === 0) btn.classList.add('active');
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.colors button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    setColor(c.hex);
+  });
+  colorBar.appendChild(btn);
+});
+
+// ===== RENDER LOOP =====
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// ===== RESPONSIVE =====
+window.addEventListener('resize', () => {
+  camera.aspect = viewer.clientWidth / viewer.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+});
+</script>
+
+</body>
+</html>
