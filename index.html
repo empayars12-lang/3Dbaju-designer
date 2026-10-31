@@ -39,7 +39,8 @@
     .row-buttons .btn { flex: 1; padding: 10px 4px; }
 
     /* KAWASAN 3D */
-    #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); }
+    #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); cursor: grab; }
+    #viewer-container:active { cursor: grabbing; }
     #viewer-container canvas { display: block; }
     
     #view-toggles {
@@ -60,8 +61,6 @@
     
     .action-btn { background: #3f3f46; border: none; color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; transition: 0.2s; }
     .action-btn:hover { background: #52525b; }
-    .action-btn.apply { background: #10b981; }
-    .action-btn.apply:hover { background: #059669; }
     .action-btn.delete { background: #ef4444; }
     .action-btn.delete:hover { background: #dc2626; }
 
@@ -69,6 +68,9 @@
     
     .slider-container { display: none; margin-top: 10px; background: #27272a; padding: 10px; border-radius: 8px; border: 1px solid #3f3f46;}
     .slider-container.active { display: block; }
+    
+    .instruction { font-size: 11px; color: #38bdf8; margin-bottom: 10px; display: none; }
+    .instruction.active { display: block; }
   </style>
 </head>
 <body>
@@ -105,10 +107,12 @@
     </div>
 
     <div id="transform-controls" class="slider-container">
-      <div class="section-title" style="margin-bottom: 8px;">Kawalan Preview</div>
-      <div class="row-buttons" style="margin-bottom: 8px;">
-        <button class="btn btn-secondary" id="btnTranslate">✥ Gerak</button>
-        <button class="btn btn-secondary" id="btnScale">⤢ Saiz</button>
+      <div class="section-title" style="margin-bottom: 8px;">Kawalan Logo Aktif</div>
+      <div class="instruction active" id="dragInst">👆 Klik & Tarik pada baju untuk gerakkan logo.</div>
+      
+      <div class="input-group" style="margin-bottom: 8px;">
+        <label style="font-size: 11px; color: #a1a1aa;">Saiz (Scale)</label>
+        <input type="range" id="scaleSlider" min="0.2" max="3" step="0.01" value="1">
       </div>
       <div class="input-group">
         <label style="font-size: 11px; color: #a1a1aa;">Putar (Rotate)</label>
@@ -146,7 +150,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -188,16 +191,6 @@ controls.dampingFactor = 0.08;
 controls.minDistance = 1.5;
 controls.maxDistance = 10;
 
-// Gizmo
-const transformControls = new TransformControls(camera, renderer.domElement);
-transformControls.setSize(0.8);
-const transformHelper = transformControls.getHelper();
-scene.add(transformHelper);
-
-transformControls.addEventListener('dragging-changed', (e) => {
-  controls.enabled = !e.value;
-});
-
 // ===== 2. STATE & MODEL =====
 const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
@@ -207,12 +200,15 @@ let layers = [];
 let activeLayer = null;
 let logoSeq = 0;
 
+// State untuk Drag & Drop Logo
+let isDraggingLogo = false;
+const pointer = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
+
 const layerListUI = document.getElementById('layers-list');
 const transformUI = document.getElementById('transform-controls');
+const scaleSlider = document.getElementById('scaleSlider');
 const rotateSlider = document.getElementById('rotateSlider');
-
-const raycaster = new THREE.Raycaster();
-let isUpdating = false;
 
 // Load Model
 new GLTFLoader().load('./T_shirt_gltf.gltf', 
@@ -282,14 +278,15 @@ function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active';
   el.innerHTML = `<div class="layer-info"><span>👕</span> <span>Baju 3D (Asas)</span></div>`;
-  el.onclick = () => {
-    if(activeLayer && activeLayer.type === 'preview') return;
-    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-    transformControls.attach(shirtGroup);
-    transformUI.classList.remove('active');
-  };
+  el.onclick = () => selectShirt();
   layerListUI.prepend(el);
+}
+
+function selectShirt() {
+  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+  layerListUI.lastChild.classList.add('active');
+  transformUI.classList.remove('active');
+  activeLayer = null;
 }
 
 function addDesignLayer(type, texture, aspect, isText = false) {
@@ -303,238 +300,173 @@ function addDesignLayer(type, texture, aspect, isText = false) {
   el.innerHTML = `
     <div class="layer-info"><span>${icon}</span> <span>${name}</span></div>
     <div class="layer-actions">
-      <button class="action-btn apply">✓</button>
       <button class="action-btn delete">✕</button>
     </div>
   `;
 
-  const layerObj = { id, type: 'preview', mesh: null, controller: null, texture, aspect, name, isText, el };
+  const layerObj = { 
+    id, type, texture, aspect, name, isText, el, 
+    pos: new THREE.Vector3(0, 0, 1), 
+    quat: new THREE.Quaternion(),
+    scale: 1,
+    rotateAngle: 0,
+    decalMesh: null
+  };
   layers.push(layerObj);
 
-  el.onclick = () => selectLayer(layerObj);
+  el.onclick = (e) => { e.stopPropagation(); selectLayer(layerObj); };
   el.querySelector('.delete').onclick = (e) => { e.stopPropagation(); deleteLayer(layerObj); };
-  el.querySelector('.apply').onclick = (e) => { e.stopPropagation(); bakeLayer(layerObj); };
 
   layerListUI.prepend(el);
-  startPreview(layerObj);
+  
+  // Letak di tengah baju secara default
+  placeLayerAtCenter(layerObj);
+  selectLayer(layerObj);
 }
 
-// ===== 4. SISTEM PREVIEW (DECAL FULL) =====
-function startPreview(layer) {
-  layer.type = 'preview';
-  layer.el.querySelector('.apply').style.display = 'block';
-  
-  const w = 0.6;
-  const h = w / layer.aspect;
-
-  // 1. Controller (Objek Halimunan untuk Gizmo)
-  const cGeo = new THREE.PlaneGeometry(w, h);
-  const cMat = new THREE.MeshBasicMaterial({ visible: false });
-  const controller = new THREE.Mesh(cGeo, cMat);
-  
-  // 2. Preview Mesh (Guna DecalGeometry)
-  const pMat = new THREE.MeshStandardMaterial({ 
-    map: layer.texture, 
-    transparent: true, 
-    opacity: 1,
-    polygonOffset: true, 
-    polygonOffsetFactor: -4,
-    depthTest: true,
-    depthWrite: false
-  });
-  const previewMesh = new THREE.Mesh(new THREE.BufferGeometry(), pMat);
-  previewMesh.renderOrder = 2;
-
-  // Letak controller di tengah baju
+// ===== 4. SISTEM DECAL (RAYCAST & DRAG) =====
+function placeLayerAtCenter(layer) {
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const hits = raycaster.intersectObject(shirtMesh, true);
-  
   if (hits.length > 0) {
-    const pt = hits[0].point;
-    const n = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
-    
-    // Set posisi dan orientasi controller
-    controller.position.copy(pt).addScaledVector(n, 0.05);
-    const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
-    controller.quaternion.copy(baseQ);
-  } else {
-    controller.position.set(0, 0, 1.5);
+    updateLayerTransform(layer, hits[0].point, hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld));
   }
-
-  scene.add(controller);
-  scene.add(previewMesh);
-
-  layer.controller = controller;
-  layer.mesh = previewMesh;
-
-  // Jana Decal pertama kali
-  updatePreviewDecal(layer);
-
-  // Attach Gizmo
-  transformControls.attach(controller);
-  transformControls.setMode('translate');
-  transformUI.classList.add('active');
-  rotateSlider.value = 0;
-
-  selectLayer(layer);
 }
 
-function updatePreviewDecal(layer) {
-  if (!layer.controller || !layer.mesh) return;
-  
+function updateLayerTransform(layer, worldPoint, worldNormal) {
   shirtGroup.updateMatrixWorld(true);
+  shirtMesh.updateMatrixWorld(true);
+
+  // Tukar posisi dunia ke posisi lokal baju
+  const localPos = shirtMesh.worldToLocal(worldPoint.clone());
+  const invMatrix = new THREE.Matrix4().copy(shirtMesh.matrixWorld).invert();
+  const localNormal = worldNormal.clone().transformDirection(invMatrix).normalize();
+
+  // Bina orientasi berdasarkan normal baju
+  let baseQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), localNormal);
   
-  const localPos = shirtGroup.worldToLocal(layer.controller.position.clone());
-  const localRot = layer.controller.quaternion.clone();
-  const localScale = layer.controller.scale.clone();
-  
-  // Saiz decal
-  const w = 0.6 * localScale.x;
-  const h = (0.6 / layer.aspect) * localScale.y;
+  // Tambah putaran pengguna (Rotate Slider)
+  const userRotQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(layer.rotateAngle));
+  const finalQuat = baseQuat.clone().multiply(userRotQuat);
+
+  layer.pos.copy(localPos);
+  layer.quat.copy(finalQuat);
+
+  // Saiz Decal
+  const w = 0.6 * layer.scale;
+  const h = (0.6 / layer.aspect) * layer.scale;
   const size = new THREE.Vector3(w, h, 0.2);
 
-  if (layer.mesh.geometry) layer.mesh.geometry.dispose();
-  layer.mesh.geometry = new DecalGeometry(shirtMesh, localPos, localRot, size);
+  // Jana semula DecalGeometry
+  const geo = new DecalGeometry(shirtMesh, layer.pos, layer.quat, size);
+
+  if (!layer.decalMesh) {
+    const mat = new THREE.MeshStandardMaterial({
+      map: layer.texture,
+      transparent: true,
+      depthTest: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      roughness: 0.8
+    });
+    layer.decalMesh = new THREE.Mesh(geo, mat);
+    layer.decalMesh.renderOrder = 2;
+    shirtGroup.add(layer.decalMesh);
+  } else {
+    layer.decalMesh.geometry.dispose();
+    layer.decalMesh.geometry = geo;
+  }
 }
 
-// Event Bila Gizmo Digerakkan
-transformControls.addEventListener('objectChange', () => {
-  if (isUpdating || !activeLayer || activeLayer.type !== 'preview') return;
+// Event Mouse Drag untuk gerakkan logo
+container.addEventListener('pointerdown', (e) => {
+  if (!activeLayer) return;
+  // Jika kita klik butang UI, jangan drag
+  if (e.target !== renderer.domElement) return;
   
-  const controller = activeLayer.controller;
-  if (!controller) return;
+  // Sembunyikan sementara OrbitControls supaya boleh drag logo
+  controls.enabled = false; 
+  isDraggingLogo = true;
+  updatePointer(e);
+  moveLogoToPointer();
+});
 
-  // Tembak raycast untuk pastikan ia melekat pada baju (Snap to Surface)
-  const dir = controller.position.clone().sub(camera.position).normalize();
-  raycaster.set(camera.position, dir);
+container.addEventListener('pointermove', (e) => {
+  if (!isDraggingLogo || !activeLayer) return;
+  updatePointer(e);
+  moveLogoToPointer();
+});
+
+window.addEventListener('pointerup', () => {
+  isDraggingLogo = false;
+  controls.enabled = true; // Hidupkan balik OrbitControls
+});
+
+function updatePointer(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+}
+
+function moveLogoToPointer() {
+  if (!activeLayer || !shirtMesh) return;
+  
+  raycaster.setFromCamera(pointer, camera);
   const hits = raycaster.intersectObject(shirtMesh, true);
 
   if (hits.length > 0) {
     const hit = hits[0];
     const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-
-    // Snap controller ke permukaan baju
-    isUpdating = true;
-    controller.position.copy(hit.point).addScaledVector(normal, 0.015);
-    
-    // Orientasi logo ikut permukaan + Slider Putar
-    const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
-    const angle = THREE.MathUtils.degToRad(parseFloat(rotateSlider.value));
-    const rotQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
-    controller.quaternion.copy(baseQ).multiply(rotQ);
-
-    isUpdating = false;
-
-    // Jana semula Decal mengikut posisi baru
-    updatePreviewDecal(activeLayer);
-  }
-});
-
-// ===== 5. BAKE & EDIT =====
-function bakeLayer(layer) {
-  if (layer.type === 'baked') return;
-  transformControls.detach();
-  
-  // Simpan transformasi untuk Edit kelak
-  layer.savedPos = layer.controller.position.clone();
-  layer.savedQuat = layer.controller.quaternion.clone();
-  layer.savedScale = layer.controller.scale.clone();
-
-  // Buang controller, kekalkan mesh
-  scene.remove(layer.controller);
-  layer.controller.geometry.dispose();
-  layer.controller.material.dispose();
-  layer.controller = null;
-
-  // Update UI
-  layer.type = 'baked';
-  layer.el.querySelector('.apply').style.display = 'none';
-  layer.el.querySelector('.delete').innerHTML = '✏️';
-  layer.el.querySelector('.delete').onclick = (e) => { e.stopPropagation(); editLayer(layer); };
-  
-  // Tambah butang padam asli
-  if(!layer.el.querySelector('.delete-original')) {
-      const delBtn = document.createElement('button');
-      delBtn.className = 'action-btn delete delete-original';
-      delBtn.innerHTML = '✕';
-      delBtn.onclick = (e) => { e.stopPropagation(); deleteLayer(layer); };
-      layer.el.querySelector('.layer-actions').appendChild(delBtn);
-  }
-
-  transformUI.classList.remove('active');
-  activeLayer = null;
-  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-}
-
-function editLayer(layer) {
-  if (layer.type === 'baked') {
-    // Reset UI
-    layer.el.querySelector('.apply').style.display = 'block';
-    const origDel = layer.el.querySelector('.delete-original');
-    if(origDel) origDel.remove();
-    
-    layer.el.querySelector('.delete').innerHTML = '✕';
-    layer.el.querySelector('.delete').onclick = (e) => { e.stopPropagation(); deleteLayer(layer); };
-
-    // Kembalikan Controller
-    const w = 0.6;
-    const h = w / layer.aspect;
-    const cGeo = new THREE.PlaneGeometry(w, h);
-    const cMat = new THREE.MeshBasicMaterial({ visible: false });
-    const controller = new THREE.Mesh(cGeo, cMat);
-    
-    controller.position.copy(layer.savedPos);
-    controller.quaternion.copy(layer.savedQuat);
-    controller.scale.copy(layer.savedScale);
-    
-    scene.add(controller);
-    layer.controller = controller;
-
-    // Tukar ke Preview
-    layer.type = 'preview';
-    transformControls.attach(controller);
-    transformUI.classList.add('active');
-    rotateSlider.value = 0; // Reset rotate
-    
-    selectLayer(layer);
+    updateLayerTransform(activeLayer, hit.point, normal);
   }
 }
 
-function deleteLayer(layer) {
-  if (layer.controller) {
-    scene.remove(layer.controller);
-    layer.controller.geometry.dispose();
-    layer.controller.material.dispose();
-  }
-  if (layer.mesh) {
-    scene.remove(layer.mesh);
-    layer.mesh.geometry.dispose();
-    layer.mesh.material.dispose();
-  }
-  
-  if (layer.texture) layer.texture.dispose();
-  layer.el.remove();
-  layers = layers.filter(l => l !== layer);
-  
-  transformUI.classList.remove('active');
-  activeLayer = null;
-  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-}
-
+// ===== 5. UI LAYER & SLIDER =====
 function selectLayer(layer) {
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   layer.el.classList.add('active');
   activeLayer = layer;
 
-  if (layer.type === 'preview') {
-    transformControls.attach(layer.controller);
-    transformUI.classList.add('active');
-    rotateSlider.value = 0;
-  } else {
-    transformControls.detach();
-    transformUI.classList.remove('active');
-  }
+  transformUI.classList.add('active');
+  scaleSlider.value = layer.scale;
+  rotateSlider.value = layer.rotateAngle;
 }
+
+function deleteLayer(layer) {
+  if (layer.decalMesh) {
+    shirtGroup.remove(layer.decalMesh);
+    layer.decalMesh.geometry.dispose();
+    layer.decalMesh.material.dispose();
+  }
+  if (layer.texture) layer.texture.dispose();
+  layer.el.remove();
+  layers = layers.filter(l => l !== layer);
+  transformUI.classList.remove('active');
+  activeLayer = null;
+  selectShirt();
+}
+
+scaleSlider.addEventListener('input', (e) => {
+  if (!activeLayer) return;
+  activeLayer.scale = parseFloat(e.target.value);
+  // Update tanpa gerak posisi (ambil posisi semasa)
+  const worldPos = shirtMesh.localToWorld(activeLayer.pos.clone());
+  const invMatrix = new THREE.Matrix4().copy(shirtMesh.matrixWorld).invert();
+  const localNormal = new THREE.Vector3(0,0,1).applyQuaternion(activeLayer.quat);
+  const worldNormal = localNormal.clone().transformDirection(shirtMesh.matrixWorld);
+  updateLayerTransform(activeLayer, worldPos, worldNormal);
+});
+
+rotateSlider.addEventListener('input', (e) => {
+  if (!activeLayer) return;
+  activeLayer.rotateAngle = parseFloat(e.target.value);
+  const worldPos = shirtMesh.localToWorld(activeLayer.pos.clone());
+  const invMatrix = new THREE.Matrix4().copy(shirtMesh.matrixWorld).invert();
+  const localNormal = new THREE.Vector3(0,0,1).applyQuaternion(activeLayer.quat);
+  const worldNormal = localNormal.clone().transformDirection(shirtMesh.matrixWorld);
+  updateLayerTransform(activeLayer, worldPos, worldNormal);
+});
 
 // ===== 6. UPLOAD & TEXT =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
@@ -576,26 +508,7 @@ document.getElementById('addTextBtn').onclick = () => {
   document.getElementById('textInput').value = '';
 };
 
-// ===== 7. KAWALAN SLIDER & UI =====
-document.getElementById('btnTranslate').onclick = () => transformControls.setMode('translate');
-document.getElementById('btnScale').onclick = () => transformControls.setMode('scale');
-
-rotateSlider.addEventListener('input', () => {
-  if (activeLayer && activeLayer.type === 'preview') {
-    // Trigger manual objectChange untuk update putaran
-    isUpdating = true;
-    // Kita paksa update dengan menggerakkan posisi sikit
-    const c = activeLayer.controller;
-    const oldPos = c.position.clone();
-    c.position.x += 0.00001; 
-    isUpdating = false;
-    transformControls.dispatchEvent({ type: 'objectChange' });
-    c.position.copy(oldPos);
-    transformControls.dispatchEvent({ type: 'objectChange' });
-  }
-});
-
-// Warna Baju
+// ===== 7. WARNA BAJU & KAMERA =====
 const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 const grid = document.getElementById('colorGrid');
 colors.forEach((hex, i) => {
@@ -615,21 +528,16 @@ document.getElementById('customShirtColor').oninput = (e) => {
   shirtMaterials.forEach(m => m.color.set(e.target.value));
 };
 
-// Pandangan Kamera
 document.getElementById('viewFront').onclick = () => { camera.position.set(0, 0, 4.5); controls.target.set(0, 0, 0); };
 document.getElementById('viewBack').onclick = () => { camera.position.set(0, 0, -4.5); controls.target.set(0, 0, 0); };
 
 // Simpan HD
 document.getElementById('saveBtn').onclick = () => {
-  transformHelper.visible = false;
   const currentSize = renderer.getSize(new THREE.Vector2());
-  
   renderer.setSize(2000, 2000, false);
   renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
-  
   renderer.setSize(currentSize.x, currentSize.y, false);
-  transformHelper.visible = true;
   renderer.render(scene, camera);
 
   const link = document.createElement('a');
