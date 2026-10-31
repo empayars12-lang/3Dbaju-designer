@@ -19,30 +19,64 @@
       user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
+    
+    /* Susun atur skrin utama */
     #app { display: flex; flex-direction: column; height: 100vh; }
+    
     header {
       padding: 12px 20px;
       background: #1e293b;
       border-bottom: 1px solid #334155;
       font-size: 18px;
       font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       z-index: 10;
     }
+    header button {
+      background: #10b981; color: white; border: none; padding: 8px 16px;
+      border-radius: 6px; font-weight: bold; cursor: pointer;
+    }
+
+    /* Bahagian 3D Viewer */
     #viewer { flex: 1; position: relative; }
     #viewer canvas { display: block; }
+
+    /* Panel Kawalan Bawah */
     .controls {
       padding: 16px;
       background: #1e293b;
       border-top: 1px solid #334155;
       z-index: 10;
+      max-height: 40vh;
+      overflow-y: auto;
     }
-    .controls p { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
-    .colors { display: flex; gap: 10px; flex-wrap: wrap; }
+    
+    .section-title { font-size: 12px; color: #94a3b8; margin-bottom: 8px; margin-top: 10px; font-weight: bold; }
+    
+    .colors { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     .colors button {
-      width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
       border: 2px solid #475569; transition: transform 0.15s;
     }
     .colors button.active { border: 3px solid #38bdf8; transform: scale(1.1); }
+    
+    /* Bahagian Upload Gambar */
+    .upload-area {
+      display: flex; gap: 15px; margin-top: 10px;
+    }
+    .upload-box {
+      flex: 1; background: #0f172a; border: 2px dashed #475569; border-radius: 8px;
+      padding: 10px; text-align: center; cursor: pointer; position: relative; height: 80px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .upload-box:hover { border-color: #38bdf8; }
+    .upload-box input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .upload-box span { font-size: 12px; color: #cbd5e1; pointer-events: none; }
+    
     #loading {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
       background: #0f172a; color: #38bdf8; font-size: 14px; z-index: 5;
@@ -52,22 +86,37 @@
 <body>
 
 <div id="app">
-  <header>👕 Baju Designer 3D</header>
+  <header>
+    👕 Baju Designer 3D
+    <button onclick="saveImage()">Save Image</button>
+  </header>
+  
   <div id="viewer">
     <div id="loading">Memuatkan baju 3D...</div>
   </div>
-    <div class="controls">
-    <p>Pilih warna baju:</p>
-    <div class="colors" id="colorBar" style="margin-bottom: 15px;"></div>
+  
+  <div class="controls">
+    <!-- Pilih Warna -->
+    <div class="section-title">Warna Baju:</div>
+    <div class="colors" id="colorBar">
+      <!-- Butang warna akan dijana di sini oleh JS -->
+    </div>
     
-    <!-- KOD BARU: Color Picker -->
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <label for="customColor" style="font-size: 14px;">Warna Custom:</label>
-      <input type="color" id="customColor" value="#4a6b5a" style="width: 50px; height: 40px; cursor: pointer; border: none; background: none;">
+    <!-- Upload Logo/Design -->
+    <div class="section-title">Upload Design (Logo/Gambar):</div>
+    <div class="upload-area">
+      <div class="upload-box">
+        <span>Depan Baju (Klik)</span>
+        <input type="file" id="uploadFront" accept="image/*">
+      </div>
+      <div class="upload-box">
+        <span>Belakang Baju (Klik)</span>
+        <input type="file" id="uploadBack" accept="image/*">
+      </div>
     </div>
   </div>
+</div>
 
-<!-- Import Three.js dari CDN -->
 <script type="importmap">
 {
   "imports": {
@@ -88,8 +137,7 @@ const COLORS = [
   { name: 'Hitam', hex: '#1a1a1a' },
   { name: 'Putih', hex: '#f0f0f0' },
   { name: 'Merah', hex: '#b91c1c' },
-  { name: 'Biru', hex: '#1e40af' },
-  { name: 'Kelabu', hex: '#64748b' }
+  { name: 'Biru', hex: '#1e40af' }
 ];
 
 // ===== SETUP SCENE =====
@@ -100,10 +148,9 @@ scene.background = new THREE.Color('#1a2438');
 const camera = new THREE.PerspectiveCamera(45, viewer.clientWidth / viewer.clientHeight, 0.1, 1000);
 camera.position.set(0, 0, 5);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(viewer.clientWidth, viewer.clientHeight);
-renderer.shadowMap.enabled = true;
 viewer.appendChild(renderer.domElement);
 
 // ===== LAMPU =====
@@ -115,7 +162,7 @@ const dir2 = new THREE.DirectionalLight(0xffffff, 0.5);
 dir2.position.set(-5, 5, -5);
 scene.add(dir2);
 
-// ===== KAWALAN PUSING (Drag) =====
+// ===== KAWALAN PUSING =====
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
 controls.enableZoom = true;
@@ -125,78 +172,52 @@ controls.target.set(0, 0, 0);
 
 // ===== LOAD MODEL 3D =====
 let shirtMesh = null;
+let shirtMaterials = []; // Simpan material supaya senang tukar warna
 const loader = new GLTFLoader();
-
-// PASTIKAN NAMA FAIL INI SAMA DENGAN YANG ANDA UPLOAD
 const MODEL_URL = './T_shirt_gltf.gltf';
 
-// Bentuk sementara sebelum model load (kalau lambat)
-function createFallbackShirt(color) {
-  const group = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 2, 32), new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
-  group.add(body);
-  const armGeo = new THREE.CylinderGeometry(0.25, 0.3, 1.4, 24);
-  const armMat = new THREE.MeshStandardMaterial({ color, roughness: 0.85 });
-  const leftArm = new THREE.Mesh(armGeo, armMat);
-  leftArm.position.set(-1, 0.3, 0); leftArm.rotation.z = Math.PI / 6; group.add(leftArm);
-  const rightArm = leftArm.clone(); rightArm.position.x = 1; rightArm.rotation.z = -Math.PI / 6; group.add(rightArm);
-  return group;
-}
-
-let currentShirt = createFallbackShirt(COLORS[0].hex);
-scene.add(currentShirt);
-
-// Load model sebenar
 loader.load(
   MODEL_URL,
   (gltf) => {
-    // 1. Buang bentuk asas (silinder)
-    scene.remove(currentShirt);
-    
-    // 2. Masukkan baju sebenar
     shirtMesh = gltf.scene;
     
-    shirtMesh.traverse((child) => {
-      if (child.isMesh) {
-        child.material = new THREE.MeshStandardMaterial({
-          color: COLORS[0].hex, roughness: 0.85, metalness: 0.05
-        });
-      }
-    });
-    
-    scene.add(shirtMesh);
-
-    // 3. AUTO-FIT SAIZ BAJU IKUT SKRIN
+    // Auto-fit saiz baju
     const box = new THREE.Box3().setFromObject(shirtMesh);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    
     const maxSize = Math.max(size.x, size.y, size.z);
     const scaleFactor = 2.5 / maxSize; 
     
     shirtMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
     shirtMesh.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
-
     camera.position.set(0, 0, maxSize * 1.8);
     controls.update();
 
-    // 4. Sorokkan tulisan "Memuatkan..."
+    // Sediakan material baju
+    shirtMesh.traverse((child) => {
+      if (child.isMesh) {
+        // Simpan material asal supaya boleh tukar warna
+        child.material = new THREE.MeshStandardMaterial({
+          color: COLORS[0].hex, roughness: 0.85, metalness: 0.05
+        });
+        shirtMaterials.push(child.material);
+      }
+    });
+    
+    scene.add(shirtMesh);
     document.getElementById('loading').style.display = 'none';
   },
   undefined,
   (error) => {
-    console.warn('Model 3D gagal dimuat, guna bentuk asas.', error);
-    document.getElementById('loading').style.display = 'none'; // Sorokkan kalau error
+    console.error('Gagal load model:', error);
+    document.getElementById('loading').innerText = 'Gagal memuatkan baju. Sila refresh.';
   }
 );
 
-// ===== TUKAR WARNA =====
+// ===== FUNGSI TUKAR WARNA =====
 function setColor(hex) {
-  const target = shirtMesh || currentShirt;
-  target.traverse((child) => {
-    if (child.isMesh && child.material) {
-      child.material.color.set(hex);
-    }
+  shirtMaterials.forEach(mat => {
+    mat.color.set(hex);
   });
 }
 
@@ -214,17 +235,80 @@ COLORS.forEach((c, i) => {
   });
   colorBar.appendChild(btn);
 });
-  
-  // ===== KAWALAN COLOR PICKER (WARNA BEBAS) =====
-const customColorInput = document.getElementById('customColor');
-customColorInput.addEventListener('input', (e) => {
-  // Tukar warna baju secara live bila pelanggan geser/klik warna
-    setColor(e.target.value);
-  
-  // Buang 'active' dari butang bulat yang lama
-  document.querySelectorAll('.colors button').forEach(b => b.classList.remove('active'));
+
+// ===== FUNGSI UPLOAD GAMBAR (DECAL 3D) =====
+// Guna teknik 'Decal' untuk tampal gambar pada baju 3D
+const raycaster = new THREE.Raycaster();
+
+function applyDecal(imageFile, side) {
+  if (!shirtMesh) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(e.target.result, (texture) => {
+      
+      // Tukar warna gambar ikut keperluan
+      texture.colorSpace = THREE.SRGBColorSpace;
+
+      // Saiz decal (tampal gambar)
+      const decalSize = new THREE.Vector3(0.4, 0.4, 0.4);
+      
+      // Posisi depan/belakang
+      // Kita tembak dari depan atau belakang ke tengah baju
+      const direction = side === 'front' ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 0, -1);
+      
+      // Dapatkan posisi tengah baju (dada)
+      const box = new THREE.Box3().setFromObject(shirtMesh);
+      const center = box.getCenter(new THREE.Vector3());
+      
+      // Anjak sikit posisi supaya nampak macam tampal di luar
+      const position = center.clone();
+      if (side === 'front') {
+        position.z += box.getSize(new THREE.Vector3()).z / 2;
+      } else {
+        position.z -= box.getSize(new THREE.Vector3()).z / 2;
+      }
+      
+      // Naikkan sikit posisi y (dada)
+      position.y += 0.2; 
+
+      // Guna DecalGeometry
+      import('three/addons/geometries/DecalGeometry.js').then(({ DecalGeometry }) => {
+        const decalGeo = new DecalGeometry(shirtMesh, position, new THREE.Euler(0, side === 'front' ? 0 : Math.PI, 0), decalSize);
+        const decalMat = new THREE.MeshStandardMaterial({
+          map: texture, transparent: true, depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4
+        });
+        const decalMesh = new THREE.Mesh(decalGeo, decalMat);
+        scene.add(decalMesh);
+      });
+
+    });
+  };
+  reader.readAsDataURL(imageFile);
+}
+
+// Event Listener untuk Upload
+document.getElementById('uploadFront').addEventListener('change', (e) => {
+  if (e.target.files[0]) applyDecal(e.target.files[0], 'front');
 });
-  
+document.getElementById('uploadBack').addEventListener('change', (e) => {
+  if (e.target.files[0]) applyDecal(e.target.files[0], 'back');
+});
+
+// ===== FUNGSI SIMPAN GAMBAR (SAVE IMAGE) =====
+window.saveImage = function() {
+  // Render satu frame terakhir sebelum save
+  renderer.render(scene, camera);
+  // Ambil data URL
+  const dataURL = renderer.domElement.toDataURL('image/png');
+  // Download
+  const link = document.createElement('a');
+  link.download = 'design-baju-3d.png';
+  link.href = dataURL;
+  link.click();
+};
+
 // ===== RENDER LOOP =====
 function animate() {
   requestAnimationFrame(animate);
