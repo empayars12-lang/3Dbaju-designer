@@ -53,6 +53,10 @@
   }
   .upload-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
   .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-hint {
+    font-size: 10.5px; color: #71717a; margin-top: 8px; line-height: 1.5;
+    text-align: center;
+  }
 
   /* Butang Mod Transformasi */
   .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -128,6 +132,7 @@
     }
     #sidebar-left .section-title { display: none; }
     .custom-color-wrapper { display: none; }
+    .upload-hint { display: none; }
     .color-grid { display: flex; gap: 8px; }
     .color-btn { width: 30px; height: 30px; }
     .upload-btn { padding: 10px 14px; font-size: 12px; }
@@ -170,6 +175,9 @@
       <div class="upload-btn">
         + Tambah Logo
         <input type="file" id="logoUpload" accept="image/*" multiple />
+      </div>
+      <div class="upload-hint">
+        💡 Klik pada baju/lengan dulu,<br/>kemudian tambah logo untuk letak di situ.
       </div>
     </div>
 
@@ -257,7 +265,6 @@ transformControls.setMode('translate');
 transformControls.setSize(0.85);
 transformControls.showZ = false;   // kunci paksi Z (elak logo terapung)
 
-// Sokongan r169 (Object3D) & versi baru (getHelper)
 const transformHelper =
   typeof transformControls.getHelper === 'function'
     ? transformControls.getHelper()
@@ -337,7 +344,6 @@ new GLTFLoader().load(
 );
 
 function setupShirt(model) {
-  // --- Auto scale & center ---
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
@@ -349,7 +355,6 @@ function setupShirt(model) {
   model.position.sub(center);
   model.updateMatrixWorld(true);
 
-  // --- Ganti material (supaya boleh tukar warna) ---
   model.traverse((child) => {
     if (!child.isMesh) return;
     if (child.material) {
@@ -392,12 +397,13 @@ function buildFallbackShirt() {
 
 function finishLoading() {
   const el = document.getElementById('loading');
+  if (!el) return;
   el.style.opacity = '0';
   setTimeout(() => el.remove(), 500);
 }
 
 /* =========================================================
-   5. SISTEM LAYER (DITULIS SEMULA)
+   5. SISTEM LAYER
    ========================================================= */
 function addLayer({ name, icon, object, isShirt = false }) {
   const id = `layer-${++layerSeq}`;
@@ -430,7 +436,7 @@ function addLayer({ name, icon, object, isShirt = false }) {
   }
 
   layerListUI.prepend(el);
-  selectLayer(id);          // auto pilih layer baru
+  selectLayer(id);
   return layer;
 }
 
@@ -448,7 +454,7 @@ function selectLayer(id) {
 
 function removeLayer(id) {
   const layer = layers.get(id);
-  if (!layer || layer.isShirt) return;   // baju tak boleh dipadam
+  if (!layer || layer.isShirt) return;
 
   if (activeLayerId === id) {
     transformControls.detach();
@@ -461,7 +467,6 @@ function removeLayer(id) {
   layer.el.remove();
   layers.delete(id);
 
-  // Pilih semula layer baju
   if (!activeLayerId) {
     const shirtLayer = [...layers.values()].find((l) => l.isShirt);
     if (shirtLayer) selectLayer(shirtLayer.id);
@@ -491,10 +496,112 @@ function syncTransformPanel() {
 }
 
 /* =========================================================
-   6. PLACEMENT LOGO (RAYCAST + ORIENTASI)
+   6. KLIK-PADA-BAJU UNTUK LETAK LOGO
+   ---------------------------------------------------------
+   User klik/tap pada baju (termasuk lengan) → simpan hit.
+   Bila upload logo → logo pergi ke titik itu.
    ========================================================= */
-const LOGO_BASE_WIDTH = 0.5;
 const SCREEN_CENTER = new THREE.Vector2(0, 0);
+const clickRaycaster = new THREE.Raycaster();
+const clickNdc = new THREE.Vector2();
+let pendingHit = null;              // hit terakhir dari klik user
+let pointerDownPos = null;
+
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  pointerDownPos = { x: e.clientX, y: e.clientY };
+});
+
+renderer.domElement.addEventListener('pointerup', (e) => {
+  if (!pointerDownPos) return;
+  const dx = e.clientX - pointerDownPos.x;
+  const dy = e.clientY - pointerDownPos.y;
+  pointerDownPos = null;
+
+  // Abaikan jika ini drag (putar kamera)
+  if (Math.hypot(dx, dy) > 5) return;
+
+  // Abaikan jika sedang drag gizmo
+  if (transformControls.dragging) return;
+
+  if (!shirtMesh) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  clickNdc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  clickNdc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  clickRaycaster.setFromCamera(clickNdc, camera);
+  const hits = clickRaycaster.intersectObject(shirtMesh, true);
+  if (hits.length) {
+    pendingHit = hits[0];
+  }
+});
+
+/**
+ * Kira kedudukan & orientasi permukaan baju dari klik terakhir.
+ * @returns {null | { point, xAxis, yAxis, normal, isSleeve }}
+ */
+function computePlacement() {
+  if (!shirtMesh) return null;
+  shirtGroup.updateMatrixWorld(true);
+
+  const ray = new THREE.Raycaster();
+  let hit = pendingHit;               // guna klik terakhir (jika ada)
+
+  // Fallback 1: tembak tengah skrin
+  if (!hit || !hit.point) {
+    ray.setFromCamera(SCREEN_CENTER, camera);
+    const hits = ray.intersectObject(shirtMesh, true);
+    if (hits.length) hit = hits[0];
+  }
+  // Fallback 2: tembak ke arah pusat baju
+  if (!hit) {
+    const c = new THREE.Box3().setFromObject(shirtMesh).getCenter(new THREE.Vector3());
+    const dir = c.clone().sub(camera.position);
+    if (dir.lengthSq() < 1e-6) return null;
+    ray.set(camera.position, dir.normalize());
+    const hits = ray.intersectObject(shirtMesh, true);
+    if (hits.length) hit = hits[0];
+  }
+  if (!hit) return null;
+
+  const pointWorld = hit.point.clone();
+
+  // Normal permukaan (world)
+  let normalWorld;
+  if (hit.face) {
+    normalWorld = hit.face.normal.clone()
+      .transformDirection(hit.object.matrixWorld).normalize();
+  } else {
+    normalWorld = camera.position.clone().sub(pointWorld).normalize();
+  }
+  if (normalWorld.dot(camera.position.clone().sub(pointWorld)) < 0) {
+    normalWorld.negate();
+  }
+
+  // Tukar ke ruang lokal shirtGroup
+  const invGroup = new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert();
+  const localPoint  = pointWorld.clone().applyMatrix4(invGroup);
+  const localNormal = normalWorld.clone().transformDirection(invGroup).normalize();
+
+  // Kesan lengan: normal yang hampir mendatar (Y kecil)
+  const isSleeve = Math.abs(localNormal.y) < 0.5;
+
+  // Basis: +Z = normal, +Y = "atas" world
+  const up = new THREE.Vector3(0, 1, 0);
+  const xAxis = new THREE.Vector3().crossVectors(up, localNormal);
+  if (xAxis.lengthSq() < 1e-6) xAxis.set(1, 0, 0);
+  xAxis.normalize();
+  const yAxis = new THREE.Vector3().crossVectors(localNormal, xAxis).normalize();
+
+  return { point: localPoint, xAxis, yAxis, normal: localNormal, isSleeve };
+}
+
+/* =========================================================
+   7. CIPTA LOGO
+   ========================================================= */
+const LOGO_BASE_WIDTH  = 0.5;   // untuk dada
+const LOGO_SLEEVE_WIDTH = 0.20; // lebih kecil untuk lengan
+const CASCADE_STEP = 0.10;
 
 const logoInput = document.getElementById('logoUpload');
 
@@ -518,18 +625,32 @@ function createLogo(dataUrl) {
 
       const img = texture.image;
       const aspect = (img && img.width && img.height) ? img.width / img.height : 1;
-      const w = LOGO_BASE_WIDTH;
+
+      // --- Tentukan kedudukan dahulu ---
+      const placement = computePlacement();
+      if (!placement) {
+        console.warn('Tiada permukaan baju untuk letak logo.');
+        texture.dispose();
+        return;
+      }
+
+      const { point, xAxis, yAxis, normal, isSleeve } = placement;
+
+      // --- Saiz adaptif ---
+      const baseWidth = isSleeve ? LOGO_SLEEVE_WIDTH : LOGO_BASE_WIDTH;
+      const w = baseWidth;
       const h = w / aspect;
 
+      // --- Bina geometri ---
       const geo = new THREE.PlaneGeometry(w, h);
       const mat = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
-        depthTest: true,          // logo TIDAK tembus dari belakang baju
+        depthTest: true,
         depthWrite: false,
         side: THREE.FrontSide,
         toneMapped: false,
-        polygonOffset: true,      // elak z-fighting dengan permukaan baju
+        polygonOffset: true,
         polygonOffsetFactor: -4,
         polygonOffsetUnits: -4
       });
@@ -537,90 +658,35 @@ function createLogo(dataUrl) {
       const logo = new THREE.Mesh(geo, mat);
       logo.renderOrder = 2;
 
-      if (!placeOnShirt(logo)) {
-        logo.position.set(0, 0, 1.4); // fallback
-      }
+      // --- Orientasi ---
+      const basis = new THREE.Matrix4().makeBasis(xAxis, yAxis, normal);
+      logo.quaternion.setFromRotationMatrix(basis);
+
+      // --- Cascade offset (kecil supaya muat lengan) ---
+      const count = [...layers.values()].filter((l) => !l.isShirt).length;
+      const offsetX = ((count % 3) - 1) * CASCADE_STEP;
+      const offsetY = -Math.floor(count / 3) * CASCADE_STEP;
+
+      logo.position.copy(point)
+        .addScaledVector(xAxis, offsetX)
+        .addScaledVector(yAxis, offsetY)
+        .addScaledVector(normal, 0.015);
 
       shirtGroup.add(logo);
-      addLayer({ name: `Logo ${++logoSeq}`, icon: '🖼️', object: logo, isShirt: false });
+      addLayer({
+        name: `Logo ${++logoSeq}${isSleeve ? ' (lengan)' : ''}`,
+        icon: '🖼️',
+        object: logo,
+        isShirt: false
+      });
     },
     undefined,
     (err) => console.error('Gagal baca imej:', err)
   );
 }
 
-/**
- * Letak logo tepat pada permukaan baju yang sedang dilihat.
- * Menggunakan normal permukaan untuk orientasi supaya logo
- * "melekat" pada baju walau kamera dipusing.
- * @returns {boolean} berjaya atau tidak
- */
-function placeOnShirt(logo) {
-  if (!shirtMesh) return false;
-  shirtGroup.updateMatrixWorld(true);
-
-  const raycaster = new THREE.Raycaster();
-
-  // 1) Tembak dari tengah skrin (WYSIWYG)
-  raycaster.setFromCamera(SCREEN_CENTER, camera);
-  let hits = raycaster.intersectObject(shirtMesh, true);
-
-  // 2) Fallback: tembak ke arah pusat baju
-  if (!hits.length) {
-    const c = new THREE.Box3().setFromObject(shirtMesh).getCenter(new THREE.Vector3());
-    const dir = c.clone().sub(camera.position);
-    if (dir.lengthSq() < 1e-6) return false;
-    raycaster.set(camera.position, dir.normalize());
-    hits = raycaster.intersectObject(shirtMesh, true);
-  }
-  if (!hits.length) return false;
-
-  const hit = hits[0];
-  const pointWorld = hit.point.clone();
-
-  // Normal permukaan (dalam world space)
-  let normalWorld;
-  if (hit.face) {
-    normalWorld = hit.face.normal.clone()
-      .transformDirection(hit.object.matrixWorld).normalize();
-  } else {
-    normalWorld = camera.position.clone().sub(pointWorld).normalize();
-  }
-  // Pastikan normal menghadap kamera
-  if (normalWorld.dot(camera.position.clone().sub(pointWorld)) < 0) {
-    normalWorld.negate();
-  }
-
-  // Tukar ke ruang lokal shirtGroup (supaya kekal betul walau group digerakkan)
-  const invGroup = new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert();
-  const localPoint  = pointWorld.clone().applyMatrix4(invGroup);
-  const localNormal = normalWorld.clone().transformDirection(invGroup).normalize();
-
-  // Bina basis: +Z = normal, +Y = "atas" sedekat mungkin dengan dunia
-  const up = new THREE.Vector3(0, 1, 0);
-  let xAxis = new THREE.Vector3().crossVectors(up, localNormal);
-  if (xAxis.lengthSq() < 1e-6) xAxis.set(1, 0, 0);
-  xAxis.normalize();
-  const yAxis = new THREE.Vector3().crossVectors(localNormal, xAxis).normalize();
-
-  const basis = new THREE.Matrix4().makeBasis(xAxis, yAxis, localNormal);
-  logo.quaternion.setFromRotationMatrix(basis);
-
-  // Cascade offset: elak semua logo bertindih pada titik sama
-  const count = [...layers.values()].filter((l) => !l.isShirt).length;
-  const offsetX = ((count % 3) - 1) * 0.22;
-  const offsetY = -Math.floor(count / 3) * 0.22;
-
-  logo.position.copy(localPoint)
-    .addScaledVector(xAxis, offsetX)
-    .addScaledVector(yAxis, offsetY)
-    .addScaledVector(localNormal, 0.015); // angkat sedikit dari permukaan
-
-  return true;
-}
-
 /* =========================================================
-   7. WARNA BAJU
+   8. WARNA BAJU
    ========================================================= */
 const PRESET_COLORS = [
   '#ffffff', '#171717', '#64748b', '#dc2626',
@@ -651,7 +717,7 @@ document.getElementById('customColor').addEventListener('input', (e) => {
 });
 
 /* =========================================================
-   8. MOD TRANSFORMASI + SLIDER SAIZ
+   9. MOD TRANSFORMASI + SLIDER SAIZ (SCALE UNIFORM)
    ========================================================= */
 document.querySelectorAll('.mode-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -666,21 +732,35 @@ sizeSlider.addEventListener('input', () => {
   layer.object.scale.setScalar(parseFloat(sizeSlider.value));
 });
 
-// Segerakkan slider bila gizmo digunakan
+// Segerakkan slider & pastikan skala SERAGAM ketika gizmo scale digunakan
 transformControls.addEventListener('objectChange', () => {
   const layer = layers.get(activeLayerId);
   if (!layer || layer.isShirt) return;
+
+  if (transformControls.mode === 'scale') {
+    const obj = layer.object;
+    const axis = transformControls.axis || 'XYZ';
+    let target;
+    if (axis === 'X' || axis === 'XY' || axis === 'XZ') target = obj.scale.x;
+    else if (axis === 'Y' || axis === 'YZ') target = obj.scale.y;
+    else if (axis === 'Z') target = obj.scale.z;
+    else target = (obj.scale.x + obj.scale.y + obj.scale.z) / 3;
+
+    target = Math.max(0.2, Math.min(3, target));
+    obj.scale.setScalar(target);
+  }
+
   sizeSlider.value = THREE.MathUtils.clamp(layer.object.scale.x, 0.2, 3);
 });
 
 /* =========================================================
-   9. SIMPAN GAMBAR
+   10. SIMPAN GAMBAR
    ========================================================= */
 document.getElementById('saveBtn').addEventListener('click', () => {
   const wasVisible = transformHelper.visible;
-  transformHelper.visible = false;         // sembunyikan gizmo
+  transformHelper.visible = false;
 
-  renderer.render(scene, camera);          // render segar sebelum tangkap
+  renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
 
   transformHelper.visible = wasVisible;
@@ -693,7 +773,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
 });
 
 /* =========================================================
-   10. RENDER LOOP + RESIZE
+   11. RENDER LOOP + RESIZE
    ========================================================= */
 function animate() {
   requestAnimationFrame(animate);
