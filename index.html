@@ -62,7 +62,7 @@
   </div>
 </div>
 
-<!-- Import Three.js dari CDN (tak perlu npm install) -->
+<!-- Import Three.js dari CDN -->
 <script type="importmap">
 {
   "imports": {
@@ -125,7 +125,7 @@ const loader = new GLTFLoader();
 // PASTIKAN NAMA FAIL INI SAMA DENGAN YANG ANDA UPLOAD
 const MODEL_URL = './T_shirt_gltf.gltf';
 
-// Bentuk sementara sebelum model load
+// Bentuk sementara sebelum model load (kalau lambat)
 function createFallbackShirt(color) {
   const group = new THREE.Group();
   const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 2, 32), new THREE.MeshStandardMaterial({ color, roughness: 0.85 }));
@@ -140,13 +140,15 @@ function createFallbackShirt(color) {
 
 let currentShirt = createFallbackShirt(COLORS[0].hex);
 scene.add(currentShirt);
-document.getElementById('loading').style.display = 'none';
 
 // Load model sebenar
 loader.load(
   MODEL_URL,
   (gltf) => {
+    // 1. Buang bentuk asas (silinder)
     scene.remove(currentShirt);
+    
+    // 2. Masukkan baju sebenar
     shirtMesh = gltf.scene;
     
     shirtMesh.traverse((child) => {
@@ -159,27 +161,27 @@ loader.load(
     
     scene.add(shirtMesh);
 
-    // --- AUTO-FIT SAIZ BAJU IKUT SKRIN ---
+    // 3. AUTO-FIT SAIZ BAJU IKUT SKRIN
     const box = new THREE.Box3().setFromObject(shirtMesh);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     
-    // Kira saiz paling besar (sama ada tinggi atau lebar)
     const maxSize = Math.max(size.x, size.y, size.z);
-    // Kita target kan saiz baju muat dalam 2.5 unit ruang 3D
     const scaleFactor = 2.5 / maxSize; 
     
-    // Set saiz & letak betul-betul kat tengah skrin
     shirtMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
     shirtMesh.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
 
-    // Set kamera auto zoom supaya sesuai
     camera.position.set(0, 0, maxSize * 1.8);
     controls.update();
+
+    // 4. Sorokkan tulisan "Memuatkan..."
+    document.getElementById('loading').style.display = 'none';
   },
   undefined,
   (error) => {
     console.warn('Model 3D gagal dimuat, guna bentuk asas.', error);
+    document.getElementById('loading').style.display = 'none'; // Sorokkan kalau error
   }
 );
 
