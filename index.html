@@ -56,11 +56,16 @@
   <div id="viewer">
     <div id="loading">Memuatkan baju 3D...</div>
   </div>
-  <div class="controls">
+    <div class="controls">
     <p>Pilih warna baju:</p>
-    <div class="colors" id="colorBar"></div>
+    <div class="colors" id="colorBar" style="margin-bottom: 15px;"></div>
+    
+    <!-- KOD BARU: Color Picker -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <label for="customColor" style="font-size: 14px;">Warna Custom:</label>
+      <input type="color" id="customColor" value="#4a6b5a" style="width: 50px; height: 40px; cursor: pointer; border: none; background: none;">
+    </div>
   </div>
-</div>
 
 <!-- Import Three.js dari CDN -->
 <script type="importmap">
