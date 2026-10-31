@@ -205,14 +205,14 @@ let shirtMesh = null;
 let shirtMaterials = [];
 let layers = [];
 let activeLayer = null;
-let previewController = null; // Objek halimunan untuk kawal Gizmo
-let previewPlane = null;      // Imej 2D yang melekat pada baju
-let previewTexture = null;
 let logoSeq = 0;
 
 const layerListUI = document.getElementById('layers-list');
 const transformUI = document.getElementById('transform-controls');
 const rotateSlider = document.getElementById('rotateSlider');
+
+const raycaster = new THREE.Raycaster();
+let isUpdating = false;
 
 // Load Model
 new GLTFLoader().load('./T_shirt_gltf.gltf', 
@@ -283,7 +283,7 @@ function addBaseLayer() {
   el.className = 'layer-item active';
   el.innerHTML = `<div class="layer-info"><span>👕</span> <span>Baju 3D (Asas)</span></div>`;
   el.onclick = () => {
-    if(previewController) return; // Kunci jika tgh preview
+    if(activeLayer && activeLayer.type === 'preview') return;
     document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
     transformControls.attach(shirtGroup);
@@ -319,16 +319,8 @@ function addDesignLayer(type, texture, aspect, isText = false) {
   startPreview(layerObj);
 }
 
-// ===== 4. SISTEM PREVIEW (STABIL & LAJU) =====
-const raycaster = new THREE.Raycaster();
-
+// ===== 4. SISTEM PREVIEW (DECAL FULL) =====
 function startPreview(layer) {
-  // Bersihkan preview lama jika ada
-  if (previewController) {
-    scene.remove(previewController);
-    scene.remove(previewPlane);
-  }
-
   layer.type = 'preview';
   layer.el.querySelector('.apply').style.display = 'block';
   
@@ -340,47 +332,45 @@ function startPreview(layer) {
   const cMat = new THREE.MeshBasicMaterial({ visible: false });
   const controller = new THREE.Mesh(cGeo, cMat);
   
-  // 2. Plane (Imej 2D yang nampak)
-  const pGeo = new THREE.PlaneGeometry(w, h);
+  // 2. Preview Mesh (Guna DecalGeometry)
   const pMat = new THREE.MeshStandardMaterial({ 
     map: layer.texture, 
     transparent: true, 
-    opacity: 0.9,
+    opacity: 1,
     polygonOffset: true, 
     polygonOffsetFactor: -4,
     depthTest: true,
-    depthWrite: false,
-    side: THREE.DoubleSide
+    depthWrite: false
   });
-  const plane = new THREE.Mesh(pGeo, pMat);
-  plane.renderOrder = 2;
+  const previewMesh = new THREE.Mesh(new THREE.BufferGeometry(), pMat);
+  previewMesh.renderOrder = 2;
 
-  // Letak di tengah baju (berdasarkan raycast dari kamera)
+  // Letak controller di tengah baju
   raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
   const hits = raycaster.intersectObject(shirtMesh, true);
+  
   if (hits.length > 0) {
     const pt = hits[0].point;
     const n = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
+    
+    // Set posisi dan orientasi controller
     controller.position.copy(pt).addScaledVector(n, 0.05);
-    plane.position.copy(controller.position);
-    plane.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
-    controller.quaternion.copy(plane.quaternion);
+    const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
+    controller.quaternion.copy(baseQ);
   } else {
     controller.position.set(0, 0, 1.5);
-    plane.position.copy(controller.position);
   }
 
   scene.add(controller);
-  scene.add(plane);
+  scene.add(previewMesh);
 
   layer.controller = controller;
-  layer.mesh = plane;
+  layer.mesh = previewMesh;
 
-  previewController = controller;
-  previewPlane = plane;
-  previewTexture = layer.texture;
+  // Jana Decal pertama kali
+  updatePreviewDecal(layer);
 
-  // Attach Gizmo ke Controller
+  // Attach Gizmo
   transformControls.attach(controller);
   transformControls.setMode('translate');
   transformUI.classList.add('active');
@@ -389,126 +379,135 @@ function startPreview(layer) {
   selectLayer(layer);
 }
 
-// Update Plane mengikut pergerakan Gizmo
-transformControls.addEventListener('objectChange', () => {
-  if (!previewController || !previewPlane) return;
+function updatePreviewDecal(layer) {
+  if (!layer.controller || !layer.mesh) return;
+  
+  shirtGroup.updateMatrixWorld(true);
+  
+  const localPos = shirtGroup.worldToLocal(layer.controller.position.clone());
+  const localRot = layer.controller.quaternion.clone();
+  const localScale = layer.controller.scale.clone();
+  
+  // Saiz decal
+  const w = 0.6 * localScale.x;
+  const h = (0.6 / layer.aspect) * localScale.y;
+  const size = new THREE.Vector3(w, h, 0.2);
 
-  // Tembak raycast dari kamera ke arah Controller
-  const dir = previewController.position.clone().sub(camera.position).normalize();
+  if (layer.mesh.geometry) layer.mesh.geometry.dispose();
+  layer.mesh.geometry = new DecalGeometry(shirtMesh, localPos, localRot, size);
+}
+
+// Event Bila Gizmo Digerakkan
+transformControls.addEventListener('objectChange', () => {
+  if (isUpdating || !activeLayer || activeLayer.type !== 'preview') return;
+  
+  const controller = activeLayer.controller;
+  if (!controller) return;
+
+  // Tembak raycast untuk pastikan ia melekat pada baju (Snap to Surface)
+  const dir = controller.position.clone().sub(camera.position).normalize();
   raycaster.set(camera.position, dir);
   const hits = raycaster.intersectObject(shirtMesh, true);
 
   if (hits.length > 0) {
     const hit = hits[0];
-    const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+
+    // Snap controller ke permukaan baju
+    isUpdating = true;
+    controller.position.copy(hit.point).addScaledVector(normal, 0.015);
     
-    // Snap posisi ke baju
-    previewPlane.position.copy(hit.point).addScaledVector(n, 0.015);
-    previewController.position.copy(hit.point).addScaledVector(n, 0.015);
-    
-    // Orientasi plane ikut normal
-    const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
-    
-    // Apply rotate slider
+    // Orientasi logo ikut permukaan + Slider Putar
+    const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
     const angle = THREE.MathUtils.degToRad(parseFloat(rotateSlider.value));
     const rotQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
-    
-    previewPlane.quaternion.copy(baseQ).multiply(rotQ);
-    
-    // Scale ikut Gizmo
-    previewPlane.scale.copy(previewController.scale);
-    previewPlane.material.opacity = 0.9;
-  } else {
-    // Jika terkeluar dari baju, buat ia lutsinar
-    previewPlane.material.opacity = 0.1;
+    controller.quaternion.copy(baseQ).multiply(rotQ);
+
+    isUpdating = false;
+
+    // Jana semula Decal mengikut posisi baru
+    updatePreviewDecal(activeLayer);
   }
 });
 
 // ===== 5. BAKE & EDIT =====
 function bakeLayer(layer) {
   if (layer.type === 'baked') return;
-  
   transformControls.detach();
   
-  // Tukar posisi world ke local (shirtMesh)
-  shirtGroup.updateMatrixWorld(true);
-  const localPos = shirtGroup.worldToLocal(layer.mesh.position.clone());
-  const localRot = layer.mesh.quaternion.clone();
-  const localScale = layer.mesh.scale.clone();
+  // Simpan transformasi untuk Edit kelak
+  layer.savedPos = layer.controller.position.clone();
+  layer.savedQuat = layer.controller.quaternion.clone();
+  layer.savedScale = layer.controller.scale.clone();
 
-  const w = 0.6 * localScale.x;
-  const h = (0.6 / layer.aspect) * localScale.y;
-  const size = new THREE.Vector3(w, h, 0.2);
-
-  // Jana Decal
-  const decalGeo = new DecalGeometry(shirtMesh, localPos, localRot, size);
-  const decalMat = new THREE.MeshStandardMaterial({
-    map: layer.texture,
-    transparent: true,
-    depthTest: true,
-    depthWrite: false,
-    polygonOffset: true,
-    polygonOffsetFactor: -4,
-    roughness: 0.8
-  });
-
-  const decalMesh = new THREE.Mesh(decalGeo, decalMat);
-  decalMesh.renderOrder = 2;
-  
-  shirtGroup.add(decalMesh);
-  
-  // Buang preview
+  // Buang controller, kekalkan mesh
   scene.remove(layer.controller);
-  scene.remove(layer.mesh);
-  previewController = null;
-  previewPlane = null;
+  layer.controller.geometry.dispose();
+  layer.controller.material.dispose();
+  layer.controller = null;
 
   // Update UI
   layer.type = 'baked';
-  layer.mesh = decalMesh;
-  layer.controller = null;
   layer.el.querySelector('.apply').style.display = 'none';
-  layer.el.querySelector('.delete').innerHTML = '✏️'; // Tukar butang padam jadi Edit
+  layer.el.querySelector('.delete').innerHTML = '✏️';
   layer.el.querySelector('.delete').onclick = (e) => { e.stopPropagation(); editLayer(layer); };
   
   // Tambah butang padam asli
-  const delBtn = document.createElement('button');
-  delBtn.className = 'action-btn delete';
-  delBtn.innerHTML = '✕';
-  delBtn.onclick = (e) => { e.stopPropagation(); deleteLayer(layer); };
-  layer.el.querySelector('.layer-actions').appendChild(delBtn);
+  if(!layer.el.querySelector('.delete-original')) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'action-btn delete delete-original';
+      delBtn.innerHTML = '✕';
+      delBtn.onclick = (e) => { e.stopPropagation(); deleteLayer(layer); };
+      layer.el.querySelector('.layer-actions').appendChild(delBtn);
+  }
 
   transformUI.classList.remove('active');
+  activeLayer = null;
+  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
 }
 
 function editLayer(layer) {
   if (layer.type === 'baked') {
-    // Buang decal
-    shirtGroup.remove(layer.mesh);
-    layer.mesh.geometry.dispose();
-    layer.mesh.material.dispose();
-    
     // Reset UI
-    const applyBtn = layer.el.querySelector('.apply');
-    applyBtn.style.display = 'block';
-    layer.el.querySelector('.layer-actions').innerHTML = `<button class="action-btn apply">✓</button><button class="action-btn delete">✕</button>`;
-    layer.el.querySelector('.apply').onclick = (e) => { e.stopPropagation(); bakeLayer(layer); };
+    layer.el.querySelector('.apply').style.display = 'block';
+    const origDel = layer.el.querySelector('.delete-original');
+    if(origDel) origDel.remove();
+    
+    layer.el.querySelector('.delete').innerHTML = '✕';
     layer.el.querySelector('.delete').onclick = (e) => { e.stopPropagation(); deleteLayer(layer); };
 
-    // Kembali ke Preview
-    startPreview(layer);
+    // Kembalikan Controller
+    const w = 0.6;
+    const h = w / layer.aspect;
+    const cGeo = new THREE.PlaneGeometry(w, h);
+    const cMat = new THREE.MeshBasicMaterial({ visible: false });
+    const controller = new THREE.Mesh(cGeo, cMat);
+    
+    controller.position.copy(layer.savedPos);
+    controller.quaternion.copy(layer.savedQuat);
+    controller.scale.copy(layer.savedScale);
+    
+    scene.add(controller);
+    layer.controller = controller;
+
+    // Tukar ke Preview
+    layer.type = 'preview';
+    transformControls.attach(controller);
+    transformUI.classList.add('active');
+    rotateSlider.value = 0; // Reset rotate
+    
+    selectLayer(layer);
   }
 }
 
 function deleteLayer(layer) {
-  if (layer.type === 'preview') {
+  if (layer.controller) {
     scene.remove(layer.controller);
+    layer.controller.geometry.dispose();
+    layer.controller.material.dispose();
+  }
+  if (layer.mesh) {
     scene.remove(layer.mesh);
-    previewController = null;
-    previewPlane = null;
-    transformControls.detach();
-  } else {
-    shirtGroup.remove(layer.mesh);
     layer.mesh.geometry.dispose();
     layer.mesh.material.dispose();
   }
@@ -518,6 +517,8 @@ function deleteLayer(layer) {
   layers = layers.filter(l => l !== layer);
   
   transformUI.classList.remove('active');
+  activeLayer = null;
+  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
 }
 
 function selectLayer(layer) {
@@ -580,10 +581,17 @@ document.getElementById('btnTranslate').onclick = () => transformControls.setMod
 document.getElementById('btnScale').onclick = () => transformControls.setMode('scale');
 
 rotateSlider.addEventListener('input', () => {
-  if (previewController) {
-    // Trigger manual objectChange
-    const event = { type: 'objectChange' };
-    transformControls.dispatchEvent(event);
+  if (activeLayer && activeLayer.type === 'preview') {
+    // Trigger manual objectChange untuk update putaran
+    isUpdating = true;
+    // Kita paksa update dengan menggerakkan posisi sikit
+    const c = activeLayer.controller;
+    const oldPos = c.position.clone();
+    c.position.x += 0.00001; 
+    isUpdating = false;
+    transformControls.dispatchEvent({ type: 'objectChange' });
+    c.position.copy(oldPos);
+    transformControls.dispatchEvent({ type: 'objectChange' });
   }
 });
 
