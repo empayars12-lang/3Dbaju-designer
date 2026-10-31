@@ -177,7 +177,6 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-// Environment & Lighting
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
@@ -208,15 +207,19 @@ transformControls.setSize(0.8);
 const transformHelper = transformControls.getHelper();
 scene.add(transformHelper);
 
+// Bendera untuk mengesan jika tetikus sedang menyeret Gizmo
+let isDragging = false;
+
 transformControls.addEventListener('dragging-changed', (event) => {
   controls.enabled = !event.value;
+  isDragging = event.value;
 });
 
 // ===== 2. STATE & MODEL =====
-const shirtGroup = new THREE.Group(); // Wadah utama untuk baju
+const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
 
-let shirtMeshes = []; // Simpan semua mesh baju di sini (PENTING!)
+let shirtMeshes = [];
 let shirtMaterials = [];
 let layers = [];
 let activeDummy = null;
@@ -226,7 +229,6 @@ const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
 const gizmoControlsUI = document.getElementById('gizmoControls');
 
-// Load Model 3D
 new GLTFLoader().load('./T_shirt_gltf.gltf', 
   (gltf) => setupShirt(gltf.scene), 
   undefined, 
@@ -248,7 +250,6 @@ function setupShirt(model) {
   model.position.sub(center);
   model.updateMatrixWorld(true);
 
-  // PENTING: Cari dan simpan SEMUA mesh baju
   model.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = true;
@@ -256,7 +257,7 @@ function setupShirt(model) {
       const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1 });
       child.material = mat;
       shirtMaterials.push(mat);
-      shirtMeshes.push(child); // Masukkan dalam array
+      shirtMeshes.push(child);
     }
   });
 
@@ -330,17 +331,17 @@ function selectLayer(dummy, el) {
 function deleteLayer(dummy, el) {
   transformControls.detach();
   
-  // Buang semua decal berkaitan dummy ini
   if (dummy.userData.decals) {
     dummy.userData.decals.forEach(decal => {
       shirtGroup.remove(decal);
       decal.geometry.dispose();
+      if (decal.material.map) decal.material.map.dispose(); // Buang texture klon
       decal.material.dispose();
     });
   }
   
   if (dummy.userData.texture) dummy.userData.texture.dispose();
-  shirtGroup.remove(dummy); // Buang dummy
+  shirtGroup.remove(dummy);
   
   el.remove();
   layers = layers.filter(l => l !== dummy);
@@ -348,15 +349,16 @@ function deleteLayer(dummy, el) {
   activeDummy = null;
 }
 
-// ===== 4. SISTEM DECAL (BETUL) =====
+// ===== 4. SISTEM DECAL =====
 function createDecal(dummy) {
   if (!shirtMeshes.length) return;
 
-  // Buang decal lama
   if (dummy.userData.decals) {
     dummy.userData.decals.forEach(decal => {
       shirtGroup.remove(decal);
       decal.geometry.dispose();
+      if (decal.material.map) decal.material.map.dispose(); // Dispose texture klon lama
+      decal.material.dispose();
     });
   }
   dummy.userData.decals = [];
@@ -365,15 +367,24 @@ function createDecal(dummy) {
   const h = (0.6 / dummy.userData.aspect) * dummy.scale.y;
   const size = new THREE.Vector3(w, h, 0.2);
 
-  // Loop melalui SETIAP mesh baju untuk lekatkan decal
+  // Semak jika logo berada di belakang baju
+  const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
+  const isBack = currentNormal.z < -0.1; // Jika paksi Z menghadap ke belakang
+
   shirtMeshes.forEach(mesh => {
     try {
       const decalGeo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
       
-      // Pastikan geometry ada data (kadang-kadang raycast terlepas)
       if (decalGeo.attributes.position && decalGeo.attributes.position.count > 0) {
+        // KLON TEXTURE supaya kita boleh flip tanpa merosakkan logo lain
+        const tex = dummy.userData.texture.clone();
+        if (isBack) {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.repeat.x = -1; // Flip gambar secara automatik (Anti-Mirror)
+        }
+
         const decalMat = new THREE.MeshStandardMaterial({
-          map: dummy.userData.texture,
+          map: tex,
           transparent: true,
           depthTest: true,
           depthWrite: false,
@@ -384,10 +395,10 @@ function createDecal(dummy) {
 
         const decalMesh = new THREE.Mesh(decalGeo, decalMat);
         decalMesh.renderOrder = 2;
-        shirtGroup.add(decalMesh); // Tambah ke shirtGroup
+        shirtGroup.add(decalMesh);
         dummy.userData.decals.push(decalMesh);
       } else {
-        decalGeo.dispose(); // Buang jika kosong
+        decalGeo.dispose();
       }
     } catch(e) {
       console.warn("Decal gagal pada mesh ini:", e);
@@ -395,6 +406,7 @@ function createDecal(dummy) {
   });
 }
 
+// Kemas kini posisi & putaran semasa Gizmo digunakan
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy || !shirtMeshes.length) return;
 
@@ -404,13 +416,27 @@ transformControls.addEventListener('objectChange', () => {
   const dir = worldPos.clone().sub(camera.position).normalize();
   raycaster.set(camera.position, dir);
   
-  // Raycast pada semua mesh baju
   const hits = raycaster.intersectObjects(shirtMeshes, true);
   
   if (hits.length > 0) {
-    // Tukar posisi dunia ke posisi lokal shirtGroup
-    const localHit = shirtGroup.worldToLocal(hits[0].point.clone());
-    activeDummy.position.copy(localHit); // Paksa snap ke permukaan
+    const hit = hits[0];
+    const localHit = shirtGroup.worldToLocal(hit.point.clone());
+    activeDummy.position.copy(localHit); // Snap ke baju
+
+    // Jika dalam mod "Gerak", selaraskan putaran logo mengikut lekuk baju (Lengan/Leher)
+    if (isDragging && transformControls.getMode() === 'translate') {
+      const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+      const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+      
+      const up = new THREE.Vector3(0, 1, 0);
+      let right = new THREE.Vector3().crossVectors(up, localNormal);
+      if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+      right.normalize();
+      const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
+      
+      const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
+      activeDummy.quaternion.setFromRotationMatrix(matrix);
+    }
   }
 
   createDecal(activeDummy);
@@ -463,15 +489,13 @@ function addLogoToScene(texture, aspect, isText = false) {
   const dummy = new THREE.Object3D();
   dummy.userData.texture = texture;
   dummy.userData.aspect = aspect;
-  
-  // Tambah ke shirtGroup
   shirtGroup.add(dummy);
 
   const offsetX = (logoCount % 2 === 0) ? 0.15 : -0.15;
   const offsetY = Math.floor(logoCount / 2) * -0.2;
 
   raycaster.setFromCamera(new THREE.Vector2(offsetX, offsetY), camera);
-  const hits = raycaster.intersectObjects(shirtMeshes, true); // Tembak pada array mesh
+  const hits = raycaster.intersectObjects(shirtMeshes, true);
 
   if (hits.length > 0) {
     const hit = hits[0];
@@ -489,7 +513,6 @@ function addLogoToScene(texture, aspect, isText = false) {
     
     const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
     dummy.quaternion.setFromRotationMatrix(matrix);
-
   } else {
     dummy.position.set(0, 0, 0.5);
   }
