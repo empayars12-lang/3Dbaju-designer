@@ -214,7 +214,17 @@ COLORS.forEach((c, i) => {
   });
   colorBar.appendChild(btn);
 });
-
+  
+  // ===== KAWALAN COLOR PICKER (WARNA BEBAS) =====
+const customColorInput = document.getElementById('customColor');
+customColorInput.addEventListener('input', (e) => {
+  // Tukar warna baju secara live bila pelanggan geser/klik warna
+  setColor(e.target.value);
+  
+  // Buang 'active' dari butang bulat yang lama
+  document.querySelectorAll('.colors button').forEach(b => b.classList.remove('active'));
+});
+  
 // ===== RENDER LOOP =====
 function animate() {
   requestAnimationFrame(animate);
