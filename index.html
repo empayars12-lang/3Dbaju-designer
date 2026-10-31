@@ -161,13 +161,12 @@ controls.minDistance = 2;
 controls.maxDistance = 8;
 controls.target.set(0, 0, 0);
 
-// ===== KAWALAN GIZMO (Transform Controls) =====
+// ===== KAWALAN GIZMO =====
 const transformControls = new TransformControls(camera, renderer.domElement);
-transformControls.setMode('translate'); // Mode: Gerak (boleh tukar ke 'rotate' atau 'scale')
-transformControls.setSpace('local'); // Bergerak ikut arah baju
+transformControls.setMode('translate'); 
+transformControls.showZ = false; // KUNCI PAKSA: Sembunyikan anak panah Z supaya tak terapung
 scene.add(transformControls);
 
-// Bila drag gizmo, matikan pusing kamera
 transformControls.addEventListener('dragging-changed', function (event) {
   controls.enabled = !event.value;
 });
@@ -176,6 +175,8 @@ transformControls.addEventListener('dragging-changed', function (event) {
 let shirtMesh = null;
 let shirtMaterials = [];
 let activeLogo = null;
+let shirtBox = new THREE.Box3(); // Simpan saiz baju
+let shirtCenter = new THREE.Vector3(); // Simpan posisi tengah baju
 
 // ===== LOAD MODEL 3D =====
 const loader = new GLTFLoader();
@@ -187,15 +188,28 @@ loader.load(
     shirtMesh = gltf.scene;
     
     // Auto-fit size model
-    const box = new THREE.Box3().setFromObject(shirtMesh);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
+    shirtBox.setFromObject(shirtMesh);
+    const size = shirtBox.getSize(new THREE.Vector3());
+    shirtCenter = shirtBox.getCenter(new THREE.Vector3());
     const maxSize = Math.max(size.x, size.y, size.z);
     const scaleFactor = 2.5 / maxSize; 
     
     shirtMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
-    shirtMesh.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
-    camera.position.set(0, 0, maxSize * 1.8);
+    // Update box selepas scale
+    shirtMesh.updateMatrixWorld(true);
+    shirtBox.setFromObject(shirtMesh);
+    shirtCenter = shirtBox.getCenter(new THREE.Vector3());
+    const newSize = shirtBox.getSize(new THREE.Vector3());
+
+    // Set posisi baju ke tengah skrin
+    shirtMesh.position.set(-shirtCenter.x, -shirtCenter.y, -shirtCenter.z);
+    
+    // Kira semula box selepas posisi diubah
+    shirtMesh.updateMatrixWorld(true);
+    shirtBox.setFromObject(shirtMesh);
+    shirtCenter = shirtBox.getCenter(new THREE.Vector3());
+
+    camera.position.set(0, 0, newSize.z * 3.5);
     controls.update();
 
     // Setup material baju
@@ -240,31 +254,24 @@ document.getElementById('customColor').addEventListener('input', (e) => {
   shirtMaterials.forEach(mat => mat.color.set(e.target.value));
 });
 
-// ===== LOGIK UPLOAD & DRAG LOGO (3D) =====
+// ===== LOGIK UPLOAD & DRAG LOGO =====
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-const logoList = []; // Simpan semua logo 3D
+const logoList = []; 
 
 // Event Klik pada Skrin 3D
 renderer.domElement.addEventListener('pointerdown', (e) => {
-  // Kira posisi mouse
   mouse.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
   mouse.y = -(e.clientY / renderer.domElement.clientHeight) * 2 + 1;
   
   raycaster.setFromCamera(mouse, camera);
-  
-  // Tembak laser ke arah logo-logo
   const intersects = raycaster.intersectObjects(logoList);
   
   if (intersects.length > 0) {
-    // Jika terkena logo, pasang gizmo pada logo tu
     activeLogo = intersects[0].object;
     transformControls.attach(activeLogo);
-    
-    // Set slider saiz ikut saiz logo sedia ada
     document.getElementById('logoSize').value = activeLogo.scale.x;
   } else {
-    // Jika klik tempat kosong, buang gizmo
     transformControls.detach();
     activeLogo = null;
   }
@@ -283,46 +290,53 @@ document.getElementById('logoUpload').addEventListener('change', (e) => {
   e.target.value = ''; 
 });
 
-// Fungsi Buat Logo 3D (Melekat pada baju)
+// Fungsi Buat Logo 3D (Duduk tepat atas dada baju)
 function create3DLogo(imageUrl) {
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(imageUrl, (texture) => {
     texture.colorSpace = THREE.SRGBColorSpace;
 
-    // Kira nisbah aspek gambar
     const img = texture.image;
     const aspect = img.width / img.height;
-    
-    const baseWidth = 0.5;
+    const baseWidth = 0.4; // Saiz asal logo
     const baseHeight = baseWidth / aspect;
 
-    // Buat plane 3D untuk logo
     const geometry = new THREE.PlaneGeometry(baseWidth, baseHeight);
     const material = new THREE.MeshBasicMaterial({ 
       map: texture, 
       transparent: true, 
-      depthTest: false, // Supaya tak tenggelam dalam baju
-      depthWrite: false,
-      polygonOffset: true,
-      polygonOffsetFactor: -4
+      depthTest: false, // Supaya sentiasa nampak depan
+      depthWrite: false
     });
     
     const logo3D = new THREE.Mesh(geometry, material);
     
-    // Letak default di tengah depan baju
-    logo3D.position.set(0, 0.2, 1.5); // Anggaran posisi depan baju
-    logo3D.scale.set(0.5, 0.5, 0.5);
+    // KIRA POSISI TENGAH BAJU SECARA AUTOMATIK
+    if (shirtMesh) {
+      const shirtSize = shirtBox.getSize(new THREE.Vector3());
+      
+      // Letak di tengah X, dan sikit ke atas (dada) untuk Y
+      // Untuk Z, letak di bahagian paling depan baju
+      const posX = shirtCenter.x;
+      const posY = shirtCenter.y + (shirtSize.y * 0.15); // Naik sikit ke dada
+      const posZ = shirtCenter.z + (shirtSize.z / 2) + 0.05; // Sikit depan dari baju
+      
+      logo3D.position.set(posX, posY, posZ);
+    } else {
+      logo3D.position.set(0, 0.5, 1.5);
+    }
+    
+    logo3D.scale.set(1, 1, 1);
 
     scene.add(logo3D);
     logoList.push(logo3D);
 
-    // Auto-select logo baru
     activeLogo = logo3D;
     transformControls.attach(activeLogo);
   });
 }
 
-// Slider Saiz (Ubah saiz logo aktif)
+// Slider Saiz
 document.getElementById('logoSize').addEventListener('input', (e) => {
   if (activeLogo) {
     const val = parseFloat(e.target.value);
@@ -332,12 +346,9 @@ document.getElementById('logoSize').addEventListener('input', (e) => {
 
 // ===== SIMPAN GAMBAR =====
 window.saveImage = function() {
-  // Sembunyikan gizmo sebelum tangkap gambar
   transformControls.visible = false;
-  
   renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
-  
   transformControls.visible = true;
   
   const link = document.createElement('a');
