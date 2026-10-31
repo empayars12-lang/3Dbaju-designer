@@ -182,7 +182,7 @@ let logoCount = 0;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
-const STORAGE_KEY = 'pro-designer-3d-v3';
+const STORAGE_KEY = 'pro-designer-3d-v4'; // Naikkan versi untuk clear cache lama
 const _shirtGroupInv = new THREE.Matrix4();
 
 new GLTFLoader().load('./T_shirt_gltf.gltf',
@@ -301,6 +301,65 @@ function fileToDataURL(file, cb) {
 
 const FLIP_BACK = true;
 
+// FUNGSI BARU: Tapis geometri decal supaya tak tembus ke belakang
+function filterDecalGeometry(geo, projectorNormal) {
+  const positions = geo.attributes.position;
+  const normals = geo.attributes.normal;
+  const uvs = geo.attributes.uv;
+  const indices = geo.index ? geo.index.array : null;
+
+  const newPositions = [];
+  const newNormals = [];
+  const newUvs = [];
+  const newIndices = [];
+  let newIndexCount = 0;
+
+  const nA = new THREE.Vector3();
+  const nB = new THREE.Vector3();
+  const nC = new THREE.Vector3();
+
+  const triCount = indices ? indices.length / 3 : positions.count / 3;
+
+  for (let i = 0; i < triCount; i++) {
+    const i0 = indices ? indices[i * 3] : i * 3;
+    const i1 = indices ? indices[i * 3 + 1] : i * 3 + 1;
+    const i2 = indices ? indices[i * 3 + 2] : i * 3 + 2;
+
+    nA.fromBufferAttribute(normals, i0);
+    nB.fromBufferAttribute(normals, i1);
+    nC.fromBufferAttribute(normals, i2);
+
+    const avgNormal = new THREE.Vector3().add(nA).add(nB).add(nC).normalize();
+
+    // Hanya simpan jika normal menghadap arah yang sama dengan projector (dada/lengan depan)
+    if (avgNormal.dot(projectorNormal) > 0.1) {
+      newPositions.push(positions.getX(i0), positions.getY(i0), positions.getZ(i0));
+      newPositions.push(positions.getX(i1), positions.getY(i1), positions.getZ(i1));
+      newPositions.push(positions.getX(i2), positions.getY(i2), positions.getZ(i2));
+
+      newNormals.push(nA.x, nA.y, nA.z);
+      newNormals.push(nB.x, nB.y, nB.z);
+      newNormals.push(nC.x, nC.y, nC.z);
+
+      newUvs.push(uvs.getX(i0), uvs.getY(i0));
+      newUvs.push(uvs.getX(i1), uvs.getY(i1));
+      newUvs.push(uvs.getX(i2), uvs.getY(i2));
+
+      newIndices.push(newIndexCount++, newIndexCount++, newIndexCount++);
+    }
+  }
+
+  if (newPositions.length === 0) return null;
+
+  const newGeo = new THREE.BufferGeometry();
+  newGeo.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+  newGeo.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+  newGeo.setAttribute('uv', new THREE.Float32BufferAttribute(newUvs, 2));
+  if (indices) newGeo.setIndex(newIndices);
+
+  return newGeo;
+}
+
 function rebuildDecal(layer) {
   layer.decals.forEach(d => {
     shirtGroup.remove(d);
@@ -339,21 +398,28 @@ function rebuildDecal(layer) {
   const quat = buildQuaternion(layer.normal, layer.spin);
   const w = layer.width;
   const h = w / layer.aspect;
-  const depth = 0.01; // Sangat nipis untuk elak tembus lengan
+  
+  // KUNCI FIX: Buat kotak tebal (depth 1.0) untuk tangkap lekuk baju
+  const depth = 1.0;
   const size = new THREE.Vector3(w, h, depth);
+
+  const worldProjectorNormal = layer.normal.clone().transformDirection(shirtGroup.matrixWorld).normalize();
 
   shirtMeshes.forEach(mesh => {
     try {
-      const geo = new DecalGeometry(mesh, layer.position, quat, size);
-      if (geo.attributes.position && geo.attributes.position.count > 0) {
-        const m = new THREE.Mesh(geo, layer.material);
+      const rawGeo = new DecalGeometry(mesh, layer.position, quat, size);
+      const filteredGeo = filterDecalGeometry(rawGeo, worldProjectorNormal);
+      rawGeo.dispose(); // Buang yang asal
+
+      if (filteredGeo) {
+        const m = new THREE.Mesh(filteredGeo, layer.material);
         m.renderOrder = 2;
         shirtGroup.add(m);
         layer.decals.push(m);
-      } else {
-        geo.dispose();
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Decal error", e);
+    }
   });
 }
 
