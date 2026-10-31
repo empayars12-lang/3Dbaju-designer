@@ -65,7 +65,7 @@
     }
     .save-btn:hover { background: #059669; transform: translateY(-2px); }
 
-    .bg-controls, .light-controls, .bg-image-controls {
+    .bg-controls, .light-controls, .bg-image-controls, .video-controls {
       background: #27272a;
       padding: 14px;
       border-radius: 8px;
@@ -159,6 +159,32 @@
     .fill-btn:hover { background: #52525b; }
     .fill-btn.active { background: #38bdf8; color: #000; }
 
+    .video-btn {
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+    }
+    .video-btn:hover { background: #6d28d9; }
+    .video-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .video-btn.recording {
+      background: #dc2626;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
 
@@ -250,6 +276,24 @@
     .hint {
       font-size: 11px; color: #71717a; margin-top: 6px; line-height: 1.4;
     }
+
+    #recording-overlay {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(220, 38, 38, 0.9);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    #recording-overlay.active { display: flex; }
   </style>
 </head>
 <body>
@@ -306,7 +350,7 @@
       </div>
     </div>
 
-    <!-- ===== BG IMAGE CONTROLS (muncul bila ada image) ===== -->
+    <!-- ===== BG IMAGE CONTROLS ===== -->
     <div id="bgImagePanel" style="display:none;">
       <div class="section-title">Kawalan Imej Latar</div>
       <div class="bg-image-controls">
@@ -369,6 +413,42 @@
       </div>
     </div>
 
+    <!-- ===== RENDER VIDEO (BARU) ===== -->
+    <div>
+      <div class="section-title">Render Video</div>
+      <div class="video-controls">
+        <div class="slider-row">
+          <label>
+            <span>Kelajuan Pusing</span>
+            <span id="speedValue">1.0x</span>
+          </label>
+          <input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1">
+        </div>
+
+        <div class="slider-row">
+          <label>
+            <span>Tempoh Video</span>
+            <span id="durationValue">6s</span>
+          </label>
+          <input type="range" id="durationSlider" min="4" max="12" step="1" value="6">
+        </div>
+
+        <div class="slider-row">
+          <label>
+            <span>Kualiti</span>
+            <span id="qualityValue">720p HD</span>
+          </label>
+          <input type="range" id="qualitySlider" min="0" max="1" step="1" value="0">
+        </div>
+
+        <button class="video-btn" id="btnRenderVideo">🎥 Mulakan Render Video</button>
+        <div class="hint">
+          Video akan berpusing 360° automatik.<br>
+          Format: WebM (boleh convert ke MP4 untuk WhatsApp).
+        </div>
+      </div>
+    </div>
+
     <div class="gizmo-controls" id="gizmoControls">
       <div class="section-title" style="margin-bottom: 0;">Kawalan Logo</div>
       <div class="mode-buttons">
@@ -392,6 +472,10 @@
   
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
+    
+    <div id="recording-overlay">
+      <span>●</span> <span id="recordingText">Sedang merakam...</span>
+    </div>
     
     <div id="free-transform">
       <div class="ft-box" id="ftBox"></div>
@@ -512,10 +596,18 @@ const MAX_HISTORY = 40;
 // Background state
 let currentBgColor = '#09090b';
 let isTransparentBg = false;
-let bgPlane = null;           // the actual mesh for background image
-let bgFillMode = 'stretch';   // stretch | cover | contain | free
+let bgPlane = null;
+let bgFillMode = 'stretch';
 let bgOpacity = 1;
-let bgBaseScale = 1;
+
+// Video recording state
+let isRecording = false;
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordStartTime = 0;
+let recordDuration = 6;
+let rotationSpeed = 1.0; // multiplier
+let recordQuality = 0; // 0 = 720p, 1 = 1080p
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
@@ -523,6 +615,9 @@ const gizmoControlsUI = document.getElementById('gizmoControls');
 const btnUndo = document.getElementById('btnUndo');
 const btnRedo = document.getElementById('btnRedo');
 const bgImagePanel = document.getElementById('bgImagePanel');
+const btnRenderVideo = document.getElementById('btnRenderVideo');
+const recordingOverlay = document.getElementById('recording-overlay');
+const recordingText = document.getElementById('recordingText');
 
 const ftEl = document.getElementById('free-transform');
 const ftBox = document.getElementById('ftBox');
@@ -672,7 +767,6 @@ function selectLayer(dummy, el) {
   activeDummy = dummy;
   gizmoControlsUI.classList.add('active');
 
-  // Background plane uses world space translate + scale
   if (dummy.userData.isBg) {
     transformControls.setSpace('world');
   } else {
@@ -779,7 +873,6 @@ transformControls.addEventListener('objectChange', () => {
   if (!activeDummy) return;
 
   if (activeDummy.userData.isBg) {
-    // Background plane – just update scale display
     const s = activeDummy.scale.x;
     document.getElementById('bgScaleSlider').value = s;
     document.getElementById('bgScaleValue').textContent = s.toFixed(2);
@@ -839,7 +932,6 @@ function hideFreeTransform() {
 
 function getLogoCorners(dummy) {
   if (dummy.userData.isBg) {
-    // For bg plane we use a simple bounding box
     const box = new THREE.Box3().setFromObject(dummy);
     const min = box.min;
     const max = box.max;
@@ -1094,13 +1186,11 @@ function applySolidBackground() {
 }
 
 function createBgPlane(texture, aspect) {
-  // Remove old
   if (bgPlane) {
     scene.remove(bgPlane);
     if (bgPlane.material.map) bgPlane.material.map.dispose();
     bgPlane.material.dispose();
     bgPlane.geometry.dispose();
-    // remove from layers list
     const oldEl = document.getElementById(bgPlane.userData.layerId);
     if (oldEl) oldEl.remove();
     layers = layers.filter(l => l !== bgPlane);
@@ -1116,7 +1206,7 @@ function createBgPlane(texture, aspect) {
   });
 
   bgPlane = new THREE.Mesh(geo, mat);
-  bgPlane.position.set(0, 0, -6); // far behind the shirt
+  bgPlane.position.set(0, 0, -6);
   bgPlane.scale.set(12, 12 / aspect, 1);
   bgPlane.renderOrder = -10;
   bgPlane.userData.isBg = true;
@@ -1129,7 +1219,6 @@ function createBgPlane(texture, aspect) {
   addDesignLayer(bgPlane, 'Latar Imej', '🖼️', true);
   bgImagePanel.style.display = 'block';
 
-  // Apply current fill mode
   applyFillMode(bgFillMode);
 }
 
@@ -1168,16 +1257,13 @@ function applyFillMode(mode) {
     bgPlane.scale.set(16, 16 / aspect, 1);
     bgPlane.position.set(0, 0, -6);
   } else if (mode === 'cover') {
-    // Cover-ish: make it larger
     bgPlane.scale.set(20, 20 / aspect, 1);
     bgPlane.position.set(0, 0, -6);
   } else if (mode === 'contain') {
     bgPlane.scale.set(10, 10 / aspect, 1);
     bgPlane.position.set(0, 0, -6);
   }
-  // free = leave current transform
 
-  // Update slider
   document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
   document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
 }
@@ -1205,7 +1291,7 @@ document.getElementById('bgImageUpload').addEventListener('change', (e) => {
 
       isTransparentBg = false;
       document.getElementById('toggleTransparent').classList.remove('active');
-      applySolidBackground(); // keep solid color behind the plane if needed
+      applySolidBackground();
 
       createBgPlane(texture, img.width / img.height);
       pushHistory();
@@ -1222,15 +1308,11 @@ document.getElementById('btnClearBgImage').onclick = clearBgImage;
 document.getElementById('toggleTransparent').onclick = function() {
   isTransparentBg = !isTransparentBg;
   this.classList.toggle('active', isTransparentBg);
-  if (isTransparentBg && bgPlane) {
-    // still keep plane, just make clear color transparent
-  }
   applySolidBackground();
   pushHistory();
   saveToLocalStorage();
 };
 
-// Opacity & Scale for bg image
 document.getElementById('bgOpacitySlider').addEventListener('input', (e) => {
   bgOpacity = parseFloat(e.target.value);
   document.getElementById('bgOpacityValue').textContent = bgOpacity.toFixed(2);
@@ -1254,7 +1336,6 @@ document.getElementById('bgScaleSlider').addEventListener('change', () => {
   saveToLocalStorage();
 });
 
-// Fill mode buttons
 document.querySelectorAll('.fill-btn').forEach(btn => {
   btn.onclick = () => {
     applyFillMode(btn.dataset.mode);
@@ -1281,7 +1362,134 @@ document.getElementById('shadowSlider').addEventListener('input', (e) => {
   document.getElementById('shadowValue').textContent = val.toFixed(2);
 });
 
-// ===== 9. UI CONTROLS =====
+// ===== 9. VIDEO RENDER =====
+document.getElementById('speedSlider').addEventListener('input', (e) => {
+  rotationSpeed = parseFloat(e.target.value);
+  document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x';
+});
+
+document.getElementById('durationSlider').addEventListener('input', (e) => {
+  recordDuration = parseInt(e.target.value);
+  document.getElementById('durationValue').textContent = recordDuration + 's';
+});
+
+document.getElementById('qualitySlider').addEventListener('input', (e) => {
+  recordQuality = parseInt(e.target.value);
+  document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p HD' : '1080p Full HD';
+});
+
+btnRenderVideo.onclick = () => {
+  if (isRecording) return;
+  startVideoRecord();
+};
+
+async function startVideoRecord() {
+  if (isRecording) return;
+
+  // Hide UI elements
+  transformHelper.visible = false;
+  hideFreeTransform();
+  controls.enabled = false;
+  gizmoControlsUI.classList.remove('active');
+
+  // Set camera to nice front view
+  camera.position.set(0, 0.2, 4.2);
+  controls.target.set(0, 0, 0);
+  controls.update();
+
+  // Resize for quality
+  const targetW = recordQuality === 0 ? 1280 : 1920;
+  const targetH = recordQuality === 0 ? 720 : 1080;
+  const oldSize = new THREE.Vector2();
+  renderer.getSize(oldSize);
+  const oldPixelRatio = renderer.getPixelRatio();
+
+  renderer.setPixelRatio(1);
+  renderer.setSize(targetW, targetH, false);
+
+  // Prepare MediaRecorder
+  const stream = renderer.domElement.captureStream(30);
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
+    ? 'video/webm;codecs=vp9' 
+    : 'video/webm';
+
+  recordedChunks = [];
+  mediaRecorder = new MediaRecorder(stream, {
+    mimeType,
+    videoBitsPerSecond: recordQuality === 0 ? 6000000 : 10000000
+  });
+
+  mediaRecorder.ondataavailable = (e) => {
+    if (e.data.size > 0) recordedChunks.push(e.data);
+  };
+
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `design-baju-${recordQuality === 0 ? '720p' : '1080p'}-${Date.now()}.webm`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Restore
+    renderer.setPixelRatio(oldPixelRatio);
+    renderer.setSize(oldSize.x, oldSize.y, false);
+    transformHelper.visible = true;
+    controls.enabled = true;
+    isRecording = false;
+    btnRenderVideo.disabled = false;
+    btnRenderVideo.classList.remove('recording');
+    btnRenderVideo.textContent = '🎥 Mulakan Render Video';
+    recordingOverlay.classList.remove('active');
+
+    // Reset rotation
+    shirtGroup.rotation.y = 0;
+  };
+
+  // Start
+  isRecording = true;
+  btnRenderVideo.disabled = true;
+  btnRenderVideo.classList.add('recording');
+  btnRenderVideo.textContent = '⏹ Sedang Merakam...';
+  recordingOverlay.classList.add('active');
+  mediaRecorder.start(100);
+
+  recordStartTime = performance.now();
+  const totalAngle = Math.PI * 2; // full 360°
+  const durationMs = recordDuration * 1000;
+
+  function recordLoop() {
+    if (!isRecording) return;
+
+    const elapsed = performance.now() - recordStartTime;
+    const progress = Math.min(elapsed / durationMs, 1);
+
+    // Smooth rotation based on speed
+    shirtGroup.rotation.y = progress * totalAngle * rotationSpeed;
+
+    // Update countdown
+    const remaining = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
+    recordingText.textContent = `Sedang merakam... ${remaining}s`;
+
+    renderer.render(scene, camera);
+
+    if (progress < 1) {
+      requestAnimationFrame(recordLoop);
+    } else {
+      // Finish
+      setTimeout(() => {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+      }, 200);
+    }
+  }
+
+  recordLoop();
+}
+
+// ===== 10. UI CONTROLS =====
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -1363,7 +1571,7 @@ document.getElementById('viewLeft').onclick = () => {
   setActiveViewBtn('viewLeft');
 };
 
-// ===== 10. HISTORY =====
+// ===== 11. HISTORY =====
 function getCurrentState() {
   return {
     color: currentShirtColor,
@@ -1405,7 +1613,7 @@ function pushHistory() {
 
 function clearAllLayers() {
   [...layers].forEach(d => {
-    if (d.userData.isBg) return; // handled separately
+    if (d.userData.isBg) return;
     if (d.userData.decals) {
       d.userData.decals.forEach(decal => {
         shirtGroup.remove(decal);
@@ -1460,8 +1668,6 @@ async function restoreState(state) {
 
   bgFillMode = state.bgFillMode || 'stretch';
 
-  // Note: background image itself is not restored from localStorage (too heavy)
-  // User needs to re-upload if wanted. We only restore transform if plane exists.
   if (bgPlane && state.bgTransform) {
     bgPlane.position.fromArray(state.bgTransform.position);
     bgPlane.scale.fromArray(state.bgTransform.scale);
@@ -1569,7 +1775,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// ===== 11. LOCAL STORAGE =====
+// ===== 12. LOCAL STORAGE =====
 function saveToLocalStorage() {
   try {
     localStorage.setItem('proDesigner3D_state', JSON.stringify(getCurrentState()));
@@ -1597,7 +1803,7 @@ async function loadFromLocalStorage() {
   }
 }
 
-// ===== 12. SAVE HD =====
+// ===== 13. SAVE HD =====
 document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false;
   hideFreeTransform();
@@ -1618,19 +1824,22 @@ document.getElementById('saveBtn').onclick = () => {
   link.click();
 };
 
-// ===== 13. ANIMATE =====
+// ===== 14. ANIMATE =====
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
+  if (!isRecording) {
+    controls.update();
+    renderer.render(scene, camera);
 
-  if (currentMode === 'free' && activeDummy && !ftDragging) {
-    updateFreeTransformHandles();
+    if (currentMode === 'free' && activeDummy && !ftDragging) {
+      updateFreeTransformHandles();
+    }
   }
 }
 animate();
 
 window.addEventListener('resize', () => {
+  if (isRecording) return;
   const width = container.clientWidth;
   const height = container.clientHeight;
   camera.aspect = width / height;
