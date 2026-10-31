@@ -12,6 +12,7 @@
     
     #app { display: flex; height: 100vh; }
     
+    /* PANEL KIRI */
     #sidebar-left {
       width: 300px; background: #18181b; padding: 20px; display: flex; flex-direction: column; gap: 16px;
       border-right: 1px solid #27272a; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto;
@@ -40,17 +41,9 @@
     .add-text-btn { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
     .add-text-btn:hover { background: #3f3f46; }
 
-    /* Gizmo Panel (Photoshop Style) */
-    .gizmo-panel { display: none; background: #27272a; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46; flex-direction: column; gap: 8px; }
-    .gizmo-panel.active { display: flex; }
-    .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-    .mode-btn { background: #3f3f46; border: none; color: #d4d4d8; padding: 10px 4px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit; }
-    .mode-btn:hover { background: #52525b; }
-    .mode-btn.active { background: #38bdf8; color: #000; }
-    
-    .action-row { display: flex; gap: 8px; margin-top: 4px; }
-    .btn-undo { flex: 1; background: #3f3f46; color: #fff; border: none; border-radius: 6px; padding: 10px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; }
-    .btn-undo:hover { background: #52525b; }
+    .action-row { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-undo { flex: 1; background: #27272a; color: #fff; border: 1px solid #3f3f46; border-radius: 6px; padding: 10px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; }
+    .btn-undo:hover { background: #3f3f46; }
 
     .save-btn {
       margin-top: auto; background: #10b981; color: #fff; border: none; padding: 14px;
@@ -58,16 +51,45 @@
     }
     .save-btn:hover { background: #059669; }
 
+    /* KAWASAN 3D */
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
 
+    /* OVERLAY KOTAK PHOTOSHOP */
+    #ui-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    #editor-box {
+      position: absolute; border: 1.5px solid #38bdf8; display: none; box-sizing: border-box;
+      pointer-events: none; transform-origin: center center; z-index: 50;
+    }
+    #editor-box .move-handle { position: absolute; inset: 0; pointer-events: auto; cursor: move; }
+    
+    #editor-box .corner {
+      position: absolute; width: 14px; height: 14px; background: #fff; border: 2px solid #38bdf8; border-radius: 50%;
+      pointer-events: auto;
+    }
+    #editor-box .tl { top: -7px; left: -7px; cursor: nwse-resize; }
+    #editor-box .tr { top: -7px; right: -7px; cursor: nesw-resize; }
+    #editor-box .bl { bottom: -7px; left: -7px; cursor: nesw-resize; }
+    #editor-box .br { bottom: -7px; right: -7px; cursor: nwse-resize; }
+    
+    #editor-box .rotate-handle {
+      position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+      width: 24px; height: 24px; background: #10b981; border: 2px solid #fff; border-radius: 50%;
+      pointer-events: auto; cursor: grab; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    #editor-box .rotate-line {
+      position: absolute; top: -20px; left: 50%; width: 2px; height: 20px; background: #10b981; transform: translateX(-50%);
+    }
+
+    /* BUTANG PANDANGAN */
     #view-toggles {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px);
+      display: flex; gap: 8px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px);
     }
-    #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
+    #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; }
     #view-toggles button:hover { background: #52525b; }
 
+    /* PANEL KANAN */
     #sidebar-right {
       width: 260px; background: #18181b; border-left: 1px solid #27272a; z-index: 10;
       display: flex; flex-direction: column; box-shadow: -4px 0 15px rgba(0,0,0,0.3);
@@ -120,17 +142,8 @@
       <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
     </div>
 
-    <!-- Gizmo Panel -->
-    <div class="gizmo-panel" id="gizmoPanel">
-      <div class="section-title" style="margin-bottom: 0;">Kawalan Logo</div>
-      <div class="mode-buttons">
-        <button class="mode-btn active" id="btnTranslate" title="Gerak">✥ Gerak</button>
-        <button class="mode-btn" id="btnScale" title="Saiz">⤢ Saiz</button>
-        <button class="mode-btn" id="btnRotate" title="Putar">⟳ Putar</button>
-      </div>
-      <div class="action-row">
-        <button class="btn-undo" id="undoBtn">↩ Undo (Ctrl+Z)</button>
-      </div>
+    <div class="action-row">
+      <button class="btn-undo" id="undoBtn">↩ Undo (Ctrl+Z)</button>
     </div>
     
     <button class="save-btn" id="saveBtn">⬇️ Simpan Design HD</button>
@@ -138,9 +151,25 @@
   
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
+    
+    <!-- KOTAK PHOTOSHOP -->
+    <div id="ui-overlay">
+      <div id="editor-box">
+        <div class="move-handle"></div>
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="rotate-line"></div>
+        <div class="rotate-handle">⟳</div>
+      </div>
+    </div>
+
     <div id="view-toggles">
-      <button id="viewFront">Hadapan</button>
+      <button id="viewFront">Depan</button>
       <button id="viewBack">Belakang</button>
+      <button id="viewLeft">Sisi Kiri</button>
+      <button id="viewRight">Sisi Kanan</button>
     </div>
   </div>
 
@@ -163,9 +192,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
-import { RoomEnvironment } from 'https://unpkg.com/three@0.169.0/examples/jsm/environments/RoomEnvironment.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // ===== 1. SETUP ASAS =====
 const container = document.getElementById('viewer-container');
@@ -178,12 +206,11 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
 const mainLight = new THREE.DirectionalLight(0xffffff, 2);
 mainLight.position.set(5, 10, 5);
@@ -201,26 +228,6 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = false;
 
-// GIZMO SETUP
-const transformControls = new TransformControls(camera, renderer.domElement);
-transformControls.setMode('translate');
-transformControls.setSize(0.8);
-const transformHelper = transformControls.getHelper();
-scene.add(transformHelper);
-
-// KUNCI KAMERA BILA GIZMO DIGUNAKAN
-let isDragging = false;
-transformControls.addEventListener('dragging-changed', (event) => {
-  controls.enabled = !event.value; // Matikan kamera bila tarik logo
-  isDragging = event.value;
-  
-  if (!event.value) {
-    // Bila lepas tarik, simpan dalam memori (Save & Undo)
-    saveToLocalStorage();
-    pushHistory();
-  }
-});
-
 // ===== 2. STATE & MODEL =====
 const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
@@ -231,15 +238,27 @@ let layers = [];
 let activeDummy = null;
 let logoCount = 0;
 
-// Undo System
 let history = [];
 let historyIndex = -1;
+let currentShirtColor = '#ffffff';
 
 const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
 const layerListUI = document.getElementById('layers-list');
-const gizmoPanel = document.getElementById('gizmoPanel');
 
-let currentShirtColor = '#ffffff';
+// HTML Elements
+const editorBox = document.getElementById('editor-box');
+const moveHandle = editorBox.querySelector('.move-handle');
+const rotateHandle = editorBox.querySelector('.rotate-handle');
+const corners = editorBox.querySelectorAll('.corner');
+
+// Manipulation State
+let isManipulating = false;
+let manipulationType = ''; // 'move', 'scale', 'rotate'
+let startMouse = new THREE.Vector2();
+let startScale = { x: 1, y: 1 };
+let startRot = 0;
+let startDist = 0;
 
 new GLTFLoader().load('./T_shirt_gltf.gltf', 
   (gltf) => setupShirt(gltf.scene), 
@@ -264,8 +283,7 @@ function setupShirt(model) {
 
   model.traverse((child) => {
     if (child.isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
+      child.castShadow = true; child.receiveShadow = true;
       const mat = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
       child.material = mat;
       shirtMaterials.push(mat);
@@ -277,6 +295,7 @@ function setupShirt(model) {
   ground.position.y = box.min.y - 0.1;
 
   finishLoading();
+  addBaseLayer();
   loadFromLocalStorage();
 }
 
@@ -286,21 +305,17 @@ function finishLoading() {
   setTimeout(() => el.remove(), 500);
 }
 
-// ===== 3. SISTEM LAYER & UI =====
+// ===== 3. SISTEM LAYER =====
 function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active';
-  el.innerHTML = `<div class="layer-info"><span class="layer-icon">👕</span> <span>Baju 3D (Asas)</span></div>`;
+  el.innerHTML = `<div class="layer-info"><span>👕</span> <span>Baju 3D (Asas)</span></div>`;
   el.onclick = () => {
-    transformControls.detach();
-    activeDummy = null;
-    gizmoPanel.classList.remove('active');
-    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+    deselectAll();
     el.classList.add('active');
   };
   layerListUI.appendChild(el);
 }
-addBaseLayer();
 
 function addDesignLayer(dummy, name, icon) {
   const id = 'layer-' + Date.now() + Math.random().toString(36).substr(2, 5);
@@ -311,10 +326,7 @@ function addDesignLayer(dummy, name, icon) {
   el.id = id;
   
   el.innerHTML = `
-    <div class="layer-info">
-      <span class="layer-icon">${icon}</span> 
-      <span>${name}</span>
-    </div>
+    <div class="layer-info"><span>${icon}</span> <span>${name}</span></div>
     <button class="delete-btn" title="Padam">✕</button>
   `;
 
@@ -334,17 +346,22 @@ function addDesignLayer(dummy, name, icon) {
   selectLayer(dummy, el);
 }
 
-function selectLayer(dummy, el) {
+function deselectAll() {
+  activeDummy = null;
+  editorBox.style.display = 'none';
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+}
+
+function selectLayer(dummy, el) {
+  deselectAll();
   el.classList.add('active');
-  
   activeDummy = dummy;
-  transformControls.attach(dummy);
-  gizmoPanel.classList.add('active');
+  editorBox.style.display = 'block';
+  updateEditorBox(); // Update position immediately
 }
 
 function deleteLayer(dummy, el) {
-  transformControls.detach();
+  deselectAll();
   if (dummy.userData.decals) {
     dummy.userData.decals.forEach(decal => {
       shirtGroup.remove(decal);
@@ -355,14 +372,11 @@ function deleteLayer(dummy, el) {
   }
   if (dummy.userData.texture) dummy.userData.texture.dispose();
   shirtGroup.remove(dummy);
-  
   el.remove();
   layers = layers.filter(l => l !== dummy);
-  gizmoPanel.classList.remove('active');
-  activeDummy = null;
 }
 
-// ===== 4. SISTEM DECAL (MENDUKUNG SCALE & ROTATE GIZMO) =====
+// ===== 4. SISTEM DECAL =====
 function createDecal(dummy) {
   if (!shirtMeshes.length) return;
 
@@ -376,33 +390,28 @@ function createDecal(dummy) {
   }
   dummy.userData.decals = [];
 
-  // Ambil saiz dari dummy.scale (dikawal oleh Gizmo)
   const w = 0.6 * dummy.scale.x;
   const h = (0.6 / dummy.userData.aspect) * dummy.scale.y;
   const size = new THREE.Vector3(w, h, 0.2);
 
   const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
   const isBack = currentNormal.z < -0.1;
+  
+  const rotAngle = dummy.userData.rotate || 0;
+  const userRotQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(rotAngle));
+  const finalQuat = dummy.quaternion.clone().multiply(userRotQ);
 
   shirtMeshes.forEach(mesh => {
     try {
-      const decalGeo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
+      const decalGeo = new DecalGeometry(mesh, dummy.position, finalQuat, size);
       
       if (decalGeo.attributes.position && decalGeo.attributes.position.count > 0) {
         const tex = dummy.userData.texture.clone();
-        if (isBack) {
-          tex.wrapS = THREE.RepeatWrapping;
-          tex.repeat.x = -1; // Anti-Mirror
-        }
+        if (isBack) { tex.wrapS = THREE.RepeatWrapping; tex.repeat.x = -1; }
 
         const decalMat = new THREE.MeshStandardMaterial({
-          map: tex,
-          transparent: true,
-          depthTest: true,
-          depthWrite: false,
-          polygonOffset: true,
-          polygonOffsetFactor: -4,
-          roughness: 0.8
+          map: tex, transparent: true, depthTest: true, depthWrite: false,
+          polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8
         });
 
         const decalMesh = new THREE.Mesh(decalGeo, decalMat);
@@ -416,42 +425,145 @@ function createDecal(dummy) {
   });
 }
 
-// Setiap kali Gizmo digerakkan, kemas kini posisi & decal
-transformControls.addEventListener('objectChange', () => {
-  if (!activeDummy || !shirtMeshes.length) return;
+// ===== 5. KOTAK PHOTOSHOP (HTML OVERLAY) =====
+function updateEditorBox() {
+  if (!activeDummy) return;
 
-  activeDummy.updateMatrixWorld();
-  const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
+  const p = activeDummy.position.clone();
+  shirtGroup.localToWorld(p);
+  const projCenter = p.clone().project(camera);
   
-  const dir = worldPos.clone().sub(camera.position).normalize();
-  raycaster.set(camera.position, dir);
+  const w = 0.3 * activeDummy.scale.x;
+  const h = (0.3 / activeDummy.userData.aspect) * activeDummy.scale.y;
   
-  const hits = raycaster.intersectObjects(shirtMeshes, true);
-  
-  if (hits.length > 0) {
-    const hit = hits[0];
-    // Snap posisi ke permukaan baju
-    const localHit = shirtGroup.worldToLocal(hit.point.clone());
-    activeDummy.position.copy(localHit);
+  const tl = shirtGroup.localToWorld(new THREE.Vector3(activeDummy.position.x - w, activeDummy.position.y + h, activeDummy.position.z)).project(camera);
+  const tr = shirtGroup.localToWorld(new THREE.Vector3(activeDummy.position.x + w, activeDummy.position.y + h, activeDummy.position.z)).project(camera);
+  const bl = shirtGroup.localToWorld(new THREE.Vector3(activeDummy.position.x - w, activeDummy.position.y - h, activeDummy.position.z)).project(camera);
+  const br = shirtGroup.localToWorld(new THREE.Vector3(activeDummy.position.x + w, activeDummy.position.y - h, activeDummy.position.z)).project(camera);
 
-    // Jika mod adalah 'translate' (Gerak), selaraskan putaran dengan permukaan
-    if (transformControls.getMode() === 'translate') {
-      const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-      const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-      
-      const baseQ = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), localNormal);
-      activeDummy.quaternion.copy(baseQ);
-    }
-  }
+  const toScreen = (v) => new THREE.Vector2((v.x * 0.5 + 0.5) * container.clientWidth, (-v.y * 0.5 + 0.5) * container.clientHeight);
+  
+  const sTL = toScreen(tl);
+  const sTR = toScreen(tr);
+  const sBL = toScreen(bl);
+  const sBR = toScreen(br);
 
-  createDecal(activeDummy);
+  const minX = Math.min(sTL.x, sTR.x, sBL.x, sBR.x);
+  const maxX = Math.max(sTL.x, sTR.x, sBL.x, sBR.x);
+  const minY = Math.min(sTL.y, sTR.y, sBL.y, sBR.y);
+  const maxY = Math.max(sTL.y, sTR.y, sBL.y, sBR.y);
+
+  const boxW = maxX - minX;
+  const boxH = maxY - minY;
+
+  editorBox.style.left = `${minX}px`;
+  editorBox.style.top = `${minY}px`;
+  editorBox.style.width = `${boxW}px`;
+  editorBox.style.height = `${boxH}px`;
+  
+  // Kira sudut putaran kotak (menggunakan garisan atas)
+  const angle = Math.atan2(sTR.y - sTL.y, sTR.x - sTL.x);
+  editorBox.style.transform = `rotate(${angle}rad)`;
+
+  // Simpan posisi skrin pusat untuk kegunaan drag
+  const centerScreen = toScreen(projCenter);
+  editorBox.userData.centerScreen = centerScreen;
+}
+
+// ===== 6. KAWALAN TETIKUS (MANIPULASI) =====
+moveHandle.addEventListener('mousedown', (e) => {
+  if (!activeDummy) return;
+  isManipulating = true;
+  manipulationType = 'move';
+  controls.enabled = false;
 });
 
-// ===== 5. FUNGSI TAMBAH LOGO & TEKS =====
+rotateHandle.addEventListener('mousedown', (e) => {
+  if (!activeDummy) return;
+  isManipulating = true;
+  manipulationType = 'rotate';
+  controls.enabled = false;
+  
+  const rect = container.getBoundingClientRect();
+  startMouse.set(e.clientX - rect.left, e.clientY - rect.top);
+  startRot = activeDummy.userData.rotate || 0;
+});
+
+corners.forEach(corner => {
+  corner.addEventListener('mousedown', (e) => {
+    if (!activeDummy) return;
+    isManipulating = true;
+    manipulationType = 'scale';
+    controls.enabled = false;
+    
+    const rect = container.getBoundingClientRect();
+    startMouse.set(e.clientX - rect.left, e.clientY - rect.top);
+    startScale = { x: activeDummy.scale.x, y: activeDummy.scale.y };
+    
+    const center = editorBox.userData.centerScreen;
+    startDist = Math.hypot(startMouse.x - center.x, startMouse.y - center.y);
+  });
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isManipulating || !activeDummy) return;
+  
+  const rect = container.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+
+  if (manipulationType === 'move') {
+    pointer.x = (mouseX / rect.width) * 2 - 1;
+    pointer.y = -(mouseY / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const hits = raycaster.intersectObjects(shirtMeshes, true);
+    
+    if (hits.length > 0) {
+      const hit = hits[0];
+      activeDummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+      
+      const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+      const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+      activeDummy.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), localNormal);
+      
+      createDecal(activeDummy);
+    }
+  } else if (manipulationType === 'scale') {
+    const center = editorBox.userData.centerScreen;
+    const currentDist = Math.hypot(mouseX - center.x, mouseY - center.y);
+    
+    // Kira nisbah pembesaran
+    const ratio = currentDist / startDist;
+    
+    activeDummy.scale.x = startScale.x * ratio;
+    activeDummy.scale.y = startScale.y * ratio;
+    
+    createDecal(activeDummy);
+  } else if (manipulationType === 'rotate') {
+    const center = editorBox.userData.centerScreen;
+    
+    // Kira sudut berdasarkan kursor
+    const angle = Math.atan2(mouseY - center.y, mouseX - center.x);
+    const deg = THREE.MathUtils.radToDeg(angle) - 90; // -90 kerana titik asal bermula di atas
+    
+    activeDummy.userData.rotate = deg;
+    createDecal(activeDummy);
+  }
+});
+
+window.addEventListener('mouseup', () => {
+  if (isManipulating) {
+    isManipulating = false;
+    controls.enabled = true;
+    saveToLocalStorage();
+    pushHistory();
+  }
+});
+
+// ===== 7. TAMBAH LOGO & TEKS =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
   if(!files.length) return;
-
   for(let i=0; i<files.length; i++) {
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -497,12 +609,13 @@ document.getElementById('addTextBtn').onclick = () => {
   document.getElementById('textInput').value = '';
 };
 
-function addLogoToScene(texture, aspect, isText = false, base64 = null, posArray = null, quatArray = null, scaleArray = null) {
+function addLogoToScene(texture, aspect, isText = false, base64 = null, posArray = null, quatArray = null, scaleArray = null, rot = 0) {
   const dummy = new THREE.Object3D();
   dummy.userData.texture = texture;
   dummy.userData.aspect = aspect;
   dummy.userData.isText = isText;
   dummy.userData.base64 = base64;
+  dummy.userData.rotate = rot;
   
   shirtGroup.add(dummy);
   logoCount++;
@@ -541,15 +654,11 @@ function addLogoToScene(texture, aspect, isText = false, base64 = null, posArray
   }
 }
 
-// ===== 6. SIMPAN & MUAT (LOCALSTORAGE) =====
+// ===== 8. SIMPAN, MUAT & UNDO =====
 function saveToLocalStorage() {
   const state = layers.map(l => ({
-    isText: l.userData.isText,
-    base64: l.userData.base64,
-    aspect: l.userData.aspect,
-    pos: l.position.toArray(),
-    quat: l.quaternion.toArray(),
-    scale: l.scale.toArray()
+    isText: l.userData.isText, base64: l.userData.base64, aspect: l.userData.aspect,
+    pos: l.position.toArray(), quat: l.quaternion.toArray(), scale: l.scale.toArray(), rot: l.userData.rotate || 0
   }));
   localStorage.setItem('shirtDesignLayers', JSON.stringify(state));
   localStorage.setItem('shirtColor', currentShirtColor);
@@ -564,7 +673,6 @@ function loadFromLocalStorage() {
 
   const saved = localStorage.getItem('shirtDesignLayers');
   if (!saved) return;
-
   try {
     const state = JSON.parse(saved);
     state.forEach(item => {
@@ -573,24 +681,18 @@ function loadFromLocalStorage() {
         const texture = new THREE.Texture(img);
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.needsUpdate = true;
-        addLogoToScene(texture, item.aspect, item.isText, item.base64, item.pos, item.quat, item.scale);
+        addLogoToScene(texture, item.aspect, item.isText, item.base64, item.pos, item.quat, item.scale, item.rot);
       };
       img.src = item.base64;
     });
-  } catch(e) { console.log("Gagal restore", e); }
+  } catch(e) {}
 }
 
-// ===== 7. UNDO (HISTORY) =====
 function pushHistory() {
   const state = layers.map(l => ({
-    isText: l.userData.isText,
-    base64: l.userData.base64,
-    aspect: l.userData.aspect,
-    pos: l.position.toArray(),
-    quat: l.quaternion.toArray(),
-    scale: l.scale.toArray()
+    isText: l.userData.isText, base64: l.userData.base64, aspect: l.userData.aspect,
+    pos: l.position.toArray(), quat: l.quaternion.toArray(), scale: l.scale.toArray(), rot: l.userData.rotate || 0
   }));
-  
   history = history.slice(0, historyIndex + 1);
   history.push(JSON.stringify(state));
   historyIndex++;
@@ -599,8 +701,7 @@ function pushHistory() {
 document.getElementById('undoBtn').onclick = () => {
   if (historyIndex <= 0) return;
   historyIndex--;
-  const state = JSON.parse(history[historyIndex]);
-  restoreState(state);
+  restoreState(JSON.parse(history[historyIndex]));
 };
 
 window.addEventListener('keydown', (e) => {
@@ -616,16 +717,11 @@ function restoreState(state) {
       l.userData.decals.forEach(d => { shirtGroup.remove(d); d.geometry.dispose(); d.material.dispose(); });
     }
     shirtGroup.remove(l);
-    if(l.userData.layerId) {
-      const el = document.getElementById(l.userData.layerId);
-      if(el) el.remove();
-    }
+    if(l.userData.layerId) { const el = document.getElementById(l.userData.layerId); if(el) el.remove(); }
   });
   layers = [];
   logoCount = 0;
-  transformControls.detach();
-  activeDummy = null;
-  gizmoPanel.classList.remove('active');
+  deselectAll();
 
   state.forEach(item => {
     const img = new Image();
@@ -633,29 +729,13 @@ function restoreState(state) {
       const texture = new THREE.Texture(img);
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.needsUpdate = true;
-      addLogoToScene(texture, item.aspect, item.isText, item.base64, item.pos, item.quat, item.scale);
+      addLogoToScene(texture, item.aspect, item.isText, item.base64, item.pos, item.quat, item.scale, item.rot);
     };
     img.src = item.base64;
   });
 }
 
-// ===== 8. KAWALAN UI & WARNA =====
-document.getElementById('btnTranslate').onclick = (e) => {
-  transformControls.setMode('translate');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnScale').onclick = (e) => {
-  transformControls.setMode('scale');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnRotate').onclick = (e) => {
-  transformControls.setMode('rotate');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-
+// ===== 9. KAWALAN UI LAIN =====
 const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 const colorGrid = document.getElementById('colorGrid');
 colors.forEach((hex, i) => {
@@ -679,19 +759,18 @@ document.getElementById('customColor').addEventListener('input', (e) => {
   saveToLocalStorage();
 });
 
+// PANDANGAN KAMERA
 document.getElementById('viewFront').onclick = () => { camera.position.set(0, 0, 4.5); controls.target.set(0, 0, 0); };
 document.getElementById('viewBack').onclick = () => { camera.position.set(0, 0, -4.5); controls.target.set(0, 0, 0); };
+document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5, 0, 0); controls.target.set(0, 0, 0); };
+document.getElementById('viewRight').onclick = () => { camera.position.set(4.5, 0, 0); controls.target.set(0, 0, 0); };
 
 document.getElementById('saveBtn').onclick = () => {
-  transformHelper.visible = false;
   const currentSize = renderer.getSize(new THREE.Vector2());
-  
   renderer.setSize(2000, 2000, false);
   renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
-  
   renderer.setSize(currentSize.x, currentSize.y, false);
-  transformHelper.visible = true;
   renderer.render(scene, camera);
 
   const link = document.createElement('a');
@@ -700,10 +779,15 @@ document.getElementById('saveBtn').onclick = () => {
   link.click();
 };
 
+// ===== 10. RENDER LOOP =====
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
+  
+  if (activeDummy) {
+    updateEditorBox(); // Sentiasa kemas kini posisi kotak Photoshop
+  }
 }
 animate();
 
