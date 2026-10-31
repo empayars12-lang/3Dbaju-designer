@@ -162,8 +162,7 @@ loader.load(
   (gltf) => {
     // Berjaya load — tukar kepada model sebenar
     scene.remove(currentShirt);
-    shirtMesh = gltf.scene;
-    shirtMesh.traverse((child) => {
+       shirtMesh.traverse((child) => {
       if (child.isMesh) {
         child.material = new THREE.MeshStandardMaterial({
           color: COLORS[0].hex, roughness: 0.85, metalness: 0.05
@@ -171,6 +170,10 @@ loader.load(
       }
     });
     scene.add(shirtMesh);
+    
+    // --- KOD BARU UNTUK BESARKAN BAJU ---
+    shirtMesh.scale.set(2.5, 2.5, 2.5); 
+    shirtMesh.position.y = -0.5;
   },
   undefined,
   () => {
