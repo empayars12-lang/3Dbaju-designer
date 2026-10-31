@@ -141,7 +141,8 @@
       </div>
       <div class="hint">
         • Gerak: tarik logo pada permukaan baju<br>
-        • Saiz / Putar: guna gizmo (anak panah & kotak)
+        • Saiz / Putar: guna gizmo (anak panah & kotak)<br>
+        • Lengan: saiz logo lebih besar secara automatik
       </div>
       <div class="action-row">
         <button class="action-btn" id="btnUndo" title="Ctrl+Z">↶ Undo</button>
@@ -393,7 +394,18 @@ function deleteLayer(dummy, el) {
   saveToLocalStorage();
 }
 
-// ===== 4. SISTEM DECAL =====
+// ===== 4. SISTEM DECAL (DENGAN SAIZ LEBIH BESAR DI LENGAN) =====
+
+/** 
+ * Semak sama ada logo berada di kawasan lengan.
+ * Threshold X boleh diubah mengikut model baju anda.
+ */
+function isOnSleeve(dummy) {
+  // Nilai 0.32 ~ 0.40 biasanya sesuai untuk kebanyakan model T-shirt
+  // Semakin besar nilai, semakin sukar dikira sebagai lengan
+  return Math.abs(dummy.position.x) > 0.34;
+}
+
 function createDecal(dummy) {
   if (!shirtMeshes.length) return;
 
@@ -407,9 +419,16 @@ function createDecal(dummy) {
   }
   dummy.userData.decals = [];
 
-  const w = 0.6 * dummy.scale.x;
-  const h = (0.6 / dummy.userData.aspect) * dummy.scale.y;
-  const size = new THREE.Vector3(w, h, 0.25);
+  // === SAIZ BERBEZA UNTUK LENGAN ===
+  // Hadapan/belakang: lebih kecil & kemas
+  // Lengan: lebih besar supaya space imej cukup & kurang terherot
+  const onSleeve = isOnSleeve(dummy);
+  const baseSize = onSleeve ? 0.92 : 0.58;   // <-- ubah nilai ini jika mahu lebih besar/kecil
+  const depth    = onSleeve ? 0.38 : 0.22;   // depth lebih dalam di lengan supaya wrap lebih stabil
+
+  const w = baseSize * dummy.scale.x;
+  const h = (baseSize / dummy.userData.aspect) * dummy.scale.y;
+  const size = new THREE.Vector3(w, h, depth);
 
   // Semak jika logo berada di belakang baju
   const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
