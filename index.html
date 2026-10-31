@@ -137,8 +137,6 @@
       width: 100%;
     }
     .small-btn:hover { background: #52525b; }
-    .small-btn.danger { background: #7f1d1d; border-color: #991b1b; color: #fecaca; }
-    .small-btn.danger:hover { background: #991b1b; }
 
     .fill-modes {
       display: grid;
@@ -326,7 +324,7 @@
       <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
     </div>
 
-    <!-- ===== LATAR BELAKANG ===== -->
+    <!-- LATAR BELAKANG -->
     <div>
       <div class="section-title">Latar Belakang</div>
       <div class="bg-controls">
@@ -346,11 +344,11 @@
           <span>Transparent Background</span>
           <div class="toggle-switch" id="toggleTransparent"></div>
         </div>
-        <div class="hint">Transparent berguna bila export PNG (tiada background)</div>
+        <div class="hint">Transparent berguna bila export PNG</div>
       </div>
     </div>
 
-    <!-- ===== BG IMAGE CONTROLS ===== -->
+    <!-- BG IMAGE CONTROLS -->
     <div id="bgImagePanel" style="display:none;">
       <div class="section-title">Kawalan Imej Latar</div>
       <div class="bg-image-controls">
@@ -377,15 +375,10 @@
           <button class="fill-btn" data-mode="contain">Contain</button>
           <button class="fill-btn" data-mode="free">Free</button>
         </div>
-
-        <div class="hint" style="margin-top:4px;">
-          • <b>Free</b>: boleh drag & scale bebas<br>
-          • Pilih layer "Latar Imej" di kanan untuk gerak
-        </div>
       </div>
     </div>
 
-    <!-- ===== CAHAYA ===== -->
+    <!-- CAHAYA -->
     <div>
       <div class="section-title">Kawalan Cahaya</div>
       <div class="light-controls">
@@ -413,7 +406,7 @@
       </div>
     </div>
 
-    <!-- ===== RENDER VIDEO (BARU) ===== -->
+    <!-- RENDER VIDEO -->
     <div>
       <div class="section-title">Render Video</div>
       <div class="video-controls">
@@ -436,15 +429,15 @@
         <div class="slider-row">
           <label>
             <span>Kualiti</span>
-            <span id="qualityValue">720p HD</span>
+            <span id="qualityValue">720p Portrait</span>
           </label>
           <input type="range" id="qualitySlider" min="0" max="1" step="1" value="0">
         </div>
 
         <button class="video-btn" id="btnRenderVideo">🎥 Mulakan Render Video</button>
         <div class="hint">
-          Video akan berpusing 360° automatik.<br>
-          Format: WebM (boleh convert ke MP4 untuk WhatsApp).
+          Video Portrait (sesuai WhatsApp).<br>
+          Format: WebM (boleh convert ke MP4).
         </div>
       </div>
     </div>
@@ -518,7 +511,7 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ===== 1. SETUP ASAS =====
+// ===== SETUP =====
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
@@ -577,7 +570,7 @@ transformControls.addEventListener('dragging-changed', (event) => {
   }
 });
 
-// ===== 2. STATE =====
+// ===== STATE =====
 const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
 
@@ -593,21 +586,19 @@ let history = [];
 let historyIndex = -1;
 const MAX_HISTORY = 40;
 
-// Background state
 let currentBgColor = '#09090b';
 let isTransparentBg = false;
 let bgPlane = null;
 let bgFillMode = 'stretch';
 let bgOpacity = 1;
 
-// Video recording state
 let isRecording = false;
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordStartTime = 0;
 let recordDuration = 6;
-let rotationSpeed = 1.0; // multiplier
-let recordQuality = 0; // 0 = 720p, 1 = 1080p
+let rotationSpeed = 1.0;
+let recordQuality = 0;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
@@ -629,7 +620,7 @@ let ftStartScale = 1;
 let ftStartAngle = 0;
 let ftCenterScreen = new THREE.Vector2();
 
-// ===== FALLBACK SIMPLE T-SHIRT =====
+// ===== FALLBACK SHIRT =====
 function createFallbackShirt() {
   const group = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({
@@ -706,7 +697,7 @@ loader.load(
   }
 );
 
-// ===== 3. LAYER SYSTEM =====
+// ===== LAYER SYSTEM =====
 function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active';
@@ -749,11 +740,8 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
 
   el.querySelector('.delete-btn').onclick = (e) => {
     e.stopPropagation();
-    if (isBg) {
-      clearBgImage();
-    } else {
-      deleteLayer(dummy, el);
-    }
+    if (isBg) clearBgImage();
+    else deleteLayer(dummy, el);
   };
 
   layerListUI.prepend(el);
@@ -767,11 +755,8 @@ function selectLayer(dummy, el) {
   activeDummy = dummy;
   gizmoControlsUI.classList.add('active');
 
-  if (dummy.userData.isBg) {
-    transformControls.setSpace('world');
-  } else {
-    transformControls.setSpace('local');
-  }
+  if (dummy.userData.isBg) transformControls.setSpace('world');
+  else transformControls.setSpace('local');
 
   if (currentMode === 'free') {
     transformControls.detach();
@@ -808,7 +793,7 @@ function deleteLayer(dummy, el) {
   saveToLocalStorage();
 }
 
-// ===== 4. DECAL =====
+// ===== DECAL =====
 function isOnSleeve(dummy) {
   return Math.abs(dummy.position.x) > 0.34;
 }
@@ -918,7 +903,7 @@ transformControls.addEventListener('objectChange', () => {
   if (currentMode === 'free') updateFreeTransformHandles();
 });
 
-// ===== 5. FREE TRANSFORM =====
+// ===== FREE TRANSFORM =====
 function showFreeTransform() {
   if (!activeDummy) return;
   ftEl.classList.add('active');
@@ -1080,7 +1065,7 @@ window.addEventListener('pointerup', () => {
   }
 });
 
-// ===== 6. ADD LOGO / TEXT =====
+// ===== ADD LOGO / TEXT =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
   if(!files.length) return;
@@ -1172,7 +1157,7 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   saveToLocalStorage();
 }
 
-// ===== 7. BACKGROUND IMAGE SYSTEM =====
+// ===== BACKGROUND =====
 function applySolidBackground() {
   if (isTransparentBg) {
     scene.background = null;
@@ -1344,7 +1329,7 @@ document.querySelectorAll('.fill-btn').forEach(btn => {
   };
 });
 
-// ===== 8. LIGHT CONTROLS =====
+// ===== LIGHT =====
 document.getElementById('ambientSlider').addEventListener('input', (e) => {
   const val = parseFloat(e.target.value);
   ambientLight.intensity = val;
@@ -1362,7 +1347,7 @@ document.getElementById('shadowSlider').addEventListener('input', (e) => {
   document.getElementById('shadowValue').textContent = val.toFixed(2);
 });
 
-// ===== 9. VIDEO RENDER =====
+// ===== VIDEO RENDER (PORTRAIT + NO GLITCH) =====
 document.getElementById('speedSlider').addEventListener('input', (e) => {
   rotationSpeed = parseFloat(e.target.value);
   document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x';
@@ -1375,7 +1360,7 @@ document.getElementById('durationSlider').addEventListener('input', (e) => {
 
 document.getElementById('qualitySlider').addEventListener('input', (e) => {
   recordQuality = parseInt(e.target.value);
-  document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p HD' : '1080p Full HD';
+  document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait';
 });
 
 btnRenderVideo.onclick = () => {
@@ -1386,37 +1371,45 @@ btnRenderVideo.onclick = () => {
 async function startVideoRecord() {
   if (isRecording) return;
 
-  // Hide UI elements
   transformHelper.visible = false;
   hideFreeTransform();
   controls.enabled = false;
   gizmoControlsUI.classList.remove('active');
 
-  // Set camera to nice front view
-  camera.position.set(0, 0.2, 4.2);
-  controls.target.set(0, 0, 0);
-  controls.update();
-
-  // Resize for quality
-  const targetW = recordQuality === 0 ? 1280 : 1920;
-  const targetH = recordQuality === 0 ? 720 : 1080;
   const oldSize = new THREE.Vector2();
   renderer.getSize(oldSize);
   const oldPixelRatio = renderer.getPixelRatio();
 
+  // Portrait
+  const targetW = recordQuality === 0 ? 720 : 1080;
+  const targetH = recordQuality === 0 ? 1280 : 1920;
+
   renderer.setPixelRatio(1);
   renderer.setSize(targetW, targetH, false);
 
-  // Prepare MediaRecorder
+  camera.aspect = targetW / targetH;
+  camera.updateProjectionMatrix();
+  camera.position.set(0, 0.15, 5.2);
+  controls.target.set(0, 0.05, 0);
+  controls.update();
+
+  // Warm-up frames (penting elak glitch)
+  for (let i = 0; i < 10; i++) {
+    renderer.clear();
+    renderer.render(scene, camera);
+  }
+
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
   const stream = renderer.domElement.captureStream(30);
-  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
-    ? 'video/webm;codecs=vp9' 
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
     : 'video/webm';
 
   recordedChunks = [];
   mediaRecorder = new MediaRecorder(stream, {
     mimeType,
-    videoBitsPerSecond: recordQuality === 0 ? 6000000 : 10000000
+    videoBitsPerSecond: recordQuality === 0 ? 5000000 : 8000000
   });
 
   mediaRecorder.ondataavailable = (e) => {
@@ -1428,13 +1421,14 @@ async function startVideoRecord() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `design-baju-${recordQuality === 0 ? '720p' : '1080p'}-${Date.now()}.webm`;
+    a.download = `design-baju-portrait-${recordQuality === 0 ? '720p' : '1080p'}-${Date.now()}.webm`;
     a.click();
     URL.revokeObjectURL(url);
 
-    // Restore
     renderer.setPixelRatio(oldPixelRatio);
     renderer.setSize(oldSize.x, oldSize.y, false);
+    camera.aspect = oldSize.x / oldSize.y;
+    camera.updateProjectionMatrix();
     transformHelper.visible = true;
     controls.enabled = true;
     isRecording = false;
@@ -1443,32 +1437,29 @@ async function startVideoRecord() {
     btnRenderVideo.textContent = '🎥 Mulakan Render Video';
     recordingOverlay.classList.remove('active');
 
-    // Reset rotation
     shirtGroup.rotation.y = 0;
   };
 
-  // Start
   isRecording = true;
   btnRenderVideo.disabled = true;
   btnRenderVideo.classList.add('recording');
   btnRenderVideo.textContent = '⏹ Sedang Merakam...';
   recordingOverlay.classList.add('active');
+
   mediaRecorder.start(100);
+  shirtGroup.rotation.y = 0;
 
   recordStartTime = performance.now();
-  const totalAngle = Math.PI * 2; // full 360°
   const durationMs = recordDuration * 1000;
 
-  function recordLoop() {
+  function recordLoop(now) {
     if (!isRecording) return;
 
-    const elapsed = performance.now() - recordStartTime;
+    const elapsed = now - recordStartTime;
     const progress = Math.min(elapsed / durationMs, 1);
 
-    // Smooth rotation based on speed
-    shirtGroup.rotation.y = progress * totalAngle * rotationSpeed;
+    shirtGroup.rotation.y = progress * Math.PI * 2 * rotationSpeed;
 
-    // Update countdown
     const remaining = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
     recordingText.textContent = `Sedang merakam... ${remaining}s`;
 
@@ -1477,19 +1468,18 @@ async function startVideoRecord() {
     if (progress < 1) {
       requestAnimationFrame(recordLoop);
     } else {
-      // Finish
       setTimeout(() => {
         if (mediaRecorder && mediaRecorder.state !== 'inactive') {
           mediaRecorder.stop();
         }
-      }, 200);
+      }, 150);
     }
   }
 
-  recordLoop();
+  requestAnimationFrame(recordLoop);
 }
 
-// ===== 10. UI CONTROLS =====
+// ===== UI CONTROLS =====
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -1571,7 +1561,7 @@ document.getElementById('viewLeft').onclick = () => {
   setActiveViewBtn('viewLeft');
 };
 
-// ===== 11. HISTORY =====
+// ===== HISTORY =====
 function getCurrentState() {
   return {
     color: currentShirtColor,
@@ -1775,7 +1765,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// ===== 12. LOCAL STORAGE =====
+// ===== LOCAL STORAGE =====
 function saveToLocalStorage() {
   try {
     localStorage.setItem('proDesigner3D_state', JSON.stringify(getCurrentState()));
@@ -1803,7 +1793,7 @@ async function loadFromLocalStorage() {
   }
 }
 
-// ===== 13. SAVE HD =====
+// ===== SAVE HD =====
 document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false;
   hideFreeTransform();
@@ -1824,7 +1814,7 @@ document.getElementById('saveBtn').onclick = () => {
   link.click();
 };
 
-// ===== 14. ANIMATE =====
+// ===== ANIMATE =====
 function animate() {
   requestAnimationFrame(animate);
   if (!isRecording) {
