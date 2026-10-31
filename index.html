@@ -140,9 +140,10 @@
         <button class="mode-btn" id="btnRotate" title="Putar">⟳ Putar</button>
       </div>
       <div class="hint">
-        • Gerak: tarik logo pada permukaan baju<br>
-        • Saiz / Putar: guna gizmo (anak panah & kotak)<br>
-        • Lengan: saiz logo lebih besar secara automatik
+        • <b>Gerak</b>: tarik logo pada permukaan baju<br>
+        • <b>Saiz</b>: tarik kotak/anak panah (saiz seimbang)<br>
+        • <b>Putar</b>: tarik gelang berwarna untuk putar<br>
+        • Lengan: saiz logo lebih besar automatik
       </div>
       <div class="action-row">
         <button class="action-btn" id="btnUndo" title="Ctrl+Z">↶ Undo</button>
@@ -226,8 +227,12 @@ controls.maxDistance = 10;
 
 const transformControls = new TransformControls(camera, renderer.domElement);
 transformControls.setMode('translate');
-transformControls.setSize(0.95);
+transformControls.setSize(1.35);           // Gizmo lebih besar & mudah digenggam
 transformControls.setSpace('local');
+transformControls.setTranslationSnap(null);
+transformControls.setRotationSnap(THREE.MathUtils.degToRad(5)); // putar lebih stabil (snap 5°)
+transformControls.setScaleSnap(0.05);
+
 const transformHelper = transformControls.getHelper();
 scene.add(transformHelper);
 
@@ -237,9 +242,14 @@ transformControls.addEventListener('dragging-changed', (event) => {
   controls.enabled = !event.value;
   isDragging = event.value;
   
-  // Simpan state selepas selesai drag (untuk Undo)
   if (!event.value && activeDummy) {
+    // Pastikan scale sentiasa uniform selepas drag
+    if (transformControls.getMode() === 'scale') {
+      const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
+      activeDummy.scale.setScalar(Math.max(0.15, s)); // minimum scale
+    }
     pushHistory();
+    saveToLocalStorage();
   }
 });
 
@@ -249,12 +259,11 @@ scene.add(shirtGroup);
 
 let shirtMeshes = [];
 let shirtMaterials = [];
-let layers = [];          // array of dummy Object3D
+let layers = [];
 let activeDummy = null;
 let logoCount = 0;
 let currentShirtColor = '#ffffff';
 
-// History untuk Undo / Redo
 let history = [];
 let historyIndex = -1;
 const MAX_HISTORY = 40;
@@ -303,7 +312,7 @@ function setupShirt(model) {
   finishLoading();
   addBaseLayer();
   
-  // Cuba load design yang disimpan sebelum ini
+  // Load design yang disimpan (async)
   loadFromLocalStorage();
 }
 
@@ -394,15 +403,8 @@ function deleteLayer(dummy, el) {
   saveToLocalStorage();
 }
 
-// ===== 4. SISTEM DECAL (DENGAN SAIZ LEBIH BESAR DI LENGAN) =====
-
-/** 
- * Semak sama ada logo berada di kawasan lengan.
- * Threshold X boleh diubah mengikut model baju anda.
- */
+// ===== 4. SISTEM DECAL =====
 function isOnSleeve(dummy) {
-  // Nilai 0.32 ~ 0.40 biasanya sesuai untuk kebanyakan model T-shirt
-  // Semakin besar nilai, semakin sukar dikira sebagai lengan
   return Math.abs(dummy.position.x) > 0.34;
 }
 
@@ -419,18 +421,14 @@ function createDecal(dummy) {
   }
   dummy.userData.decals = [];
 
-  // === SAIZ BERBEZA UNTUK LENGAN ===
-  // Hadapan/belakang: lebih kecil & kemas
-  // Lengan: lebih besar supaya space imej cukup & kurang terherot
   const onSleeve = isOnSleeve(dummy);
-  const baseSize = onSleeve ? 0.92 : 0.58;   // <-- ubah nilai ini jika mahu lebih besar/kecil
-  const depth    = onSleeve ? 0.38 : 0.22;   // depth lebih dalam di lengan supaya wrap lebih stabil
+  const baseSize = onSleeve ? 0.92 : 0.58;
+  const depth    = onSleeve ? 0.38 : 0.22;
 
   const w = baseSize * dummy.scale.x;
   const h = (baseSize / dummy.userData.aspect) * dummy.scale.y;
   const size = new THREE.Vector3(w, h, depth);
 
-  // Semak jika logo berada di belakang baju
   const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
   const isBack = currentNormal.z < -0.15;
 
@@ -468,11 +466,17 @@ function createDecal(dummy) {
   });
 }
 
-// Kemas kini posisi & putaran semasa Gizmo digunakan
+// Kemas kini semasa gizmo diguna
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy || !shirtMeshes.length) return;
 
-  // Hanya snap posisi bila dalam mod Gerak
+  // ===== FORCE UNIFORM SCALE (paling penting supaya mudah) =====
+  if (transformControls.getMode() === 'scale') {
+    const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
+    activeDummy.scale.setScalar(Math.max(0.12, Math.min(s, 4.5))); // limit min/max
+  }
+
+  // Snap posisi hanya dalam mod Gerak
   if (transformControls.getMode() === 'translate') {
     activeDummy.updateMatrixWorld();
     const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
@@ -487,7 +491,6 @@ transformControls.addEventListener('objectChange', () => {
       const localHit = shirtGroup.worldToLocal(hit.point.clone());
       activeDummy.position.copy(localHit);
 
-      // Orientasi ikut permukaan baju (hanya semasa drag)
       if (isDragging) {
         const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
         const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
@@ -547,7 +550,6 @@ document.getElementById('addTextBtn').onclick = () => {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   
-  // Simpan data teks supaya boleh restore
   const dataURL = canvas.toDataURL('image/png');
   addLogoToScene(texture, canvas.width / canvas.height, true, dataURL, text, color);
   document.getElementById('textInput').value = '';
@@ -693,7 +695,6 @@ function getCurrentState() {
 }
 
 function pushHistory() {
-  // Buang future history jika kita di tengah-tengah
   if (historyIndex < history.length - 1) {
     history = history.slice(0, historyIndex + 1);
   }
@@ -703,8 +704,7 @@ function pushHistory() {
   updateUndoRedoButtons();
 }
 
-function restoreState(state) {
-  // Padam semua layer semasa
+function clearAllLayers() {
   [...layers].forEach(d => {
     if (d.userData.decals) {
       d.userData.decals.forEach(decal => {
@@ -720,10 +720,13 @@ function restoreState(state) {
   layers = [];
   logoCount = 0;
   
-  // Padam UI layer (kecuali base)
   [...layerListUI.children].forEach(el => {
     if (el.id !== 'layer-base') el.remove();
   });
+}
+
+async function restoreState(state) {
+  clearAllLayers();
   
   // Restore warna
   currentShirtColor = state.color || '#ffffff';
@@ -733,37 +736,55 @@ function restoreState(state) {
     b.classList.toggle('active', b.style.background === currentShirtColor);
   });
 
-  // Restore layers
-  state.layers.forEach(ldata => {
-    const img = new Image();
-    img.onload = () => {
-      const texture = new THREE.Texture(img);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.needsUpdate = true;
+  // Restore semua layer secara parallel (Promise)
+  const promises = (state.layers || []).map((ldata) => {
+    return new Promise((resolve) => {
+      if (!ldata.dataURL) {
+        resolve();
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const texture = new THREE.Texture(img);
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.needsUpdate = true;
 
-      const dummy = new THREE.Object3D();
-      dummy.userData.texture = texture;
-      dummy.userData.aspect = ldata.aspect;
-      dummy.userData.isText = ldata.isText;
-      dummy.userData.dataURL = ldata.dataURL;
-      dummy.userData.textContent = ldata.textContent;
-      dummy.userData.textColor = ldata.textColor;
-      dummy.userData.name = ldata.name;
-      dummy.userData.icon = ldata.icon;
+          const dummy = new THREE.Object3D();
+          dummy.userData.texture = texture;
+          dummy.userData.aspect = ldata.aspect || 1;
+          dummy.userData.isText = !!ldata.isText;
+          dummy.userData.dataURL = ldata.dataURL;
+          dummy.userData.textContent = ldata.textContent || '';
+          dummy.userData.textColor = ldata.textColor || '#000000';
+          dummy.userData.name = ldata.name || 'Logo';
+          dummy.userData.icon = ldata.icon || '🖼️';
 
-      dummy.position.fromArray(ldata.position);
-      dummy.quaternion.fromArray(ldata.quaternion);
-      dummy.scale.fromArray(ldata.scale);
+          dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
+          dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
+          dummy.scale.fromArray(ldata.scale || [1, 1, 1]);
 
-      shirtGroup.add(dummy);
-      createDecal(dummy);
-      layers.push(dummy);
-      logoCount++;
+          // Pastikan scale uniform
+          const s = Math.max(dummy.scale.x, dummy.scale.y, dummy.scale.z);
+          dummy.scale.setScalar(Math.max(0.12, s));
 
-      addDesignLayer(dummy, ldata.name, ldata.icon);
-    };
-    img.src = ldata.dataURL;
+          shirtGroup.add(dummy);
+          createDecal(dummy);
+          layers.push(dummy);
+          logoCount++;
+
+          addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
+        } catch (err) {
+          console.warn('Gagal restore satu layer:', err);
+        }
+        resolve();
+      };
+      img.onerror = () => resolve();
+      img.src = ldata.dataURL;
+    });
   });
+
+  await Promise.all(promises);
 
   transformControls.detach();
   activeDummy = null;
@@ -774,17 +795,19 @@ function restoreState(state) {
 function undo() {
   if (historyIndex <= 0) return;
   historyIndex--;
-  restoreState(history[historyIndex]);
-  updateUndoRedoButtons();
-  saveToLocalStorage();
+  restoreState(history[historyIndex]).then(() => {
+    updateUndoRedoButtons();
+    saveToLocalStorage();
+  });
 }
 
 function redo() {
   if (historyIndex >= history.length - 1) return;
   historyIndex++;
-  restoreState(history[historyIndex]);
-  updateUndoRedoButtons();
-  saveToLocalStorage();
+  restoreState(history[historyIndex]).then(() => {
+    updateUndoRedoButtons();
+    saveToLocalStorage();
+  });
 }
 
 function updateUndoRedoButtons() {
@@ -808,30 +831,42 @@ window.addEventListener('keydown', (e) => {
       redo();
     }
   }
+  // Shortcut cepat
+  if (!e.ctrlKey && !e.metaKey && activeDummy) {
+    if (e.key === 'g' || e.key === 'G') {
+      document.getElementById('btnTranslate').click();
+    }
+    if (e.key === 's' || e.key === 'S') {
+      document.getElementById('btnScale').click();
+    }
+    if (e.key === 'r' || e.key === 'R') {
+      document.getElementById('btnRotate').click();
+    }
+  }
 });
 
-// ===== 8. LOCAL STORAGE (Auto-save) =====
+// ===== 8. LOCAL STORAGE (Auto-save yang lebih stabil) =====
 function saveToLocalStorage() {
   try {
     const state = getCurrentState();
     localStorage.setItem('proDesigner3D_state', JSON.stringify(state));
   } catch (err) {
-    console.warn('Gagal simpan ke localStorage:', err);
+    console.warn('Gagal simpan ke localStorage (mungkin imej terlalu besar):', err);
   }
 }
 
-function loadFromLocalStorage() {
+async function loadFromLocalStorage() {
   try {
     const raw = localStorage.getItem('proDesigner3D_state');
     if (!raw) {
-      pushHistory(); // state kosong awal
+      pushHistory();
       return;
     }
     const state = JSON.parse(raw);
-    if (state && state.layers) {
-      restoreState(state);
-      // Selepas restore, buat history awal
-      history = [state];
+    if (state && Array.isArray(state.layers)) {
+      await restoreState(state);
+      // Selepas semua imej siap, buat history awal yang bersih
+      history = [getCurrentState()];
       historyIndex = 0;
       updateUndoRedoButtons();
     } else {
