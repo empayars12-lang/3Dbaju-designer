@@ -6,118 +6,53 @@
   <title>Pro Designer 3D - Studio</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #121212; color: #f3f4f6; }
-
     #app { display: flex; height: 100vh; }
-
-    /* PANEL KIRI */
-    #sidebar-left {
-      width: 300px; background: #18181b; padding: 24px; display: flex; flex-direction: column; gap: 20px;
-      border-right: 1px solid #27272a; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto;
-    }
+    #sidebar-left { width: 300px; background: #18181b; padding: 24px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid #27272a; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto; }
     .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #a1a1aa; margin-bottom: 12px; }
-
     .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     .color-btn:hover { transform: scale(1.1); }
     .color-btn.active { border-color: #38bdf8; transform: scale(1.1); box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
-
     .custom-color-wrapper { display: flex; align-items: center; gap: 12px; background: #27272a; padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46; margin-top: 12px;}
     .custom-color-wrapper input[type="color"] { width: 32px; height: 32px; border: none; background: none; cursor: pointer; border-radius: 4px; }
     .custom-color-wrapper span { font-size: 13px; color: #d4d4d8; }
-
-    .upload-btn {
-      background: #38bdf8; color: #000; text-align: center; padding: 14px; border-radius: 8px;
-      font-weight: 600; font-size: 14px; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
-    }
+    .upload-btn { background: #38bdf8; color: #000; text-align: center; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2); }
     .upload-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
     .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-
     .text-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
     .text-input-group input[type="text"] { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #3f3f46; background: #27272a; color: #fff; font-family: inherit; font-size: 13px; }
     .text-input-group input[type="color"] { width: 40px; height: 40px; border: none; background: #27272a; border-radius: 6px; cursor: pointer; padding: 2px; }
     .add-text-btn { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
     .add-text-btn:hover { background: #3f3f46; }
-
-    .hint-box {
-      background: #27272a; border: 1px solid #3f3f46; border-radius: 8px;
-      padding: 12px; font-size: 12px; color: #a1a1aa; line-height: 1.7;
-    }
+    .hint-box { background: #27272a; border: 1px solid #3f3f46; border-radius: 8px; padding: 12px; font-size: 12px; color: #a1a1aa; line-height: 1.7; }
     .hint-box p { margin: 0; }
-
-    .save-btn {
-      margin-top: auto; background: #10b981; color: #fff; border: none; padding: 16px;
-      border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
-    }
+    .save-btn { margin-top: auto; background: #10b981; color: #fff; border: none; padding: 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
     .save-btn:hover { background: #059669; transform: translateY(-2px); }
-
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
-
-    /* Canvas 3D */
-    #viewer-container canvas {
-      position: absolute; top: 0; left: 0; z-index: 1; display: block;
-    }
-
-    /* SVG Overlay Gizmo */
-    #gizmo-svg {
-      position: absolute; inset: 0; z-index: 5; pointer-events: none;
-      touch-action: none; overflow: visible; display: none;
-    }
-    #gizmo-svg .gizmo-stroke {
-      fill: none; stroke: #38bdf8; stroke-width: 2;
-      filter: drop-shadow(0 0 4px rgba(56,189,248,0.6));
-    }
-    #gizmo-box {
-      fill: rgba(56,189,248,0.08); stroke: #38bdf8; stroke-width: 2;
-      pointer-events: all; cursor: move;
-      filter: drop-shadow(0 0 6px rgba(56,189,248,0.4));
-    }
-    #gizmo-svg .corner {
-      fill: #ffffff; stroke: #38bdf8; stroke-width: 2;
-      pointer-events: all; cursor: nwse-resize;
-    }
-    #gizmo-rot-line {
-      stroke: #38bdf8; stroke-width: 2; stroke-dasharray: 4 3;
-    }
-    #gizmo-rot-handle {
-      fill: #38bdf8; stroke: #ffffff; stroke-width: 2;
-      pointer-events: all; cursor: grab;
-    }
-
-    #view-toggles {
-      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px;
-      backdrop-filter: blur(10px); z-index: 10;
-    }
+    #viewer-container canvas { position: absolute; top: 0; left: 0; z-index: 1; display: block; }
+    #gizmo-svg { position: absolute; inset: 0; z-index: 5; pointer-events: none; touch-action: none; overflow: visible; display: none; }
+    #gizmo-box { fill: rgba(56,189,248,0.08); stroke: #38bdf8; stroke-width: 2; pointer-events: all; cursor: move; filter: drop-shadow(0 0 6px rgba(56,189,248,0.4)); }
+    #gizmo-svg .corner { fill: #ffffff; stroke: #38bdf8; stroke-width: 2; pointer-events: all; cursor: nwse-resize; }
+    #gizmo-rot-line { stroke: #38bdf8; stroke-width: 2; stroke-dasharray: 4 3; }
+    #gizmo-rot-handle { fill: #38bdf8; stroke: #ffffff; stroke-width: 2; pointer-events: all; cursor: grab; }
+    #view-toggles { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px); z-index: 10; }
     #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
     #view-toggles button:hover { background: #52525b; }
-
-    #sidebar-right {
-      width: 280px; background: #18181b; border-left: 1px solid #27272a; z-index: 10;
-      display: flex; flex-direction: column; box-shadow: -4px 0 15px rgba(0,0,0,0.3);
-    }
+    #sidebar-right { width: 280px; background: #18181b; border-left: 1px solid #27272a; z-index: 10; display: flex; flex-direction: column; box-shadow: -4px 0 15px rgba(0,0,0,0.3); }
     #layers-header { padding: 24px 24px 16px 24px; border-bottom: 1px solid #27272a; }
     #layers-header h2 { font-size: 13px; font-weight: 600; color: #e4e4e7; text-transform: uppercase; letter-spacing: 1px;}
-
     #layers-list { flex: 1; overflow-y: auto; }
     .layer-item { padding: 14px 24px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; font-size: 13px; color: #d4d4d8; }
     .layer-item:hover { background: #27272a; }
     .layer-item.active { background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38bdf8; color: #38bdf8; font-weight: 600;}
     .layer-info { display: flex; align-items: center; gap: 12px; }
     .layer-icon { font-size: 16px; }
-
     .delete-btn { color: #ef4444; font-size: 14px; font-weight: bold; opacity: 0; transition: 0.2s; padding: 4px; background: none; border: none; cursor: pointer;}
     .layer-item:hover .delete-btn { opacity: 1; }
     .delete-btn:hover { transform: scale(1.2); }
-
-    #loading {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: #09090b; color: #38bdf8; z-index: 100; font-weight: 600; letter-spacing: 2px; transition: opacity 0.5s;
-    }
+    #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #09090b; color: #38bdf8; z-index: 100; font-weight: 600; letter-spacing: 2px; transition: opacity 0.5s; }
   </style>
 </head>
 <body>
@@ -132,7 +67,6 @@
         <span>Warna Custom</span>
       </div>
     </div>
-
     <div>
       <div class="section-title">Design Anda</div>
       <div class="upload-btn">
@@ -140,7 +74,6 @@
         <input type="file" id="logoUpload" accept="image/*" multiple>
       </div>
     </div>
-
     <div>
       <div class="section-title">Tambah Teks</div>
       <div class="text-input-group">
@@ -149,21 +82,19 @@
       </div>
       <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
     </div>
-
     <div class="hint-box">
       <div class="section-title" style="margin-bottom:6px;">Panduan</div>
       <p>• Klik layer untuk pilih logo</p>
       <p>• Seret dalam kotak untuk gerak</p>
       <p>• Seret bucu untuk ubah saiz</p>
       <p>• Seret bulatan atas untuk putar</p>
+      <p style="margin-top: 6px; color: #fbbf24;">⚠️ Logo melengkung ikut bentuk baju.</p>
     </div>
-
     <button class="save-btn" id="saveBtn">⬇️ Simpan Design HD</button>
   </div>
 
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
-
     <svg id="gizmo-svg">
       <polygon id="gizmo-box" points="" />
       <line id="gizmo-rot-line" x1="0" y1="0" x2="0" y2="0" />
@@ -173,7 +104,6 @@
       <circle class="corner" cx="0" cy="0" r="7" data-handle="c2" />
       <circle class="corner" cx="0" cy="0" r="7" data-handle="c3" />
     </svg>
-
     <div id="view-toggles">
       <button id="viewFront">Hadapan</button>
       <button id="viewBack">Belakang</button>
@@ -204,9 +134,6 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ============================================================
-// 1. SETUP ASAS
-// ============================================================
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
@@ -244,9 +171,6 @@ controls.enablePan = false;
 controls.minDistance = 1.5;
 controls.maxDistance = 10;
 
-// ============================================================
-// 2. STATE
-// ============================================================
 const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
 
@@ -258,12 +182,9 @@ let logoCount = 0;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
-const STORAGE_KEY = 'pro-designer-3d-v2';
+const STORAGE_KEY = 'pro-designer-3d-v3';
 const _shirtGroupInv = new THREE.Matrix4();
 
-// ============================================================
-// 3. LOAD MODEL
-// ============================================================
 new GLTFLoader().load('./T_shirt_gltf.gltf',
   (gltf) => {
     setupShirt(gltf.scene);
@@ -317,9 +238,6 @@ function finishLoading() {
   setTimeout(() => el.remove(), 500);
 }
 
-// ============================================================
-// 4. UTILITI
-// ============================================================
 function buildQuaternion(normal, spin) {
   const n = normal.clone().normalize();
   const worldUp = new THREE.Vector3(0, 1, 0);
@@ -381,13 +299,9 @@ function fileToDataURL(file, cb) {
   reader.readAsDataURL(file);
 }
 
-// ============================================================
-// 5. DECAL
-// ============================================================
-const FLIP_BACK = true; // Kekalkan tingkah laku asal
+const FLIP_BACK = true;
 
 function rebuildDecal(layer) {
-  // Buang decal lama
   layer.decals.forEach(d => {
     shirtGroup.remove(d);
     d.geometry.dispose();
@@ -425,7 +339,7 @@ function rebuildDecal(layer) {
   const quat = buildQuaternion(layer.normal, layer.spin);
   const w = layer.width;
   const h = w / layer.aspect;
-  const depth = Math.min(0.18, Math.max(0.06, w * 0.15));
+  const depth = 0.01; // Sangat nipis untuk elak tembus lengan
   const size = new THREE.Vector3(w, h, depth);
 
   shirtMeshes.forEach(mesh => {
@@ -439,15 +353,10 @@ function rebuildDecal(layer) {
       } else {
         geo.dispose();
       }
-    } catch (e) {
-      // abaikan
-    }
+    } catch (e) {}
   });
 }
 
-// ============================================================
-// 6. LAYER
-// ============================================================
 function createLayerObject(opts) {
   const layer = {
     id: 'L' + Date.now() + Math.random().toString(36).slice(2, 6),
@@ -550,9 +459,6 @@ function deleteLayer(layer) {
   saveToStorage();
 }
 
-// ============================================================
-// 7. SVG OVERLAY GIZMO
-// ============================================================
 const svg = document.getElementById('gizmo-svg');
 const boxPoly = document.getElementById('gizmo-box');
 const rotLine = document.getElementById('gizmo-rot-line');
@@ -636,9 +542,6 @@ function updateOverlay() {
   rotHandleEl.setAttribute('cy', rh.y);
 }
 
-// ============================================================
-// 8. POINTER HANDLERS
-// ============================================================
 function getPointerPos(e) {
   const rect = container.getBoundingClientRect();
   return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -737,9 +640,6 @@ function onGizmoUp(e) {
   saveToStorage();
 }
 
-// ============================================================
-// 9. PERSISTENCE
-// ============================================================
 let saveTimer = null;
 function saveToStorageDebounced() {
   clearTimeout(saveTimer);
@@ -763,9 +663,7 @@ function saveToStorage() {
       }))
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (e) {
-    console.warn('Gagal menyimpan design:', e);
-  }
+  } catch (e) {}
 }
 
 async function restoreFromStorage() {
@@ -808,9 +706,6 @@ async function restoreFromStorage() {
   logoCount = layers.length;
 }
 
-// ============================================================
-// 10. UPLOAD LOGO
-// ============================================================
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
   if (!files.length) return;
@@ -838,9 +733,6 @@ document.getElementById('logoUpload').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-// ============================================================
-// 11. TAMBAH TEKS
-// ============================================================
 document.getElementById('addTextBtn').onclick = () => {
   const text = document.getElementById('textInput').value.trim();
   const color = document.getElementById('textColor').value;
@@ -885,9 +777,6 @@ document.getElementById('addTextBtn').onclick = () => {
   document.getElementById('textInput').value = '';
 };
 
-// ============================================================
-// 12. WARNA BAJU
-// ============================================================
 const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 const colorGrid = document.getElementById('colorGrid');
 colors.forEach((hex, i) => {
@@ -909,9 +798,6 @@ document.getElementById('customColor').addEventListener('input', (e) => {
   saveToStorageDebounced();
 });
 
-// ============================================================
-// 13. BUTANG VIEW
-// ============================================================
 function setView(x, y, z) {
   camera.position.set(x, y, z);
   controls.target.set(0, 0, 0);
@@ -922,9 +808,6 @@ document.getElementById('viewBack').onclick = () => setView(0, 0, -4.5);
 document.getElementById('viewLeft').onclick = () => setView(-4.5, 0, 0);
 document.getElementById('viewRight').onclick = () => setView(4.5, 0, 0);
 
-// ============================================================
-// 14. SAVE HD
-// ============================================================
 document.getElementById('saveBtn').onclick = () => {
   const prevSize = renderer.getSize(new THREE.Vector2());
   const prevPR = renderer.getPixelRatio();
@@ -946,9 +829,6 @@ document.getElementById('saveBtn').onclick = () => {
   link.click();
 };
 
-// ============================================================
-// 15. ANIMATE & RESIZE
-// ============================================================
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
@@ -966,6 +846,5 @@ window.addEventListener('resize', () => {
   updateOverlay();
 });
 </script>
-
 </body>
 </html>
