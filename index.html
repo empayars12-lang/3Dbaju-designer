@@ -13,7 +13,7 @@
     
     #app { display: flex; height: 100vh; background: #121212; color: #fff; }
     
-    /* PANEL KIRI (KAWALAN) */
+    /* PANEL KIRI */
     #sidebar {
       width: 320px; background: #1e1e24; padding: 20px; display: flex; flex-direction: column; gap: 15px;
       border-right: 1px solid #333; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.5); overflow-y: auto;
@@ -29,7 +29,6 @@
     .color-btn:hover { transform: scale(1.1); }
     .color-btn.active { border-color: #38bdf8; transform: scale(1.1); }
     
-    /* Custom Color */
     .custom-color-wrapper { display: flex; align-items: center; gap: 10px; background: #2a2a35; padding: 5px 10px; border-radius: 6px;}
     .custom-color-wrapper input[type="color"] { width: 40px; height: 30px; border: none; background: none; cursor: pointer;}
     .custom-color-wrapper span { font-size: 12px; color: #aaa;}
@@ -42,7 +41,7 @@
     .upload-btn:hover { background: #0ea5e9; }
     .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     
-    /* Slider Saiz Logo */
+    /* Slider */
     .slider-container { display: flex; flex-direction: column; gap: 5px; background: #2a2a35; padding: 10px; border-radius: 6px;}
     input[type=range] { width: 100%; accent-color: #38bdf8; }
     
@@ -53,17 +52,9 @@
     }
     .save-btn:hover { background: #059669; }
 
-    /* KAWASAN 3D & OVERLAY GAMBAR */
+    /* KAWASAN 3D */
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle, #2a2a35 0%, #121212 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
-    
-    /* Gambar yg di-upload (Boleh drag) */
-    .draggable-logo {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      cursor: grab; touch-action: none; user-select: none; z-index: 5;
-    }
-    .draggable-logo:active { cursor: grabbing; }
-    .draggable-logo img { width: 100%; height: auto; pointer-events: none; }
 
     /* Loading */
     #loading {
@@ -71,10 +62,10 @@
       background: #121212; color: #38bdf8; z-index: 100; font-weight: 600; letter-spacing: 1px;
     }
 
-    /* Responsive (Mobile) */
+    /* Responsive */
     @media (max-width: 768px) {
       #app { flex-direction: column; }
-      #sidebar { width: 100%; height: 45vh; border-right: none; border-top: 1px solid #333; order: 2; padding: 15px;}
+      #sidebar { width: 100%; height: 40vh; border-right: none; border-top: 1px solid #333; order: 2; padding: 15px;}
       #viewer-container { order: 1; flex: 1; }
       .save-btn { margin-top: 10px; }
       .color-grid { grid-template-columns: repeat(6, 1fr); }
@@ -100,11 +91,12 @@
         + Tambah Gambar/Logo
         <input type="file" id="logoUpload" accept="image/*" multiple>
       </div>
+      <p style="font-size: 11px; color: #888; margin-top: 5px;">Klik pada logo di skrin 3D untuk gerakkan.</p>
     </div>
     
     <div class="slider-container">
       <h2>3. Saiz Logo</h2>
-      <input type="range" id="logoSize" min="50" max="400" step="10" value="150">
+      <input type="range" id="logoSize" min="0.1" max="2.0" step="0.05" value="0.5">
     </div>
     
     <button class="save-btn" onclick="saveImage()">⬇️ Save Design</button>
@@ -112,8 +104,6 @@
   
   <div id="viewer-container">
     <div id="loading">MEMUATKAN 3D...</div>
-    <!-- Tempat gambar akan dimasukkan -->
-    <div id="logos-container"></div>
   </div>
 </div>
 
@@ -130,18 +120,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { toPng } from 'https://esm.sh/html-to-image@1.11.11'; // Library untuk save gambar beserta logo HTML
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
 // ===== DATA WARNA =====
 const COLORS = [
-  { name: 'Putih', hex: '#ffffff' },
-  { name: 'Hitam', hex: '#1a1a1a' },
-  { name: 'Kelabu', hex: '#64748b' },
-  { name: 'Merah', hex: '#dc2626' },
-  { name: 'Biru', hex: '#2563eb' },
-  { name: 'Hijau', hex: '#16a34a' },
-  { name: 'Kuning', hex: '#ca8a04' },
-  { name: 'Ungu', hex: '#9333ea' }
+  { name: 'Putih', hex: '#ffffff' }, { name: 'Hitam', hex: '#1a1a1a' }, { name: 'Kelabu', hex: '#64748b' },
+  { name: 'Merah', hex: '#dc2626' }, { name: 'Biru', hex: '#2563eb' }, { name: 'Hijau', hex: '#16a34a' },
+  { name: 'Kuning', hex: '#ca8a04' }, { name: 'Ungu', hex: '#9333ea' }
 ];
 
 // ===== SETUP ASAS THREE.JS =====
@@ -176,14 +161,25 @@ controls.minDistance = 2;
 controls.maxDistance = 8;
 controls.target.set(0, 0, 0);
 
+// ===== KAWALAN GIZMO (Transform Controls) =====
+const transformControls = new TransformControls(camera, renderer.domElement);
+transformControls.setMode('translate'); // Mode: Gerak (boleh tukar ke 'rotate' atau 'scale')
+transformControls.setSpace('local'); // Bergerak ikut arah baju
+scene.add(transformControls);
+
+// Bila drag gizmo, matikan pusing kamera
+transformControls.addEventListener('dragging-changed', function (event) {
+  controls.enabled = !event.value;
+});
+
 // ===== VARIABEL GLOBAL =====
 let shirtMesh = null;
 let shirtMaterials = [];
-let activeLogo = null; // Simpan rujukan logo yang sedang aktif (untuk slider saiz)
+let activeLogo = null;
 
 // ===== LOAD MODEL 3D =====
 const loader = new GLTFLoader();
-const MODEL_URL = './T_shirt_gltf.gltf'; // Pastikan nama fail betul
+const MODEL_URL = './T_shirt_gltf.gltf';
 
 loader.load(
   MODEL_URL,
@@ -235,117 +231,119 @@ COLORS.forEach((c, i) => {
     btn.classList.add('active');
     shirtMaterials.forEach(mat => mat.color.set(c.hex));
   });
-  
   colorGrid.appendChild(btn);
 });
 
-// Custom Color Picker
-const customColorInput = document.getElementById('customColor');
-customColorInput.addEventListener('input', (e) => {
+// Custom Color
+document.getElementById('customColor').addEventListener('input', (e) => {
   document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
   shirtMaterials.forEach(mat => mat.color.set(e.target.value));
 });
 
-// ===== LOGIK DRAG GAMBAR (HTML OVERLAY) =====
-const logosContainer = document.getElementById('logos-container');
-let offsetX, offsetY;
+// ===== LOGIK UPLOAD & DRAG LOGO (3D) =====
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const logoList = []; // Simpan semua logo 3D
 
-// Fungsi buat elemen gambar yang boleh di-drag
-function createDraggableLogo(imageUrl) {
-  const div = document.createElement('div');
-  div.className = 'draggable-logo';
+// Event Klik pada Skrin 3D
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  // Kira posisi mouse
+  mouse.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
+  mouse.y = -(e.clientY / renderer.domElement.clientHeight) * 2 + 1;
   
-  // Saiz asal ikut slider
-  const initialSize = document.getElementById('logoSize').value;
-  div.style.width = initialSize + 'px';
-
-  const img = document.createElement('img');
-  img.src = imageUrl;
-  div.appendChild(img);
-
-  // Logik Drag & Drop
-  div.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    activeLogo = div; // Set sebagai logo aktif untuk slider
-    div.style.zIndex = 10; // Naikkan ke depan
+  raycaster.setFromCamera(mouse, camera);
+  
+  // Tembak laser ke arah logo-logo
+  const intersects = raycaster.intersectObjects(logoList);
+  
+  if (intersects.length > 0) {
+    // Jika terkena logo, pasang gizmo pada logo tu
+    activeLogo = intersects[0].object;
+    transformControls.attach(activeLogo);
     
-    // Kira offset supaya gambar tak lompat
-    const rect = div.getBoundingClientRect();
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
-    
-    // Dengar pergerakan mouse
-    document.addEventListener('pointermove', onDrag);
-    document.addEventListener('pointerup', onDragEnd);
-  });
-
-  function onDrag(e) {
-    // Kira posisi baru
-    const containerRect = logosContainer.getBoundingClientRect();
-    let newX = e.clientX - containerRect.left - offsetX;
-    let newY = e.clientY - containerRect.top - offsetY;
-    
-    div.style.left = newX + 'px';
-    div.style.top = newY + 'px';
-    div.style.transform = 'none'; // Buang transform asal
+    // Set slider saiz ikut saiz logo sedia ada
+    document.getElementById('logoSize').value = activeLogo.scale.x;
+  } else {
+    // Jika klik tempat kosong, buang gizmo
+    transformControls.detach();
+    activeLogo = null;
   }
+});
 
-  function onDragEnd() {
-    div.style.zIndex = 5; // Turunkan semula
-    document.removeEventListener('pointermove', onDrag);
-    document.removeEventListener('pointerup', onDragEnd);
-  }
-
-  logosContainer.appendChild(div);
-}
-
-// Event Listener Upload Gambar
+// Event Upload Gambar
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
   for (let i = 0; i < files.length; i++) {
     const reader = new FileReader();
     reader.onload = (event) => {
-      createDraggableLogo(event.target.result);
+      create3DLogo(event.target.result);
     };
     reader.readAsDataURL(files[i]);
   }
-  // Reset input supaya boleh upload fail yg sama berulang kali
   e.target.value = ''; 
 });
+
+// Fungsi Buat Logo 3D (Melekat pada baju)
+function create3DLogo(imageUrl) {
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load(imageUrl, (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    // Kira nisbah aspek gambar
+    const img = texture.image;
+    const aspect = img.width / img.height;
+    
+    const baseWidth = 0.5;
+    const baseHeight = baseWidth / aspect;
+
+    // Buat plane 3D untuk logo
+    const geometry = new THREE.PlaneGeometry(baseWidth, baseHeight);
+    const material = new THREE.MeshBasicMaterial({ 
+      map: texture, 
+      transparent: true, 
+      depthTest: false, // Supaya tak tenggelam dalam baju
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4
+    });
+    
+    const logo3D = new THREE.Mesh(geometry, material);
+    
+    // Letak default di tengah depan baju
+    logo3D.position.set(0, 0.2, 1.5); // Anggaran posisi depan baju
+    logo3D.scale.set(0.5, 0.5, 0.5);
+
+    scene.add(logo3D);
+    logoList.push(logo3D);
+
+    // Auto-select logo baru
+    activeLogo = logo3D;
+    transformControls.attach(activeLogo);
+  });
+}
 
 // Slider Saiz (Ubah saiz logo aktif)
 document.getElementById('logoSize').addEventListener('input', (e) => {
   if (activeLogo) {
-    activeLogo.style.width = e.target.value + 'px';
+    const val = parseFloat(e.target.value);
+    activeLogo.scale.set(val, val, val);
   }
 });
 
-// ===== SIMPAN GAMBAR (GABUNG 3D + LOGO HTML) =====
-window.saveImage = async function() {
-  // Ambil screenshot dari canvas 3D
+// ===== SIMPAN GAMBAR =====
+window.saveImage = function() {
+  // Sembunyikan gizmo sebelum tangkap gambar
+  transformControls.visible = false;
+  
   renderer.render(scene, camera);
-  const canvasData = renderer.domElement.toDataURL('image/png');
+  const dataURL = renderer.domElement.toDataURL('image/png');
   
-  // Gabungkan dengan gambar HTML (logo) guna html-to-image
-  const containerEl = document.getElementById('viewer-container');
+  transformControls.visible = true;
   
-  // Sembunyikan loading jika ada
-  document.getElementById('loading').style.display = 'none';
-  
-  try {
-    const combinedImage = await toPng(containerEl, {
-      cacheBust: true,
-      pixelRatio: 2, // Kualiti tinggi
-    });
-    
-    const link = document.createElement('a');
-    link.download = 'design-baju.png';
-    link.href = combinedImage;
-    link.click();
-  } catch (err) {
-    alert('Gagal simpan gambar. Sila cuba lagi.');
-    console.error(err);
-  }
+  const link = document.createElement('a');
+  link.download = 'design-baju.png';
+  link.href = dataURL;
+  link.click();
 };
 
 // ===== RENDER LOOP =====
