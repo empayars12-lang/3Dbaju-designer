@@ -43,10 +43,12 @@
 
     .gizmo-controls { display: none; background: #27272a; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46; }
     .gizmo-controls.active { display: block; }
-    .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+    .mode-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
     .mode-btn { background: #3f3f46; border: none; color: #d4d4d8; padding: 10px 4px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit; }
     .mode-btn:hover { background: #52525b; }
     .mode-btn.active { background: #38bdf8; color: #000; }
+    .mode-btn.free { grid-column: 1 / -1; background: #7c3aed; color: #fff; }
+    .mode-btn.free.active { background: #8b5cf6; }
 
     .action-row { display: flex; gap: 8px; margin-top: 8px; }
     .action-btn {
@@ -66,9 +68,62 @@
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
 
+    #free-transform {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      display: none;
+    }
+    #free-transform.active { display: block; }
+
+    .ft-box {
+      position: absolute;
+      border: 1.5px solid #38bdf8;
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
+    }
+    .ft-handle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      border: 2px solid #38bdf8;
+      border-radius: 2px;
+      pointer-events: auto;
+      cursor: nwse-resize;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .ft-handle.nw { cursor: nwse-resize; }
+    .ft-handle.ne { cursor: nesw-resize; }
+    .ft-handle.se { cursor: nwse-resize; }
+    .ft-handle.sw { cursor: nesw-resize; }
+
+    .ft-rotate-handle {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #38bdf8;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      pointer-events: auto;
+      cursor: grab;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .ft-rotate-handle:active { cursor: grabbing; }
+    .ft-rotate-line {
+      position: absolute;
+      width: 1.5px;
+      background: #38bdf8;
+      pointer-events: none;
+    }
+
     #view-toggles {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 8px; background: rgba(24, 24, 27, 0.85); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px);
+      z-index: 15;
     }
     #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
     #view-toggles button:hover { background: #52525b; }
@@ -135,15 +190,14 @@
     <div class="gizmo-controls" id="gizmoControls">
       <div class="section-title" style="margin-bottom: 0;">Kawalan Logo</div>
       <div class="mode-buttons">
-        <button class="mode-btn active" id="btnTranslate" title="Gerak">✥ Gerak</button>
-        <button class="mode-btn" id="btnScale" title="Saiz">⤢ Saiz</button>
-        <button class="mode-btn" id="btnRotate" title="Putar">⟳ Putar</button>
+        <button class="mode-btn active" id="btnTranslate">✥ Gerak</button>
+        <button class="mode-btn" id="btnScale">⤢ Saiz 3D</button>
+        <button class="mode-btn free" id="btnFree">✥ Free Transform (Ctrl+T)</button>
       </div>
       <div class="hint">
         • <b>Gerak</b>: tarik logo pada permukaan baju<br>
-        • <b>Saiz</b>: tarik kotak/anak panah (saiz seimbang)<br>
-        • <b>Putar</b>: tarik gelang berwarna untuk putar<br>
-        • Lengan: saiz logo lebih besar automatik
+        • <b>Free Transform</b>: 4 petak bucu + putar (macam Photoshop)<br>
+        • Tekan <b>Ctrl + T</b> untuk Free Transform
       </div>
       <div class="action-row">
         <button class="action-btn" id="btnUndo" title="Ctrl+Z">↶ Undo</button>
@@ -156,6 +210,17 @@
   
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
+    
+    <div id="free-transform">
+      <div class="ft-box" id="ftBox"></div>
+      <div class="ft-handle nw" data-corner="nw"></div>
+      <div class="ft-handle ne" data-corner="ne"></div>
+      <div class="ft-handle se" data-corner="se"></div>
+      <div class="ft-handle sw" data-corner="sw"></div>
+      <div class="ft-rotate-line" id="ftRotateLine"></div>
+      <div class="ft-rotate-handle" id="ftRotateHandle"></div>
+    </div>
+
     <div id="view-toggles">
       <button id="viewFront" class="active">Hadapan</button>
       <button id="viewBack">Belakang</button>
@@ -182,12 +247,11 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ===== 1. SETUP ASAS =====
+// ===== 1. SETUP =====
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
@@ -227,33 +291,22 @@ controls.maxDistance = 10;
 
 const transformControls = new TransformControls(camera, renderer.domElement);
 transformControls.setMode('translate');
-transformControls.setSize(1.35);           // Gizmo lebih besar & mudah digenggam
+transformControls.setSize(1.2);
 transformControls.setSpace('local');
-transformControls.setTranslationSnap(null);
-transformControls.setRotationSnap(THREE.MathUtils.degToRad(5)); // putar lebih stabil (snap 5°)
-transformControls.setScaleSnap(0.05);
-
 const transformHelper = transformControls.getHelper();
 scene.add(transformHelper);
 
-// PENTING: Lumpuhkan OrbitControls sepenuhnya semasa gizmo diguna
 let isDragging = false;
 transformControls.addEventListener('dragging-changed', (event) => {
   controls.enabled = !event.value;
   isDragging = event.value;
-  
   if (!event.value && activeDummy) {
-    // Pastikan scale sentiasa uniform selepas drag
-    if (transformControls.getMode() === 'scale') {
-      const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
-      activeDummy.scale.setScalar(Math.max(0.15, s)); // minimum scale
-    }
     pushHistory();
     saveToLocalStorage();
   }
 });
 
-// ===== 2. STATE & MODEL =====
+// ===== 2. STATE =====
 const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
 
@@ -263,6 +316,7 @@ let layers = [];
 let activeDummy = null;
 let logoCount = 0;
 let currentShirtColor = '#ffffff';
+let currentMode = 'translate';
 
 let history = [];
 let historyIndex = -1;
@@ -274,20 +328,62 @@ const gizmoControlsUI = document.getElementById('gizmoControls');
 const btnUndo = document.getElementById('btnUndo');
 const btnRedo = document.getElementById('btnRedo');
 
-new GLTFLoader().load('./T_shirt_gltf.gltf', 
-  (gltf) => setupShirt(gltf.scene), 
-  undefined, 
-  (err) => {
-    console.error(err);
-    document.getElementById('loading').innerText = 'Gagal memuatkan fail baju.';
-  }
-);
+const ftEl = document.getElementById('free-transform');
+const ftBox = document.getElementById('ftBox');
+const ftRotateHandle = document.getElementById('ftRotateHandle');
+const ftRotateLine = document.getElementById('ftRotateLine');
+let ftDragging = null;
+let ftStartMouse = new THREE.Vector2();
+let ftStartScale = 1;
+let ftStartAngle = 0;
+let ftCenterScreen = new THREE.Vector2();
+
+// ===== CREATE SIMPLE T-SHIRT (NO EXTERNAL FILE) =====
+function createShirt() {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.8,
+    metalness: 0.1,
+    side: THREE.DoubleSide
+  });
+
+  // Torso
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(1.45, 1.85, 0.32), mat);
+  torso.position.y = 0.15;
+  torso.castShadow = true;
+  torso.receiveShadow = true;
+  group.add(torso);
+
+  // Left sleeve
+  const sleeveL = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.42, 0.32), mat);
+  sleeveL.position.set(-0.98, 0.72, 0);
+  sleeveL.castShadow = true;
+  sleeveL.receiveShadow = true;
+  group.add(sleeveL);
+
+  // Right sleeve
+  const sleeveR = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.42, 0.32), mat);
+  sleeveR.position.set(0.98, 0.72, 0);
+  sleeveR.castShadow = true;
+  sleeveR.receiveShadow = true;
+  group.add(sleeveR);
+
+  // Neck
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.30, 0.22, 16), mat);
+  neck.position.y = 1.12;
+  neck.castShadow = true;
+  neck.receiveShadow = true;
+  group.add(neck);
+
+  return group;
+}
 
 function setupShirt(model) {
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
-  model.scale.setScalar(2.4 / maxDim);
+  model.scale.setScalar(2.35 / maxDim);
   model.updateMatrixWorld(true);
 
   box.setFromObject(model);
@@ -299,9 +395,7 @@ function setupShirt(model) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
-      const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1 });
-      child.material = mat;
-      shirtMaterials.push(mat);
+      shirtMaterials.push(child.material);
       shirtMeshes.push(child);
     }
   });
@@ -311,18 +405,21 @@ function setupShirt(model) {
 
   finishLoading();
   addBaseLayer();
-  
-  // Load design yang disimpan (async)
   loadFromLocalStorage();
 }
 
 function finishLoading() {
   const el = document.getElementById('loading');
-  el.style.opacity = '0';
-  setTimeout(() => el.remove(), 500);
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 400);
+  }
 }
 
-// ===== 3. SISTEM LAYER =====
+// Always use built-in shirt (no fetch / no external file)
+setupShirt(createShirt());
+
+// ===== 3. LAYER SYSTEM =====
 function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active';
@@ -332,6 +429,7 @@ function addBaseLayer() {
     transformControls.detach();
     activeDummy = null;
     gizmoControlsUI.classList.remove('active');
+    hideFreeTransform();
     document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
   };
@@ -375,12 +473,21 @@ function selectLayer(dummy, el) {
   el.classList.add('active');
   
   activeDummy = dummy;
-  transformControls.attach(dummy);
   gizmoControlsUI.classList.add('active');
+
+  if (currentMode === 'free') {
+    transformControls.detach();
+    showFreeTransform();
+  } else {
+    hideFreeTransform();
+    transformControls.attach(dummy);
+    transformControls.setMode(currentMode === 'scale' ? 'scale' : 'translate');
+  }
 }
 
 function deleteLayer(dummy, el) {
   transformControls.detach();
+  hideFreeTransform();
   
   if (dummy.userData.decals) {
     dummy.userData.decals.forEach(decal => {
@@ -403,9 +510,9 @@ function deleteLayer(dummy, el) {
   saveToLocalStorage();
 }
 
-// ===== 4. SISTEM DECAL =====
+// ===== 4. DECAL =====
 function isOnSleeve(dummy) {
-  return Math.abs(dummy.position.x) > 0.34;
+  return Math.abs(dummy.position.x) > 0.45;
 }
 
 function createDecal(dummy) {
@@ -422,8 +529,8 @@ function createDecal(dummy) {
   dummy.userData.decals = [];
 
   const onSleeve = isOnSleeve(dummy);
-  const baseSize = onSleeve ? 0.92 : 0.58;
-  const depth    = onSleeve ? 0.38 : 0.22;
+  const baseSize = onSleeve ? 0.75 : 0.55;
+  const depth    = onSleeve ? 0.35 : 0.22;
 
   const w = baseSize * dummy.scale.x;
   const h = (baseSize / dummy.userData.aspect) * dummy.scale.y;
@@ -460,30 +567,23 @@ function createDecal(dummy) {
       } else {
         decalGeo.dispose();
       }
-    } catch(e) {
-      console.warn("Decal gagal pada mesh ini:", e);
-    }
+    } catch(e) {}
   });
 }
 
-// Kemas kini semasa gizmo diguna
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy || !shirtMeshes.length) return;
 
-  // ===== FORCE UNIFORM SCALE (paling penting supaya mudah) =====
   if (transformControls.getMode() === 'scale') {
     const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
-    activeDummy.scale.setScalar(Math.max(0.12, Math.min(s, 4.5))); // limit min/max
+    activeDummy.scale.setScalar(Math.max(0.12, Math.min(s, 4.5)));
   }
 
-  // Snap posisi hanya dalam mod Gerak
   if (transformControls.getMode() === 'translate') {
     activeDummy.updateMatrixWorld();
     const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
-    
     const dir = worldPos.clone().sub(camera.position).normalize();
     raycaster.set(camera.position, dir);
-    
     const hits = raycaster.intersectObjects(shirtMeshes, true);
     
     if (hits.length > 0) {
@@ -508,9 +608,154 @@ transformControls.addEventListener('objectChange', () => {
   }
 
   createDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
 });
 
-// ===== 5. FUNGSI TAMBAH LOGO & TEKS =====
+// ===== 5. FREE TRANSFORM =====
+function showFreeTransform() {
+  if (!activeDummy) return;
+  ftEl.classList.add('active');
+  updateFreeTransformHandles();
+}
+
+function hideFreeTransform() {
+  ftEl.classList.remove('active');
+  ftDragging = null;
+}
+
+function getLogoCorners(dummy) {
+  const base = isOnSleeve(dummy) ? 0.75 : 0.55;
+  const halfW = (base * dummy.scale.x) * 0.5;
+  const halfH = ((base / dummy.userData.aspect) * dummy.scale.y) * 0.5;
+
+  const corners = [
+    new THREE.Vector3(-halfW,  halfH, 0),
+    new THREE.Vector3( halfW,  halfH, 0),
+    new THREE.Vector3( halfW, -halfH, 0),
+    new THREE.Vector3(-halfW, -halfH, 0),
+  ];
+
+  dummy.updateMatrixWorld(true);
+  return corners.map(c => c.applyMatrix4(dummy.matrixWorld));
+}
+
+function worldToScreen(pos) {
+  const v = pos.clone().project(camera);
+  const x = (v.x * 0.5 + 0.5) * container.clientWidth;
+  const y = (-v.y * 0.5 + 0.5) * container.clientHeight;
+  return new THREE.Vector2(x, y);
+}
+
+function updateFreeTransformHandles() {
+  if (!activeDummy || currentMode !== 'free') return;
+
+  const corners = getLogoCorners(activeDummy);
+  const screens = corners.map(worldToScreen);
+
+  const xs = screens.map(p => p.x);
+  const ys = screens.map(p => p.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  ftBox.style.left = minX + 'px';
+  ftBox.style.top = minY + 'px';
+  ftBox.style.width = (maxX - minX) + 'px';
+  ftBox.style.height = (maxY - minY) + 'px';
+
+  const order = ['nw', 'ne', 'se', 'sw'];
+  order.forEach((key, i) => {
+    const h = ftEl.querySelector(`.ft-handle.${key}`);
+    if (h) {
+      h.style.left = screens[i].x + 'px';
+      h.style.top  = screens[i].y + 'px';
+    }
+  });
+
+  const center = new THREE.Vector2((minX + maxX) / 2, (minY + maxY) / 2);
+  ftCenterScreen.copy(center);
+
+  const rotY = minY - 28;
+  ftRotateHandle.style.left = center.x + 'px';
+  ftRotateHandle.style.top  = rotY + 'px';
+
+  const lineH = Math.abs(center.y - rotY);
+  ftRotateLine.style.left = center.x + 'px';
+  ftRotateLine.style.top = rotY + 'px';
+  ftRotateLine.style.height = lineH + 'px';
+}
+
+ftEl.querySelectorAll('.ft-handle').forEach(h => {
+  h.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!activeDummy) return;
+    ftDragging = 'scale';
+    ftStartMouse.set(e.clientX, e.clientY);
+    ftStartScale = activeDummy.scale.x;
+    controls.enabled = false;
+    h.setPointerCapture(e.pointerId);
+  });
+});
+
+ftRotateHandle.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!activeDummy) return;
+  ftDragging = 'rotate';
+  ftStartMouse.set(e.clientX, e.clientY);
+  const dx = e.clientX - ftCenterScreen.x;
+  const dy = e.clientY - ftCenterScreen.y;
+  ftStartAngle = Math.atan2(dy, dx);
+  controls.enabled = false;
+  ftRotateHandle.setPointerCapture(e.pointerId);
+});
+
+window.addEventListener('pointermove', (e) => {
+  if (!ftDragging || !activeDummy) return;
+
+  if (ftDragging === 'scale') {
+    const dx = e.clientX - ftCenterScreen.x;
+    const dy = e.clientY - ftCenterScreen.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    const startDx = ftStartMouse.x - ftCenterScreen.x;
+    const startDy = ftStartMouse.y - ftCenterScreen.y;
+    const startDist = Math.sqrt(startDx*startDx + startDy*startDy) || 1;
+
+    let newScale = ftStartScale * (dist / startDist);
+    newScale = Math.max(0.12, Math.min(newScale, 4.5));
+    activeDummy.scale.setScalar(newScale);
+    createDecal(activeDummy);
+    updateFreeTransformHandles();
+  }
+
+  if (ftDragging === 'rotate') {
+    const dx = e.clientX - ftCenterScreen.x;
+    const dy = e.clientY - ftCenterScreen.y;
+    const angle = Math.atan2(dy, dx);
+    const delta = angle - ftStartAngle;
+
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), delta);
+    activeDummy.quaternion.multiplyQuaternions(q, activeDummy.quaternion);
+    ftStartAngle = angle;
+
+    createDecal(activeDummy);
+    updateFreeTransformHandles();
+  }
+});
+
+window.addEventListener('pointerup', () => {
+  if (ftDragging) {
+    ftDragging = null;
+    controls.enabled = true;
+    pushHistory();
+    saveToLocalStorage();
+  }
+});
+
+// ===== 6. ADD LOGO / TEXT =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
   if(!files.length) return;
@@ -549,7 +794,6 @@ document.getElementById('addTextBtn').onclick = () => {
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  
   const dataURL = canvas.toDataURL('image/png');
   addLogoToScene(texture, canvas.width / canvas.height, true, dataURL, text, color);
   document.getElementById('textInput').value = '';
@@ -588,7 +832,7 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
     const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
     dummy.quaternion.setFromRotationMatrix(matrix);
   } else {
-    dummy.position.set(0, 0.1, 0.4);
+    dummy.position.set(0, 0.2, 0.25);
   }
 
   logoCount++;
@@ -603,24 +847,36 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   saveToLocalStorage();
 }
 
-// ===== 6. KAWALAN UI LAIN =====
-document.getElementById('btnTranslate').onclick = (e) => {
-  transformControls.setMode('translate');
+// ===== 7. UI =====
+function setMode(mode) {
+  currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnScale').onclick = (e) => {
-  transformControls.setMode('scale');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnRotate').onclick = (e) => {
-  transformControls.setMode('rotate');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
 
-// Warna baju
+  if (mode === 'translate') {
+    document.getElementById('btnTranslate').classList.add('active');
+    hideFreeTransform();
+    if (activeDummy) {
+      transformControls.attach(activeDummy);
+      transformControls.setMode('translate');
+    }
+  } else if (mode === 'scale') {
+    document.getElementById('btnScale').classList.add('active');
+    hideFreeTransform();
+    if (activeDummy) {
+      transformControls.attach(activeDummy);
+      transformControls.setMode('scale');
+    }
+  } else if (mode === 'free') {
+    document.getElementById('btnFree').classList.add('active');
+    transformControls.detach();
+    if (activeDummy) showFreeTransform();
+  }
+}
+
+document.getElementById('btnTranslate').onclick = () => setMode('translate');
+document.getElementById('btnScale').onclick = () => setMode('scale');
+document.getElementById('btnFree').onclick = () => setMode('free');
+
 const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 const colorGrid = document.getElementById('colorGrid');
 colors.forEach((hex, i) => {
@@ -648,12 +904,10 @@ document.getElementById('customColor').addEventListener('change', () => {
   saveToLocalStorage();
 });
 
-// View buttons
 function setActiveViewBtn(id) {
   document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-
 document.getElementById('viewFront').onclick = () => {
   camera.position.set(0, 0, 4.5);
   controls.target.set(0, 0, 0);
@@ -675,7 +929,7 @@ document.getElementById('viewLeft').onclick = () => {
   setActiveViewBtn('viewLeft');
 };
 
-// ===== 7. UNDO / REDO =====
+// ===== 8. HISTORY =====
 function getCurrentState() {
   return {
     color: currentShirtColor,
@@ -719,7 +973,6 @@ function clearAllLayers() {
   });
   layers = [];
   logoCount = 0;
-  
   [...layerListUI.children].forEach(el => {
     if (el.id !== 'layer-base') el.remove();
   });
@@ -727,8 +980,8 @@ function clearAllLayers() {
 
 async function restoreState(state) {
   clearAllLayers();
+  hideFreeTransform();
   
-  // Restore warna
   currentShirtColor = state.color || '#ffffff';
   shirtMaterials.forEach(m => m.color.set(currentShirtColor));
   document.getElementById('customColor').value = currentShirtColor;
@@ -736,13 +989,9 @@ async function restoreState(state) {
     b.classList.toggle('active', b.style.background === currentShirtColor);
   });
 
-  // Restore semua layer secara parallel (Promise)
   const promises = (state.layers || []).map((ldata) => {
     return new Promise((resolve) => {
-      if (!ldata.dataURL) {
-        resolve();
-        return;
-      }
+      if (!ldata.dataURL) { resolve(); return; }
       const img = new Image();
       img.onload = () => {
         try {
@@ -760,11 +1009,10 @@ async function restoreState(state) {
           dummy.userData.name = ldata.name || 'Logo';
           dummy.userData.icon = ldata.icon || '🖼️';
 
-          dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
+          dummy.position.fromArray(ldata.position || [0, 0.2, 0.25]);
           dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
           dummy.scale.fromArray(ldata.scale || [1, 1, 1]);
 
-          // Pastikan scale uniform
           const s = Math.max(dummy.scale.x, dummy.scale.y, dummy.scale.z);
           dummy.scale.setScalar(Math.max(0.12, s));
 
@@ -772,11 +1020,8 @@ async function restoreState(state) {
           createDecal(dummy);
           layers.push(dummy);
           logoCount++;
-
           addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
-        } catch (err) {
-          console.warn('Gagal restore satu layer:', err);
-        }
+        } catch (err) {}
         resolve();
       };
       img.onerror = () => resolve();
@@ -818,7 +1063,6 @@ function updateUndoRedoButtons() {
 btnUndo.onclick = undo;
 btnRedo.onclick = redo;
 
-// Keyboard shortcuts
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey) {
     if (e.key === 'z' || e.key === 'Z') {
@@ -830,42 +1074,35 @@ window.addEventListener('keydown', (e) => {
       e.preventDefault();
       redo();
     }
+    if (e.key === 't' || e.key === 'T') {
+      e.preventDefault();
+      if (activeDummy) setMode('free');
+    }
   }
-  // Shortcut cepat
+
   if (!e.ctrlKey && !e.metaKey && activeDummy) {
-    if (e.key === 'g' || e.key === 'G') {
-      document.getElementById('btnTranslate').click();
-    }
-    if (e.key === 's' || e.key === 'S') {
-      document.getElementById('btnScale').click();
-    }
-    if (e.key === 'r' || e.key === 'R') {
-      document.getElementById('btnRotate').click();
-    }
+    if (e.key === 'g' || e.key === 'G') setMode('translate');
+    if (e.key === 's' || e.key === 'S') setMode('scale');
+    if (e.key === 'r' || e.key === 'R' || e.key === 't' || e.key === 'T') setMode('free');
   }
 });
 
-// ===== 8. LOCAL STORAGE (Auto-save yang lebih stabil) =====
+// ===== 9. LOCAL STORAGE =====
 function saveToLocalStorage() {
   try {
-    const state = getCurrentState();
-    localStorage.setItem('proDesigner3D_state', JSON.stringify(state));
+    localStorage.setItem('proDesigner3D_state', JSON.stringify(getCurrentState()));
   } catch (err) {
-    console.warn('Gagal simpan ke localStorage (mungkin imej terlalu besar):', err);
+    console.warn('Gagal simpan ke localStorage:', err);
   }
 }
 
 async function loadFromLocalStorage() {
   try {
     const raw = localStorage.getItem('proDesigner3D_state');
-    if (!raw) {
-      pushHistory();
-      return;
-    }
+    if (!raw) { pushHistory(); return; }
     const state = JSON.parse(raw);
     if (state && Array.isArray(state.layers)) {
       await restoreState(state);
-      // Selepas semua imej siap, buat history awal yang bersih
       history = [getCurrentState()];
       historyIndex = 0;
       updateUndoRedoButtons();
@@ -878,9 +1115,10 @@ async function loadFromLocalStorage() {
   }
 }
 
-// ===== 9. SIMPAN DESIGN HD =====
+// ===== 10. SAVE HD =====
 document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false;
+  hideFreeTransform();
   const currentSize = renderer.getSize(new THREE.Vector2());
   
   renderer.setSize(2000, 2000, false);
@@ -889,6 +1127,7 @@ document.getElementById('saveBtn').onclick = () => {
   
   renderer.setSize(currentSize.x, currentSize.y, false);
   transformHelper.visible = true;
+  if (currentMode === 'free' && activeDummy) showFreeTransform();
   renderer.render(scene, camera);
 
   const link = document.createElement('a');
@@ -897,11 +1136,15 @@ document.getElementById('saveBtn').onclick = () => {
   link.click();
 };
 
-// ===== 10. ANIMATE & RESIZE =====
+// ===== 11. ANIMATE =====
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
+
+  if (currentMode === 'free' && activeDummy && !ftDragging) {
+    updateFreeTransformHandles();
+  }
 }
 animate();
 
@@ -911,6 +1154,7 @@ window.addEventListener('resize', () => {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
+  if (currentMode === 'free') updateFreeTransformHandles();
 });
 </script>
 
