@@ -3,102 +3,173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Pro Designer 3D</title>
+  <title>Pro Baju Designer 3D</title>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* ===== ASAS & TEMA GELAP ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #121212; color: #fff; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #0f0f11; color: #e2e8f0; }
     
-    #app { display: flex; height: 100vh; }
-    
-    /* PANEL KIRI (TOOLS) */
+    #app { display: flex; height: 100vh; width: 100vw; }
+
+    /* ===== PANEL KIRI (ALAT & WARNA) ===== */
     #sidebar-left {
-      width: 250px; background: #1e1e24; padding: 20px; display: flex; flex-direction: column; gap: 20px;
-      border-right: 1px solid #333; z-index: 10;
+      width: 280px; background: #18181b; border-right: 1px solid #27272a;
+      display: flex; flex-direction: column; z-index: 10;
     }
-    h2 { font-size: 12px; text-transform: uppercase; color: #888; margin-bottom: 10px; letter-spacing: 1px;}
+    .panel-header {
+      padding: 15px 20px; font-size: 13px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 1px; color: #a1a1aa; border-bottom: 1px solid #27272a;
+    }
+    .panel-content { padding: 20px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Warna */
+    .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .color-btn {
+      width: 100%; aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-btn.active { border-color: #38bdf8; transform: scale(1.1); }
     
-    .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
-    .color-btn:hover, .color-btn.active { border-color: #38bdf8; transform: scale(1.1); }
-    
+    .custom-color-wrapper {
+      display: flex; align-items: center; gap: 10px; background: #27272a;
+      padding: 8px 12px; border-radius: 8px; margin-top: 10px;
+    }
+    .custom-color-wrapper input[type="color"] {
+      width: 32px; height: 32px; border: none; background: none; cursor: pointer; border-radius: 4px;
+    }
+    .custom-color-wrapper span { font-size: 12px; font-weight: 500; color: #d4d4d8; }
+
+    /* Upload Button */
     .upload-btn {
-      background: #38bdf8; color: #000; text-align: center; padding: 12px; border-radius: 6px;
-      font-weight: 600; cursor: pointer; position: relative; overflow: hidden;
+      background: #38bdf8; color: #0f0f11; text-align: center; padding: 14px;
+      border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
+      position: relative; overflow: hidden; transition: 0.2s; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
     }
+    .upload-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
     .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-    
+
+    /* Butang Save */
     .save-btn {
-      margin-top: auto; background: #10b981; color: white; border: none; padding: 15px;
-      border-radius: 6px; font-weight: bold; cursor: pointer;
+      background: #10b981; color: white; border: none; padding: 16px;
+      border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer;
+      transition: 0.2s; margin-top: auto; text-transform: uppercase; letter-spacing: 0.5px;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
     }
+    .save-btn:hover { background: #059669; transform: translateY(-2px); }
 
-    /* KAWASAN 3D */
-    #viewer-container { flex: 1; position: relative; background: radial-gradient(circle, #2a2a35 0%, #121212 100%); }
+    /* ===== KAWASAN 3D (TENGAH) ===== */
+    #viewer-container {
+      flex: 1; position: relative; background: radial-gradient(circle at center, #1e1e24 0%, #0f0f11 100%);
+      overflow: hidden;
+    }
     #viewer-container canvas { display: block; }
-
-    /* PANEL KANAN (LAYERS) */
-    #sidebar-right {
-      width: 220px; background: #1e1e24; border-left: 1px solid #333; z-index: 10; display: flex; flex-direction: column;
+    
+    /* Petunjuk (Hint) */
+    #hint {
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);
+      color: #d4d4d8; padding: 8px 16px; border-radius: 20px; font-size: 12px;
+      pointer-events: none; opacity: 0; transition: opacity 0.3s;
     }
-    #sidebar-right h2 { padding: 15px; border-bottom: 1px solid #333; margin: 0; }
-    #layers-list { flex: 1; overflow-y: auto; }
+
+    /* ===== PANEL KANAN (LAYERS) ===== */
+    #sidebar-right {
+      width: 260px; background: #18181b; border-left: 1px solid #27272a;
+      display: flex; flex-direction: column; z-index: 10;
+    }
+    #layers-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
     
     .layer-item {
-      padding: 12px 15px; border-bottom: 1px solid #2a2a35; cursor: pointer; display: flex; align-items: center; gap: 10px;
-      transition: 0.2s; font-size: 13px;
+      padding: 15px 20px; border-bottom: 1px solid #27272a; cursor: pointer;
+      display: flex; align-items: center; gap: 12px; transition: all 0.2s; font-size: 13px; font-weight: 500;
+      color: #a1a1aa;
     }
-    .layer-item:hover { background: #2a2a35; }
-    .layer-item.active { background: #0ea5e9; color: #fff; }
-    .layer-icon { font-size: 16px; }
+    .layer-item:hover { background: #27272a; color: #e2e8f0; }
+    .layer-item.active { background: #38bdf8; color: #0f0f11; font-weight: 600; }
+    .layer-icon { font-size: 18px; }
 
+    /* Loading Overlay */
     #loading {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: #121212; color: #38bdf8; z-index: 100; font-weight: 600;
+      position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #0f0f11; color: #38bdf8; z-index: 100; font-weight: 600; font-size: 14px; letter-spacing: 1px;
     }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8;
+      border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #18181b; }
+    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+    /* Responsive Mobile */
     @media (max-width: 900px) {
       #app { flex-direction: column; }
-      #sidebar-left { width: 100%; height: auto; flex-direction: row; border-right: none; border-bottom: 1px solid #333; padding: 10px;}
-      #sidebar-left h2 { display: none; }
-      #sidebar-right { width: 100%; height: 150px; border-left: none; border-top: 1px solid #333; }
-      #sidebar-right h2 { display: none; }
-      .layer-item { border-right: 1px solid #333; border-bottom: none; }
+      #sidebar-left { width: 100%; height: 180px; border-right: none; border-bottom: 1px solid #27272a; flex-direction: row; }
+      .panel-content { flex-direction: row; align-items: center; padding: 10px; gap: 15px; overflow-x: auto; }
+      .panel-header { display: none; }
+      .color-grid { display: flex; flex-wrap: wrap; width: 120px; }
+      .save-btn { margin: 0; padding: 10px 15px; white-space: nowrap; }
+      #sidebar-right { width: 100%; height: 150px; border-left: none; border-top: 1px solid #27272a; }
+      #layers-list { flex-direction: row; overflow-x: auto; }
+      .layer-item { border-bottom: none; border-right: 1px solid #27272a; white-space: nowrap; }
     }
   </style>
 </head>
 <body>
 
 <div id="app">
-  <!-- KIRI: KAWALAN -->
+  <!-- PANEL KIRI -->
   <div id="sidebar-left">
-    <div>
-      <h2>Warna Baju</h2>
-      <div class="color-grid" id="colorGrid"></div>
-    </div>
-    <div>
-      <h2>Design</h2>
-      <div class="upload-btn">
-        + Upload Logo
-        <input type="file" id="logoUpload" accept="image/*" multiple>
+    <div class="panel-header">Design Tools</div>
+    <div class="panel-content">
+      <div>
+        <div style="font-size: 11px; margin-bottom: 10px; color: #a1a1aa; font-weight: 600;">WARNA BAJU</div>
+        <div class="color-grid" id="colorGrid"></div>
+        <div class="custom-color-wrapper">
+          <input type="color" id="customColor" value="#ffffff">
+          <span>Custom Color</span>
+        </div>
       </div>
+      
+      <div style="margin-top: auto;">
+        <div style="font-size: 11px; margin-bottom: 10px; color: #a1a1aa; font-weight: 600;">ARTWORK / LOGO</div>
+        <div class="upload-btn">
+          + Tambah Gambar
+          <input type="file" id="logoUpload" accept="image/*" multiple>
+        </div>
+      </div>
+      
+      <button class="save-btn" onclick="saveImage()">⬇️ Save Design</button>
     </div>
-    <button class="save-btn" onclick="saveImage()">Save Design</button>
   </div>
   
-  <!-- TENGAH: 3D VIEWER -->
+  <!-- KAWASAN 3D -->
   <div id="viewer-container">
-    <div id="loading">MEMUATKAN 3D...</div>
+    <div id="loading">
+      <div class="spinner"></div>
+      MEMUATKAN 3D MODEL...
+    </div>
+    <div id="hint">Gunakan anak panah untuk gerakkan objek</div>
   </div>
 
-  <!-- KANAN: LAYERS -->
+  <!-- PANEL KANAN (LAYERS) -->
   <div id="sidebar-right">
-    <h2>Layers</h2>
-    <div id="layers-list"></div>
+    <div class="panel-header">Layers</div>
+    <div id="layers-list">
+      <!-- Layer akan dijana di sini oleh JavaScript -->
+    </div>
   </div>
 </div>
 
+<!-- IMPORT THREE.JS -->
 <script type="importmap">
 {
   "imports": {
@@ -114,21 +185,31 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 
-// ===== SETUP ASAS =====
+// ===== DATA WARNA =====
+const COLORS = [
+  { name: 'Putih', hex: '#ffffff' }, { name: 'Hitam', hex: '#1a1a1a' }, 
+  { name: 'Kelabu', hex: '#64748b' }, { name: 'Merah', hex: '#dc2626' }, 
+  { name: 'Biru', hex: '#2563eb' }, { name: 'Hijau', hex: '#16a34a' },
+  { name: 'Kuning', hex: '#ca8a04' }, { name: 'Ungu', hex: '#9333ea' }
+];
+
+// ===== SETUP ASAS THREE.JS =====
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
-renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
 container.appendChild(renderer.domElement);
 
 // Lampu Studio
-scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
 const dirLight = new THREE.DirectionalLight(0xffffff, 2);
 dirLight.position.set(5, 10, 7);
+dirLight.castShadow = true;
 scene.add(dirLight);
 const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
 fillLight.position.set(-5, 5, -5);
@@ -138,184 +219,236 @@ scene.add(fillLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
 controls.minDistance = 2;
-controls.maxDistance = 10;
+controls.maxDistance = 8;
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
 
-// ===== GIZMO KAWALAN =====
+// Gizmo (Transform Controls)
 const transformControls = new TransformControls(camera, renderer.domElement);
 transformControls.setMode('translate');
-transformControls.showZ = false; // Kunci Z supaya tak terapung
+transformControls.showZ = false; // Sembunyikan Z supaya logo tak terapung ke depan/belakang
 scene.add(transformControls);
 
-transformControls.addEventListener('dragging-changed', (event) => {
-  controls.enabled = !event.value;
+transformControls.addEventListener('dragging-changed', function (event) {
+  controls.enabled = !event.value; // Matikan pusing kamera bila drag gizmo
+  document.getElementById('hint').style.opacity = event.value ? '1' : '0';
 });
 
-// ===== SISTEM LAYER & GROUP =====
-const shirtGroup = new THREE.Group(); // Induk untuk baju & logo
+// ===== SISTEM GROUP & LAYER =====
+// Group ini akan menjadi 'induk' kepada baju dan semua logo.
+// Bila kita gerakkan Group ini, semua sekali bergerak.
+const shirtGroup = new THREE.Group(); 
 scene.add(shirtGroup);
 
 let shirtMesh = null;
 let shirtMaterials = [];
-let activeLayerObject = null;
-
-// Data Layer
-const layers = [];
-const layerListUI = document.getElementById('layers-list');
+let activeObject = null;
+let layerCounter = 0;
 
 // ===== LOAD MODEL 3D =====
 const loader = new GLTFLoader();
-loader.load('./T_shirt_gltf.gltf', (gltf) => {
-  shirtMesh = gltf.scene;
-  
-  // Auto-fit
-  const box = new THREE.Box3().setFromObject(shirtMesh);
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-  const maxSize = Math.max(size.x, size.y, size.z);
-  const scale = 2.5 / maxSize;
-  
-  shirtMesh.scale.set(scale, scale, scale);
-  shirtMesh.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
-  
-  // Kamera
-  camera.position.set(0, 0, 4);
-  controls.update();
+const MODEL_URL = './T_shirt_gltf.gltf';
 
-  // Material
-  shirtMesh.traverse((child) => {
-    if (child.isMesh) {
-      child.material = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.8 });
-      shirtMaterials.push(child.material);
-    }
-  });
-  
-  shirtGroup.add(shirtMesh);
-  document.getElementById('loading').style.display = 'none';
-
-  // Daftar Layer Baju 3D
-  addLayer('Baju 3D', '👕', shirtGroup, true);
-
-}, undefined, (err) => {
-  document.getElementById('loading').innerText = 'Gagal load baju.';
-});
-
-// ===== FUNGSI LAYER UI =====
-function addLayer(name, icon, object, isShirt = false) {
-  const id = 'layer-' + Date.now() + Math.random().toString(36).substr(2, 5);
-  object.userData.layerId = id;
-  
-  layers.push({ id, name, object, isShirt });
-
-  const el = document.createElement('div');
-  el.className = 'layer-item';
-  el.id = id;
-  el.innerHTML = `<span class="layer-icon">${icon}</span> <span>${name}</span>`;
-  
-  el.addEventListener('click', () => {
-    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
+loader.load(
+  MODEL_URL,
+  (gltf) => {
+    shirtMesh = gltf.scene;
     
+    // Auto-Fit size
+    const box = new THREE.Box3().setFromObject(shirtMesh);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const maxSize = Math.max(size.x, size.y, size.z);
+    const scaleFactor = 2.5 / maxSize; 
+    
+    shirtMesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    shirtMesh.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
+    
+    camera.position.set(0, 0, maxSize * 1.8);
+    controls.update();
+
+    // Setup Material Baju
+    shirtMesh.traverse((child) => {
+      if (child.isMesh) {
+        child.material = new THREE.MeshStandardMaterial({
+          color: '#ffffff', roughness: 0.8, metalness: 0.1
+        });
+        child.castShadow = true;
+        child.receiveShadow = true;
+        shirtMaterials.push(child.material);
+      }
+    });
+    
+    // Masukkan baju ke dalam Group
+    shirtGroup.add(shirtMesh);
+    document.getElementById('loading').style.display = 'none';
+
+    // Daftarkan Baju sebagai Layer Pertama
+    createLayerUI('Baju 3D', '👕', shirtGroup, true);
+
+  },
+  undefined,
+  (error) => {
+    console.error('Error:', error);
+    document.getElementById('loading').innerText = 'Gagal memuatkan model.';
+  }
+);
+
+// ===== FUNGSI BINA UI LAYER =====
+function createLayerUI(name, icon, object, isShirt = false) {
+  layerCounter++;
+  const id = 'layer-' + layerCounter;
+  object.userData.layerId = id;
+  object.userData.isShirt = isShirt;
+
+  const list = document.getElementById('layers-list');
+  const item = document.createElement('div');
+  item.className = 'layer-item';
+  item.id = id;
+  item.innerHTML = `<span class="layer-icon">${icon}</span> <span>${name}</span>`;
+  
+  // Bila layer diklik
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('active'));
+    item.classList.add('active');
+
     // Pilih objek untuk Gizmo
-    activeLayerObject = object;
-    transformControls.attach(activeLayerObject);
+    activeObject = object;
+    transformControls.attach(activeObject);
   });
 
-  // Letak layer baru di paling atas
-  layerListUI.insertBefore(el, layerListUI.firstChild);
+  // Letak layer di atas sekali (sebab baru ditambah)
+  list.insertBefore(item, list.firstChild);
   
   // Auto-klik layer baru
-  el.click();
+  item.click();
 }
 
-// ===== UPLOAD LOGO =====
+// ===== UPLOAD GAMBAR (DECAL SYSTEM) =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
   for (let i = 0; i < files.length; i++) {
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        createLogo(event.target.result, `Logo ${layers.length}`);
-      };
-      img.src = event.target.result;
+      createLogo3D(event.target.result, `Logo ${layerCounter}`);
     };
     reader.readAsDataURL(files[i]);
   }
-  e.target.value = '';
+  e.target.value = ''; // Reset input
 });
 
-function createLogo(imageUrl, name) {
-  const texture = new THREE.TextureLoader().load(imageUrl);
-  texture.colorSpace = THREE.SRGBColorSpace;
+function createLogo3D(imageUrl, name) {
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load(imageUrl, (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
 
-  const aspect = texture.image.width / texture.image.height;
-  const geo = new THREE.PlaneGeometry(0.5, 0.5 / aspect);
-  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
-  
-  const logo = new THREE.Mesh(geo, mat);
+    // Kira nisbah aspek gambar supaya tak penyek
+    const aspect = texture.image.width / texture.image.height;
+    const baseWidth = 0.6;
+    const baseHeight = baseWidth / aspect;
 
-  // TEKNIK RAYCAST: Tembak laser ke tengah baju untuk dapatkan posisi tepat
-  const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(new THREE.Vector2(0, 0), camera); // Tengah skrin
-  
-  const intersects = raycaster.intersectObject(shirtMesh, true);
+    const geometry = new THREE.PlaneGeometry(baseWidth, baseHeight);
+    const material = new THREE.MeshBasicMaterial({ 
+      map: texture, 
+      transparent: true, 
+      depthTest: false, // Pastikan ia sentiasa nampak di depan baju
+      depthWrite: false
+    });
+    
+    const logo3D = new THREE.Mesh(geometry, material);
+    
+    // TEKNIK RAYCAST: Cari titik tepat di tengah dada baju
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera); // Tembak dari tengah kamera
+    
+    // Tembak laser ke arah baju
+    const intersects = raycaster.intersectObject(shirtMesh, true);
 
-  if (intersects.length > 0) {
-    // Letak tepat pada titik terkena laser
-    logo.position.copy(intersects[0].point);
-    // Anjak sikit ke depan supaya tak tenggelam dalam baju
-    logo.position.z += 0.05; 
-    // Naik sikit ke arah dada
-    logo.position.y += 0.2;
-  } else {
-    logo.position.set(0, 0, 1); // Fallback
-  }
+    if (intersects.length > 0) {
+      const point = intersects[0].point; // Dapatkan koordinat tepat pada baju
+      
+      // Letak logo pada koordinat tersebut
+      logo3D.position.copy(point);
+      
+      // Anjak sedikit ke depan supaya tak tenggelam dalam kain
+      logo3D.position.z += 0.02; 
+      
+      // Naikkan sedikit ke arah dada
+      logo3D.position.y += 0.2;
+    } else {
+      // Fallback kalau baju takde (contoh kamera pusing jauh)
+      logo3D.position.set(0, 0, 1.5);
+    }
 
-  // Masukkan dalam group baju
-  shirtGroup.add(logo);
-  
-  // Daftar Layer
-  addLayer(name, '🖼️', logo, false);
+    // PENTING: Masukkan logo sebagai anak kepada shirtGroup
+    // Supaya bila baju dipusing, logo pusing sekali
+    shirtGroup.add(logo3D);
+    
+    // Daftarkan dalam Layer UI
+    createLayerUI(name, '🖼️', logo3D, false);
+  });
 }
 
-// ===== TUKAR WARNA =====
-const colors = ['#ffffff', '#1a1a1a', '#dc2626', '#2563eb', '#16a34a', '#eab308'];
+// ===== TUKAR WARNA BAJU =====
 const colorGrid = document.getElementById('colorGrid');
-colors.forEach((hex, i) => {
+COLORS.forEach((c, i) => {
   const btn = document.createElement('button');
   btn.className = 'color-btn' + (i === 0 ? ' active' : '');
-  btn.style.background = hex;
-  btn.onclick = () => {
+  btn.style.background = c.hex;
+  btn.title = c.name;
+  
+  btn.addEventListener('click', () => {
     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    shirtMaterials.forEach(mat => mat.color.set(hex));
-  };
+    shirtMaterials.forEach(mat => mat.color.set(c.hex));
+  });
   colorGrid.appendChild(btn);
 });
 
-// ===== SAVE & RENDER =====
-window.saveImage = () => {
+// Custom Color Picker
+document.getElementById('customColor').addEventListener('input', (e) => {
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  shirtMaterials.forEach(mat => mat.color.set(e.target.value));
+});
+
+// ===== SIMPAN GAMBAR =====
+window.saveImage = function() {
+  // Sembunyikan gizmo sementara
   transformControls.visible = false;
+  
+  // Render satu frame terakhir
   renderer.render(scene, camera);
-  const link = document.createElement('a');
-  link.download = 'design.png';
-  link.href = renderer.domElement.toDataURL('image/png');
-  link.click();
+  
+  // Ambil data URL dari canvas
+  const dataURL = renderer.domElement.toDataURL('image/png');
+  
+  // Tunjuk balik gizmo
   transformControls.visible = true;
+  
+  // Download
+  const link = document.createElement('a');
+  link.download = 'design-baju-' + Date.now() + '.png';
+  link.href = dataURL;
+  link.click();
 };
 
+// ===== RENDER LOOP =====
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
+  controls.update(); // Untuk damping effect
   renderer.render(scene, camera);
 }
 animate();
 
+// ===== RESPONSIVE =====
 window.addEventListener('resize', () => {
-  camera.aspect = container.clientWidth / container.clientHeight;
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setSize(width, height);
 });
 </script>
+
 </body>
 </html>
