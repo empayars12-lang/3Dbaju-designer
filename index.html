@@ -56,10 +56,6 @@
     .action-btn:hover { background: #52525b; }
     .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .hint {
-      font-size: 11px; color: #71717a; margin-top: 8px; line-height: 1.45;
-    }
-
     .save-btn {
       margin-top: auto; background: #10b981; color: #fff; border: none; padding: 16px;
       border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s;
@@ -99,6 +95,10 @@
     #loading {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
       background: #09090b; color: #38bdf8; z-index: 100; font-weight: 600; letter-spacing: 2px; transition: opacity 0.5s;
+    }
+
+    .hint {
+      font-size: 11px; color: #71717a; margin-top: 6px; line-height: 1.4;
     }
   </style>
 </head>
@@ -140,9 +140,8 @@
         <button class="mode-btn" id="btnRotate" title="Putar">⟳ Putar</button>
       </div>
       <div class="hint">
-        • <b>Gerak</b>: tarik logo pada baju (termasuk lengan)<br>
-        • <b>Saiz</b>: tarik kotak putih di hujung gizmo<br>
-        • <b>Putar</b>: tarik busur kuning untuk putar
+        • Gerak: tarik logo pada permukaan baju<br>
+        • Saiz / Putar: guna gizmo (anak panah & kotak)
       </div>
       <div class="action-row">
         <button class="action-btn" id="btnUndo" title="Ctrl+Z">↶ Undo</button>
@@ -183,6 +182,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // ===== 1. SETUP ASAS =====
@@ -201,12 +201,13 @@ container.appendChild(renderer.domElement);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-const mainLight = new THREE.DirectionalLight(0xffffff, 2.2);
+const mainLight = new THREE.DirectionalLight(0xffffff, 2);
 mainLight.position.set(5, 10, 5);
 mainLight.castShadow = true;
-mainLight.shadow.mapSize.set(2048, 2048);
+mainLight.shadow.mapSize.width = 2048;
+mainLight.shadow.mapSize.height = 2048;
 scene.add(mainLight);
 
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.ShadowMaterial({ opacity: 0.3 }));
@@ -224,34 +225,35 @@ controls.maxDistance = 10;
 
 const transformControls = new TransformControls(camera, renderer.domElement);
 transformControls.setMode('translate');
-transformControls.setSize(0.9);
+transformControls.setSize(0.95);
 transformControls.setSpace('local');
 const transformHelper = transformControls.getHelper();
 scene.add(transformHelper);
 
-// Lumpuhkan orbit semasa gizmo diguna
+// PENTING: Lumpuhkan OrbitControls sepenuhnya semasa gizmo diguna
 let isDragging = false;
 transformControls.addEventListener('dragging-changed', (event) => {
   controls.enabled = !event.value;
   isDragging = event.value;
+  
+  // Simpan state selepas selesai drag (untuk Undo)
   if (!event.value && activeDummy) {
-    snapToSurface(activeDummy);
     pushHistory();
-    saveToLocalStorage();
   }
 });
 
-// ===== 2. STATE =====
+// ===== 2. STATE & MODEL =====
 const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
 
 let shirtMeshes = [];
 let shirtMaterials = [];
-let layers = [];
+let layers = [];          // array of dummy Object3D
 let activeDummy = null;
 let logoCount = 0;
 let currentShirtColor = '#ffffff';
 
+// History untuk Undo / Redo
 let history = [];
 let historyIndex = -1;
 const MAX_HISTORY = 40;
@@ -262,7 +264,6 @@ const gizmoControlsUI = document.getElementById('gizmoControls');
 const btnUndo = document.getElementById('btnUndo');
 const btnRedo = document.getElementById('btnRedo');
 
-// ===== 3. LOAD MODEL =====
 new GLTFLoader().load('./T_shirt_gltf.gltf', 
   (gltf) => setupShirt(gltf.scene), 
   undefined, 
@@ -300,6 +301,8 @@ function setupShirt(model) {
 
   finishLoading();
   addBaseLayer();
+  
+  // Cuba load design yang disimpan sebelum ini
   loadFromLocalStorage();
 }
 
@@ -309,7 +312,7 @@ function finishLoading() {
   setTimeout(() => el.remove(), 500);
 }
 
-// ===== 4. LAYER UI =====
+// ===== 3. SISTEM LAYER =====
 function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active';
@@ -360,6 +363,7 @@ function addDesignLayer(dummy, name, icon) {
 function selectLayer(dummy, el) {
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
+  
   activeDummy = dummy;
   transformControls.attach(dummy);
   gizmoControlsUI.classList.add('active');
@@ -367,136 +371,129 @@ function selectLayer(dummy, el) {
 
 function deleteLayer(dummy, el) {
   transformControls.detach();
-  if (dummy.userData.plane) {
-    shirtGroup.remove(dummy.userData.plane);
-    dummy.userData.plane.geometry.dispose();
-    if (dummy.userData.plane.material.map) dummy.userData.plane.material.map.dispose();
-    dummy.userData.plane.material.dispose();
+  
+  if (dummy.userData.decals) {
+    dummy.userData.decals.forEach(decal => {
+      shirtGroup.remove(decal);
+      decal.geometry.dispose();
+      if (decal.material.map) decal.material.map.dispose();
+      decal.material.dispose();
+    });
   }
+  
   if (dummy.userData.texture) dummy.userData.texture.dispose();
   shirtGroup.remove(dummy);
+  
   el.remove();
   layers = layers.filter(l => l !== dummy);
   gizmoControlsUI.classList.remove('active');
   activeDummy = null;
+  
   pushHistory();
   saveToLocalStorage();
 }
 
-// ===== 5. PLANE LOGO SYSTEM (ganti Decal) =====
-function createLogoPlane(dummy) {
-  // Buang plane lama jika ada
-  if (dummy.userData.plane) {
-    shirtGroup.remove(dummy.userData.plane);
-    dummy.userData.plane.geometry.dispose();
-    dummy.userData.plane.material.dispose();
-  }
-
-  const aspect = dummy.userData.aspect || 1;
-  const baseSize = 0.45; // saiz asas
-  const w = baseSize * dummy.scale.x;
-  const h = (baseSize / aspect) * dummy.scale.y;
-
-  const geo = new THREE.PlaneGeometry(w, h);
-  const mat = new THREE.MeshStandardMaterial({
-    map: dummy.userData.texture,
-    transparent: true,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-    polygonOffset: true,
-    polygonOffsetFactor: -2,
-    roughness: 0.7,
-    metalness: 0.0
-  });
-
-  const plane = new THREE.Mesh(geo, mat);
-  plane.renderOrder = 10;
-  plane.position.copy(dummy.position);
-  plane.quaternion.copy(dummy.quaternion);
-  // Sedikit angkat dari permukaan supaya tak z-fighting
-  const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-  plane.position.add(normal.multiplyScalar(0.008));
-
-  shirtGroup.add(plane);
-  dummy.userData.plane = plane;
-}
-
-// Snap logo ke permukaan baju (penting untuk lengan)
-function snapToSurface(dummy) {
+// ===== 4. SISTEM DECAL =====
+function createDecal(dummy) {
   if (!shirtMeshes.length) return;
 
-  // Ray dari sedikit di depan logo ke arah -normal
-  const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).normalize();
-  const origin = dummy.position.clone().add(normal.clone().multiplyScalar(0.15));
-  raycaster.set(origin, normal.clone().negate());
-
-  const hits = raycaster.intersectObjects(shirtMeshes, true);
-  if (hits.length > 0) {
-    const hit = hits[0];
-    const localHit = shirtGroup.worldToLocal(hit.point.clone());
-    dummy.position.copy(localHit);
-
-    // Orient ikut normal permukaan
-    const worldNormal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
-    const localNormal = worldNormal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-
-    // Bina basis
-    const up = new THREE.Vector3(0, 1, 0);
-    let right = new THREE.Vector3().crossVectors(up, localNormal);
-    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-    right.normalize();
-    const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-
-    const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
-    dummy.quaternion.setFromRotationMatrix(matrix);
+  if (dummy.userData.decals) {
+    dummy.userData.decals.forEach(decal => {
+      shirtGroup.remove(decal);
+      decal.geometry.dispose();
+      if (decal.material.map) decal.material.map.dispose();
+      decal.material.dispose();
+    });
   }
+  dummy.userData.decals = [];
 
-  createLogoPlane(dummy);
+  const w = 0.6 * dummy.scale.x;
+  const h = (0.6 / dummy.userData.aspect) * dummy.scale.y;
+  const size = new THREE.Vector3(w, h, 0.25);
+
+  // Semak jika logo berada di belakang baju
+  const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
+  const isBack = currentNormal.z < -0.15;
+
+  shirtMeshes.forEach(mesh => {
+    try {
+      const decalGeo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
+      
+      if (decalGeo.attributes.position && decalGeo.attributes.position.count > 0) {
+        const tex = dummy.userData.texture.clone();
+        if (isBack) {
+          tex.wrapS = THREE.RepeatWrapping;
+          tex.repeat.x = -1;
+        }
+
+        const decalMat = new THREE.MeshStandardMaterial({
+          map: tex,
+          transparent: true,
+          depthTest: true,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -4,
+          roughness: 0.8
+        });
+
+        const decalMesh = new THREE.Mesh(decalGeo, decalMat);
+        decalMesh.renderOrder = 2;
+        shirtGroup.add(decalMesh);
+        dummy.userData.decals.push(decalMesh);
+      } else {
+        decalGeo.dispose();
+      }
+    } catch(e) {
+      console.warn("Decal gagal pada mesh ini:", e);
+    }
+  });
 }
 
-// Semasa gizmo bergerak
+// Kemas kini posisi & putaran semasa Gizmo digunakan
 transformControls.addEventListener('objectChange', () => {
-  if (!activeDummy) return;
+  if (!activeDummy || !shirtMeshes.length) return;
 
+  // Hanya snap posisi bila dalam mod Gerak
   if (transformControls.getMode() === 'translate') {
-    // Semasa drag, cuba snap secara lembut
     activeDummy.updateMatrixWorld();
     const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
+    
     const dir = worldPos.clone().sub(camera.position).normalize();
     raycaster.set(camera.position, dir);
+    
     const hits = raycaster.intersectObjects(shirtMeshes, true);
-
+    
     if (hits.length > 0) {
       const hit = hits[0];
       const localHit = shirtGroup.worldToLocal(hit.point.clone());
       activeDummy.position.copy(localHit);
 
+      // Orientasi ikut permukaan baju (hanya semasa drag)
       if (isDragging) {
-        const worldNormal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
-        const localNormal = worldNormal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-
+        const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+        const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+        
         const up = new THREE.Vector3(0, 1, 0);
         let right = new THREE.Vector3().crossVectors(up, localNormal);
         if (right.lengthSq() < 0.001) right.set(1, 0, 0);
         right.normalize();
         const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-
+        
         const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
         activeDummy.quaternion.setFromRotationMatrix(matrix);
       }
     }
   }
 
-  // Update plane (scale & rotation terus ikut dummy)
-  createLogoPlane(activeDummy);
+  createDecal(activeDummy);
 });
 
-// ===== 6. TAMBAH LOGO / TEKS =====
+// ===== 5. FUNGSI TAMBAH LOGO & TEKS =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
-  if (!files.length) return;
+  if(!files.length) return;
 
-  for (let i = 0; i < files.length; i++) {
+  for(let i=0; i<files.length; i++) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
@@ -530,6 +527,8 @@ document.getElementById('addTextBtn').onclick = () => {
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  
+  // Simpan data teks supaya boleh restore
   const dataURL = canvas.toDataURL('image/png');
   addLogoToScene(texture, canvas.width / canvas.height, true, dataURL, text, color);
   document.getElementById('textInput').value = '';
@@ -543,12 +542,10 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   dummy.userData.dataURL = dataURL;
   dummy.userData.textContent = textContent;
   dummy.userData.textColor = textColor;
-  dummy.scale.set(1, 1, 1);
   shirtGroup.add(dummy);
 
-  // Letak awal di hadapan
-  const offsetX = (logoCount % 2 === 0) ? 0.1 : -0.1;
-  const offsetY = Math.floor(logoCount / 2) * -0.15;
+  const offsetX = (logoCount % 2 === 0) ? 0.12 : -0.12;
+  const offsetY = Math.floor(logoCount / 2) * -0.18;
 
   raycaster.setFromCamera(new THREE.Vector2(offsetX, offsetY), camera);
   const hits = raycaster.intersectObjects(shirtMeshes, true);
@@ -558,23 +555,23 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
     const localHit = shirtGroup.worldToLocal(hit.point.clone());
     dummy.position.copy(localHit);
 
-    const worldNormal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
-    const localNormal = worldNormal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-
+    const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+    
     const up = new THREE.Vector3(0, 1, 0);
     let right = new THREE.Vector3().crossVectors(up, localNormal);
     if (right.lengthSq() < 0.001) right.set(1, 0, 0);
     right.normalize();
     const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-
+    
     const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
     dummy.quaternion.setFromRotationMatrix(matrix);
   } else {
-    dummy.position.set(0, 0.15, 0.45);
+    dummy.position.set(0, 0.1, 0.4);
   }
 
   logoCount++;
-  createLogoPlane(dummy);
+  createDecal(dummy);
   layers.push(dummy);
 
   const layerName = isText ? `Teks ${logoCount}` : `Logo ${logoCount}`;
@@ -585,7 +582,7 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   saveToLocalStorage();
 }
 
-// ===== 7. UI CONTROLS =====
+// ===== 6. KAWALAN UI LAIN =====
 document.getElementById('btnTranslate').onclick = (e) => {
   transformControls.setMode('translate');
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -602,7 +599,7 @@ document.getElementById('btnRotate').onclick = (e) => {
   e.target.classList.add('active');
 };
 
-// Warna
+// Warna baju
 const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 const colorGrid = document.getElementById('colorGrid');
 colors.forEach((hex, i) => {
@@ -630,25 +627,34 @@ document.getElementById('customColor').addEventListener('change', () => {
   saveToLocalStorage();
 });
 
-// View
+// View buttons
 function setActiveViewBtn(id) {
   document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
+
 document.getElementById('viewFront').onclick = () => {
-  camera.position.set(0, 0, 4.5); controls.target.set(0, 0, 0); setActiveViewBtn('viewFront');
+  camera.position.set(0, 0, 4.5);
+  controls.target.set(0, 0, 0);
+  setActiveViewBtn('viewFront');
 };
 document.getElementById('viewBack').onclick = () => {
-  camera.position.set(0, 0, -4.5); controls.target.set(0, 0, 0); setActiveViewBtn('viewBack');
+  camera.position.set(0, 0, -4.5);
+  controls.target.set(0, 0, 0);
+  setActiveViewBtn('viewBack');
 };
 document.getElementById('viewRight').onclick = () => {
-  camera.position.set(4.5, 0, 0); controls.target.set(0, 0, 0); setActiveViewBtn('viewRight');
+  camera.position.set(4.5, 0, 0);
+  controls.target.set(0, 0, 0);
+  setActiveViewBtn('viewRight');
 };
 document.getElementById('viewLeft').onclick = () => {
-  camera.position.set(-4.5, 0, 0); controls.target.set(0, 0, 0); setActiveViewBtn('viewLeft');
+  camera.position.set(-4.5, 0, 0);
+  controls.target.set(0, 0, 0);
+  setActiveViewBtn('viewLeft');
 };
 
-// ===== 8. UNDO / REDO =====
+// ===== 7. UNDO / REDO =====
 function getCurrentState() {
   return {
     color: currentShirtColor,
@@ -668,6 +674,7 @@ function getCurrentState() {
 }
 
 function pushHistory() {
+  // Buang future history jika kita di tengah-tengah
   if (historyIndex < history.length - 1) {
     history = history.slice(0, historyIndex + 1);
   }
@@ -678,28 +685,36 @@ function pushHistory() {
 }
 
 function restoreState(state) {
-  // Clear existing
+  // Padam semua layer semasa
   [...layers].forEach(d => {
-    if (d.userData.plane) {
-      shirtGroup.remove(d.userData.plane);
-      d.userData.plane.geometry.dispose();
-      if (d.userData.plane.material.map) d.userData.plane.material.map.dispose();
-      d.userData.plane.material.dispose();
+    if (d.userData.decals) {
+      d.userData.decals.forEach(decal => {
+        shirtGroup.remove(decal);
+        decal.geometry.dispose();
+        if (decal.material.map) decal.material.map.dispose();
+        decal.material.dispose();
+      });
     }
     if (d.userData.texture) d.userData.texture.dispose();
     shirtGroup.remove(d);
   });
   layers = [];
   logoCount = 0;
-
+  
+  // Padam UI layer (kecuali base)
   [...layerListUI.children].forEach(el => {
     if (el.id !== 'layer-base') el.remove();
   });
-
+  
+  // Restore warna
   currentShirtColor = state.color || '#ffffff';
   shirtMaterials.forEach(m => m.color.set(currentShirtColor));
   document.getElementById('customColor').value = currentShirtColor;
+  document.querySelectorAll('.color-btn').forEach(b => {
+    b.classList.toggle('active', b.style.background === currentShirtColor);
+  });
 
+  // Restore layers
   state.layers.forEach(ldata => {
     const img = new Image();
     img.onload = () => {
@@ -722,9 +737,10 @@ function restoreState(state) {
       dummy.scale.fromArray(ldata.scale);
 
       shirtGroup.add(dummy);
-      createLogoPlane(dummy);
+      createDecal(dummy);
       layers.push(dummy);
       logoCount++;
+
       addDesignLayer(dummy, ldata.name, ldata.icon);
     };
     img.src = ldata.dataURL;
@@ -743,6 +759,7 @@ function undo() {
   updateUndoRedoButtons();
   saveToLocalStorage();
 }
+
 function redo() {
   if (historyIndex >= history.length - 1) return;
   historyIndex++;
@@ -750,18 +767,22 @@ function redo() {
   updateUndoRedoButtons();
   saveToLocalStorage();
 }
+
 function updateUndoRedoButtons() {
   btnUndo.disabled = historyIndex <= 0;
   btnRedo.disabled = historyIndex >= history.length - 1;
 }
+
 btnUndo.onclick = undo;
 btnRedo.onclick = redo;
 
+// Keyboard shortcuts
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey) {
     if (e.key === 'z' || e.key === 'Z') {
       e.preventDefault();
-      e.shiftKey ? redo() : undo();
+      if (e.shiftKey) redo();
+      else undo();
     }
     if (e.key === 'y' || e.key === 'Y') {
       e.preventDefault();
@@ -770,22 +791,27 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// ===== 9. LOCAL STORAGE =====
+// ===== 8. LOCAL STORAGE (Auto-save) =====
 function saveToLocalStorage() {
   try {
-    localStorage.setItem('proDesigner3D_state', JSON.stringify(getCurrentState()));
+    const state = getCurrentState();
+    localStorage.setItem('proDesigner3D_state', JSON.stringify(state));
   } catch (err) {
-    console.warn('Gagal simpan:', err);
+    console.warn('Gagal simpan ke localStorage:', err);
   }
 }
 
 function loadFromLocalStorage() {
   try {
     const raw = localStorage.getItem('proDesigner3D_state');
-    if (!raw) { pushHistory(); return; }
+    if (!raw) {
+      pushHistory(); // state kosong awal
+      return;
+    }
     const state = JSON.parse(raw);
     if (state && state.layers) {
       restoreState(state);
+      // Selepas restore, buat history awal
       history = [state];
       historyIndex = 0;
       updateUndoRedoButtons();
@@ -793,18 +819,20 @@ function loadFromLocalStorage() {
       pushHistory();
     }
   } catch (err) {
-    console.warn('Gagal load:', err);
+    console.warn('Gagal load dari localStorage:', err);
     pushHistory();
   }
 }
 
-// ===== 10. SIMPAN HD =====
+// ===== 9. SIMPAN DESIGN HD =====
 document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false;
   const currentSize = renderer.getSize(new THREE.Vector2());
+  
   renderer.setSize(2000, 2000, false);
   renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
+  
   renderer.setSize(currentSize.x, currentSize.y, false);
   transformHelper.visible = true;
   renderer.render(scene, camera);
@@ -815,7 +843,7 @@ document.getElementById('saveBtn').onclick = () => {
   link.click();
 };
 
-// ===== 11. ANIMATE =====
+// ===== 10. ANIMATE & RESIZE =====
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
