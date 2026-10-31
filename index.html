@@ -1,204 +1,140 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Pro Designer 3D — Studio</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #121212; color: #f3f4f6; }
-
-  #app { display: flex; height: 100vh; }
-
-  /* ===== PANEL KIRI ===== */
-  #sidebar-left {
-    width: 280px; background: #18181b; padding: 24px;
-    display: flex; flex-direction: column; gap: 24px;
-    border-right: 1px solid #27272a; z-index: 10;
-    box-shadow: 4px 0 15px rgba(0,0,0,.3); overflow-y: auto;
-  }
-  .panel-section { display: flex; flex-direction: column; }
-  .section-title {
-    font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 1.5px; color: #a1a1aa; margin-bottom: 12px;
-  }
-
-  .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .color-btn {
-    aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent;
-    cursor: pointer; transition: .2s; box-shadow: 0 2px 5px rgba(0,0,0,.2);
-  }
-  .color-btn:hover { transform: scale(1.1); }
-  .color-btn.active {
-    border-color: #38bdf8; transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(56,189,248,.5);
-  }
-
-  .custom-color-wrapper {
-    display: flex; align-items: center; gap: 12px; margin-top: 12px;
-    background: #27272a; padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46;
-  }
-  .custom-color-wrapper input[type="color"] {
-    width: 32px; height: 32px; border: none; background: none; cursor: pointer; border-radius: 4px;
-  }
-  .custom-color-wrapper span { font-size: 13px; color: #d4d4d8; }
-
-  .upload-btn {
-    background: #38bdf8; color: #000; text-align: center; padding: 14px;
-    border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
-    position: relative; overflow: hidden; transition: .2s;
-    box-shadow: 0 4px 10px rgba(56,189,248,.2);
-  }
-  .upload-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
-  .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-
-  /* Butang Mod Transformasi */
-  .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .mode-btn {
-    background: #27272a; border: 1px solid #3f3f46; color: #d4d4d8;
-    padding: 9px 4px; border-radius: 8px; font-size: 11px; font-weight: 600;
-    cursor: pointer; transition: .2s; font-family: inherit;
-  }
-  .mode-btn:hover { background: #3f3f46; }
-  .mode-btn.active { background: #38bdf8; color: #0b0b0f; border-color: #38bdf8; }
-
-  input[type="range"] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
-
-  .save-btn {
-    margin-top: auto; background: #10b981; color: #fff; border: none; padding: 16px;
-    border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;
-    transition: .2s; box-shadow: 0 4px 10px rgba(16,185,129,.2); font-family: inherit;
-  }
-  .save-btn:hover { background: #059669; transform: translateY(-2px); }
-
-  /* ===== KAWASAN 3D ===== */
-  #viewer-container {
-    flex: 1; position: relative; overflow: hidden;
-    background: radial-gradient(circle at center, #27272a 0%, #09090b 100%);
-  }
-  #viewer-container canvas { display: block; }
-
-  /* ===== PANEL KANAN (LAYER) ===== */
-  #sidebar-right {
-    width: 260px; background: #18181b; border-left: 1px solid #27272a; z-index: 10;
-    display: flex; flex-direction: column; box-shadow: -4px 0 15px rgba(0,0,0,.3);
-  }
-  #layers-header { padding: 24px 24px 16px; border-bottom: 1px solid #27272a; }
-  #layers-header h2 {
-    font-size: 13px; font-weight: 600; color: #e4e4e7;
-    text-transform: uppercase; letter-spacing: 1px;
-  }
-  #layers-list { flex: 1; overflow-y: auto; }
-  .layer-item {
-    padding: 14px 20px 14px 24px; border-bottom: 1px solid #27272a; cursor: pointer;
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    transition: .2s; font-size: 13px; color: #d4d4d8;
-  }
-  .layer-item:hover { background: #27272a; }
-  .layer-item.active {
-    background: rgba(56,189,248,.1); border-left: 3px solid #38bdf8;
-    padding-left: 21px; color: #38bdf8; font-weight: 600;
-  }
-  .layer-info { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-  .layer-icon { font-size: 16px; flex: 0 0 auto; }
-  .layer-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  .delete-btn {
-    background: none; border: none; color: #ef4444; font-size: 14px; font-weight: bold;
-    cursor: pointer; opacity: 0; transition: .2s; padding: 4px 6px; font-family: inherit;
-  }
-  .layer-item:hover .delete-btn { opacity: 1; }
-  .delete-btn:hover { transform: scale(1.25); }
-
-  #loading {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    background: #09090b; color: #38bdf8; z-index: 100; font-weight: 600;
-    letter-spacing: 2px; font-size: 13px; transition: opacity .5s;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 900px) {
-    #app { flex-direction: column; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pro Designer 3D - Studio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #121212; color: #f3f4f6; }
+    
+    #app { display: flex; height: 100vh; }
+    
+    /* PANEL KIRI */
     #sidebar-left {
-      width: 100%; height: auto; flex-direction: row; flex-wrap: wrap;
-      align-items: center; gap: 10px; padding: 10px 12px;
-      border-right: none; border-bottom: 1px solid #27272a; overflow: visible;
+      width: 300px; background: #18181b; padding: 20px; display: flex; flex-direction: column; gap: 18px;
+      border-right: 1px solid #27272a; z-index: 10; overflow-y: auto;
     }
-    #sidebar-left .section-title { display: none; }
-    .custom-color-wrapper { display: none; }
-    .color-grid { display: flex; gap: 8px; }
-    .color-btn { width: 30px; height: 30px; }
-    .upload-btn { padding: 10px 14px; font-size: 12px; }
-    .save-btn { padding: 10px 14px; font-size: 12px; margin-top: 0; }
-    .mode-buttons { display: flex; gap: 6px; }
-    .mode-btn { padding: 9px 11px; }
-    #size-row { display: none !important; }
+    .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; margin-bottom: 8px; }
+    
+    .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+    .color-btn.active { border-color: #38bdf8; transform: scale(1.1); }
+    
+    .input-group { display: flex; flex-direction: column; gap: 6px; }
+    .input-group input[type="color"] { width: 100%; height: 35px; border: none; background: #27272a; cursor: pointer; border-radius: 6px; padding: 2px;}
+    .input-group input[type="range"] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
+    .input-group input[type="text"] { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #3f3f46; background: #27272a; color: #fff; font-family: inherit; }
 
-    #sidebar-right {
-      width: 100%; height: 108px; border-left: none; border-top: 1px solid #27272a;
-      flex-direction: row;
+    .btn { padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; border: none; transition: 0.2s; font-family: inherit; }
+    .btn-primary { background: #38bdf8; color: #000; }
+    .btn-primary:hover { background: #0ea5e9; }
+    .btn-secondary { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; }
+    .btn-secondary:hover { background: #3f3f46; }
+    .btn-success { background: #10b981; color: #fff; }
+    .btn-success:hover { background: #059669; }
+    
+    .row-buttons { display: flex; gap: 8px; }
+    .row-buttons .btn { flex: 1; padding: 10px 4px; }
+
+    /* KAWASAN 3D */
+    #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); }
+    #viewer-container canvas { display: block; }
+    
+    /* OVERLAY BUTANG 3D */
+    #view-toggles {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px);
     }
-    #layers-header { display: none; }
-    #layers-list { display: flex; overflow-x: auto; overflow-y: hidden; }
-    .layer-item {
-      border-bottom: none; border-right: 1px solid #27272a;
-      white-space: nowrap; padding: 12px 16px; flex: 0 0 auto;
-    }
-    .layer-item.active { border-left: none; border-bottom: 3px solid #38bdf8; padding-left: 16px; }
-    .delete-btn { opacity: 1; }
-  }
-</style>
+    
+    /* PANEL KANAN (LAYERS) */
+    #sidebar-right { width: 260px; background: #18181b; border-left: 1px solid #27272a; z-index: 10; display: flex; flex-direction: column; }
+    #layers-header { padding: 20px; border-bottom: 1px solid #27272a; }
+    #layers-header h2 { font-size: 12px; font-weight: 600; color: #e4e4e7; text-transform: uppercase; }
+    #layers-list { flex: 1; overflow-y: auto; }
+    .layer-item { padding: 12px 20px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; font-size: 13px; color: #d4d4d8; }
+    .layer-item:hover { background: #27272a; }
+    .layer-item.active { background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38bdf8; color: #38bdf8; font-weight: 600; }
+    .layer-info { display: flex; align-items: center; gap: 10px; }
+    .delete-btn { background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; opacity: 0; transition: 0.2s; }
+    .layer-item:hover .delete-btn { opacity: 1; }
+
+    #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #09090b; color: #38bdf8; z-index: 100; font-weight: 600; letter-spacing: 2px; transition: opacity 0.5s; }
+    
+    .slider-container { display: none; margin-top: 10px; }
+    .slider-container.active { display: block; }
+  </style>
 </head>
 <body>
 
 <div id="app">
-  <!-- KIRI -->
-  <aside id="sidebar-left">
-    <div class="panel-section">
+  <!-- KIRI: TOOLS -->
+  <div id="sidebar-left">
+    <div>
       <div class="section-title">Warna Baju</div>
       <div class="color-grid" id="colorGrid"></div>
-      <div class="custom-color-wrapper">
-        <input type="color" id="customColor" value="#ffffff" />
-        <span>Warna Custom</span>
+      <div class="input-group" style="margin-top: 10px;">
+        <input type="color" id="customShirtColor" value="#ffffff">
       </div>
     </div>
-
-    <div class="panel-section">
+    
+    <div>
       <div class="section-title">Design Anda</div>
-      <div class="upload-btn">
-        + Tambah Logo
-        <input type="file" id="logoUpload" accept="image/*" multiple />
+      <div class="input-group">
+        <div class="btn btn-primary" style="position:relative; overflow:hidden;">
+          + Tambah Logo
+          <input type="file" id="logoUpload" accept="image/*" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+        </div>
       </div>
     </div>
 
-    <div class="panel-section">
-      <div class="section-title">Alat Transformasi</div>
-      <div class="mode-buttons">
-        <button class="mode-btn active" data-mode="translate">✥ Gerak</button>
-        <button class="mode-btn" data-mode="scale">⤢ Saiz</button>
-        <button class="mode-btn" data-mode="rotate">⟳ Putar</button>
-      </div>
-      <div id="size-row" style="display:none; margin-top:14px;">
-        <div class="section-title">Saiz Logo</div>
-        <input type="range" id="sizeSlider" min="0.2" max="3" step="0.01" value="1" />
+    <div>
+      <div class="section-title">Tambah Teks</div>
+      <div class="input-group">
+        <input type="text" id="textInput" placeholder="Taip teks di sini..." />
+        <div class="row-buttons">
+          <input type="color" id="textColor" value="#000000" style="height: 35px; width: 40px;">
+          <button class="btn btn-secondary" id="addTextBtn" style="flex: 1;">Tambah Teks</button>
+        </div>
       </div>
     </div>
 
-    <button class="save-btn" id="saveBtn">⬇️ Simpan Design</button>
-  </aside>
+    <div id="transform-controls" style="display: none;">
+      <div class="section-title">Kawalan Layer</div>
+      <div class="row-buttons" style="margin-bottom: 8px;">
+        <button class="btn btn-secondary" id="btnTranslate">✥ Gerak</button>
+        <button class="btn btn-secondary" id="btnScale">⤢ Saiz</button>
+        <button class="btn btn-secondary" id="btnRotate">⟳ Putar</button>
+      </div>
+      <div class="input-group">
+        <label style="font-size: 11px; color: #a1a1aa;">Putar Imej/Logo</label>
+        <input type="range" id="rotateSlider" min="-180" max="180" step="1" value="0">
+      </div>
+      <div class="input-group" style="margin-top: 10px;">
+        <label style="font-size: 11px; color: #a1a1aa;">Kelegapan (Opacity)</label>
+        <input type="range" id="opacitySlider" min="0.1" max="1" step="0.05" value="1">
+      </div>
+    </div>
 
-  <!-- TENGAH -->
-  <main id="viewer-container">
+    <button class="btn btn-secondary" id="btnUndo">↩ Undo (Ctrl+Z)</button>
+    <button class="btn btn-success" id="saveBtn" style="margin-top: auto;">⬇️ Simpan Imej HD</button>
+  </div>
+  
+  <!-- TENGAH: 3D VIEWER -->
+  <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
-  </main>
+    <div id="view-toggles">
+      <button class="btn btn-secondary" id="viewFront">Hadapan</button>
+      <button class="btn btn-secondary" id="viewBack">Belakang</button>
+    </div>
+  </div>
 
-  <!-- KANAN -->
-  <aside id="sidebar-right">
+  <!-- KANAN: LAYERS -->
+  <div id="sidebar-right">
     <div id="layers-header"><h2>Senarai Layer</h2></div>
     <div id="layers-list"></div>
-  </aside>
+  </div>
 </div>
 
 <script type="importmap">
@@ -215,129 +151,87 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-/* =========================================================
-   1. SETUP ASAS
-   ========================================================= */
+// ===== 1. SETUP ASAS =====
 const container = document.getElementById('viewer-container');
-
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
-
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  preserveDrawingBuffer: true,
-  alpha: true
-});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-// Lampu studio
-scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-keyLight.position.set(5, 8, 6); scene.add(keyLight);
-const fillLight = new THREE.DirectionalLight(0xffffff, 0.9);
-fillLight.position.set(-6, 3, 4); scene.add(fillLight);
-const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
-rimLight.position.set(0, 4, -8); scene.add(rimLight);
+// Environment (Pantulan Cahaya Realistik)
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-// Kawalan kamera
+// Lampu
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+dirLight.position.set(5, 10, 5);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+scene.add(dirLight);
+
+// Shadow Catcher (Bayang di lantai)
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(50, 50),
+  new THREE.ShadowMaterial({ opacity: 0.3 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -1.2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Kawalan Kamera
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.enablePan = false;
-controls.minDistance = 1.2;
-controls.maxDistance = 12;
+controls.minDistance = 1.5;
+controls.maxDistance = 8;
 
-// Gizmo
+// Gizmo Transform
 const transformControls = new TransformControls(camera, renderer.domElement);
-transformControls.setMode('translate');
-transformControls.setSize(0.85);
-transformControls.showZ = false;   // kunci paksi Z (elak logo terapung)
-
-// Sokongan r169 (Object3D) & versi baru (getHelper)
-const transformHelper =
-  typeof transformControls.getHelper === 'function'
-    ? transformControls.getHelper()
-    : transformControls;
+transformControls.setSize(0.8);
+const transformHelper = transformControls.getHelper();
 scene.add(transformHelper);
 
 transformControls.addEventListener('dragging-changed', (e) => {
   controls.enabled = !e.value;
 });
 
-/* =========================================================
-   2. STATE UTAMA
-   ========================================================= */
-const shirtGroup = new THREE.Group();   // IBU-BAPA: baju + semua logo
+// ===== 2. STATE & MODEL =====
+const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
+let shirtMesh = null;
+let dummyHelper = null; // Objek halimunan untuk kawal Decal
+let activeDecal = null; // Decal yang sedang aktif
 
-let shirtMesh = null;                   // mesh baju (untuk raycast)
-const shirtMaterials = [];              // semua material baju (untuk tukar warna)
-
-const layers = new Map();               // id -> { id, name, icon, object, isShirt, el }
+let shirtMaterials = [];
+let layers = []; 
 let activeLayerId = null;
-let activeObject = null;
-let layerSeq = 0;
+let historyStack = [];
 let logoSeq = 0;
 
 const layerListUI = document.getElementById('layers-list');
-const sizeRow    = document.getElementById('size-row');
-const sizeSlider = document.getElementById('sizeSlider');
+const transformControlsUI = document.getElementById('transform-controls');
+const rotateSlider = document.getElementById('rotateSlider');
+const opacitySlider = document.getElementById('opacitySlider');
 
-/* =========================================================
-   3. KAMERA AUTO-FIT
-   ========================================================= */
-function resize() {
-  const w = container.clientWidth;
-  const h = container.clientHeight;
-  if (!w || !h) return;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-}
-resize();
-
-function fitCameraToObject(object, margin = 1.35) {
-  const box = new THREE.Box3().setFromObject(object);
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-
-  const vFov = THREE.MathUtils.degToRad(camera.fov);
-  const fitHeight = (size.y / 2) / Math.tan(vFov / 2);
-  const fitWidth  = (size.x / 2) / (Math.tan(vFov / 2) * camera.aspect);
-  const dist = Math.max(fitHeight, fitWidth) * margin;
-
-  camera.position.set(center.x, center.y + size.y * 0.05, center.z + dist);
-  camera.near = Math.max(0.01, dist / 100);
-  camera.far  = dist * 100;
-  camera.updateProjectionMatrix();
-
-  controls.target.copy(center);
-  controls.minDistance = dist * 0.35;
-  controls.maxDistance = dist * 2.5;
-  controls.update();
-}
-
-/* =========================================================
-   4. LOAD MODEL
-   ========================================================= */
-const MODEL_URL = './T_shirt_gltf.gltf';
-
-new GLTFLoader().load(
-  MODEL_URL,
-  (gltf) => setupShirt(gltf.scene),
-  undefined,
-  (err) => {
-    console.warn('Model utama gagal dimuatkan:', err);
-    buildFallbackShirt();
-  }
+// Load Model
+new GLTFLoader().load('./T_shirt_gltf.gltf', 
+  (gltf) => setupShirt(gltf.scene), 
+  undefined, 
+  () => buildFallbackShirt()
 );
 
 function setupShirt(model) {
-  // --- Auto scale & center ---
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
@@ -349,45 +243,38 @@ function setupShirt(model) {
   model.position.sub(center);
   model.updateMatrixWorld(true);
 
-  // --- Ganti material (supaya boleh tukar warna) ---
   model.traverse((child) => {
-    if (!child.isMesh) return;
-    if (child.material) {
-      (Array.isArray(child.material) ? child.material : [child.material])
-        .forEach((m) => m.dispose());
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1 });
+      child.material = mat;
+      shirtMaterials.push(mat);
     }
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      roughness: 0.85,
-      metalness: 0.0,
-      side: THREE.DoubleSide
-    });
-    child.material = mat;
-    shirtMaterials.push(mat);
   });
 
   shirtMesh = model;
   shirtGroup.add(model);
+  
+  // Set posisi lantai bayang
+  ground.position.y = box.min.y - 0.1;
 
-  fitCameraToObject(model);
+  fitCamera();
   finishLoading();
-  addLayer({ name: 'Baju 3D', icon: '👕', object: shirtGroup, isShirt: true });
+  addShirtLayer();
 }
 
 function buildFallbackShirt() {
-  const geo = new RoundedBoxGeometry(1.5, 1.9, 0.5, 4, 0.14);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, roughness: 0.85, metalness: 0
-  });
-  const mesh = new THREE.Mesh(geo, mat);
-
-  shirtMaterials.push(mat);
+  const geo = new RoundedBoxGeometry(1.5, 1.9, 0.5, 4, 0.1);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }));
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  shirtMaterials.push(mesh.material);
   shirtMesh = mesh;
   shirtGroup.add(mesh);
-
-  fitCameraToObject(mesh);
+  ground.position.y = -1.0;
+  fitCamera();
   finishLoading();
-  addLayer({ name: 'Baju (Model Sandaran)', icon: '👕', object: shirtGroup, isShirt: true });
+  addShirtLayer();
 }
 
 function finishLoading() {
@@ -396,305 +283,326 @@ function finishLoading() {
   setTimeout(() => el.remove(), 500);
 }
 
-/* =========================================================
-   5. SISTEM LAYER (DITULIS SEMULA)
-   ========================================================= */
-function addLayer({ name, icon, object, isShirt = false }) {
-  const id = `layer-${++layerSeq}`;
+function fitCamera() {
+  camera.position.set(0, 0, 4.5);
+  controls.target.set(0, 0, 0);
+  controls.update();
+}
 
+// ===== 3. SISTEM LAYER =====
+function addShirtLayer() {
+  const el = document.createElement('div');
+  el.className = 'layer-item active';
+  el.innerHTML = `<div class="layer-info"><span>👕</span> <span>Baju 3D (Parent)</span></div>`;
+  el.onclick = () => {
+    selectObject(shirtMesh, 'Baju 3D', true);
+    transformControls.attach(shirtGroup); // Attach ke group supaya semua logo ikut gerak
+  };
+  layerListUI.prepend(el);
+}
+
+function addLayerUI(name, icon, object, isShirt = false) {
+  const id = 'layer-' + Date.now() + Math.random().toString(36).substr(2, 5);
+  object.userData.layerId = id;
+  
   const el = document.createElement('div');
   el.className = 'layer-item';
+  el.id = id;
   el.innerHTML = `
-    <div class="layer-info">
-      <span class="layer-icon">${icon}</span>
-      <span class="layer-name">${name}</span>
-    </div>
-    ${isShirt ? '' : '<button class="delete-btn" title="Padam layer">✕</button>'}
+    <div class="layer-info"><span>${icon}</span> <span>${name}</span></div>
+    ${isShirt ? '' : '<button class="delete-btn">✕</button>'}
   `;
 
-  const layer = { id, name, icon, object, isShirt, el };
-  layers.set(id, layer);
-  object.userData.layerId = id;
-
-  el.addEventListener('click', (e) => {
+  el.onclick = (e) => {
     if (e.target.closest('.delete-btn')) return;
-    selectLayer(id);
-  });
+    selectObject(object, name, isShirt);
+    if(isShirt) transformControls.attach(shirtGroup);
+    else transformControls.attach(object);
+  };
 
-  const delBtn = el.querySelector('.delete-btn');
-  if (delBtn) {
-    delBtn.addEventListener('click', (e) => {
+  if (!isShirt) {
+    el.querySelector('.delete-btn').onclick = (e) => {
       e.stopPropagation();
-      removeLayer(id);
-    });
+      removeLayer(id, object, el);
+    };
   }
 
   layerListUI.prepend(el);
-  selectLayer(id);          // auto pilih layer baru
-  return layer;
+  selectObject(object, name, isShirt);
+  if(!isShirt) transformControls.attach(object);
+  return el;
 }
 
-function selectLayer(id) {
-  const layer = layers.get(id);
-  if (!layer) return;
-
-  layers.forEach((l) => l.el.classList.toggle('active', l === layer));
-
-  activeLayerId = id;
-  activeObject = layer.object;
-  transformControls.attach(layer.object);
-  syncTransformPanel();
-}
-
-function removeLayer(id) {
-  const layer = layers.get(id);
-  if (!layer || layer.isShirt) return;   // baju tak boleh dipadam
-
-  if (activeLayerId === id) {
-    transformControls.detach();
-    activeLayerId = null;
-    activeObject = null;
-  }
-
-  layer.object.removeFromParent();
-  disposeHierarchy(layer.object);
-  layer.el.remove();
-  layers.delete(id);
-
-  // Pilih semula layer baju
-  if (!activeLayerId) {
-    const shirtLayer = [...layers.values()].find((l) => l.isShirt);
-    if (shirtLayer) selectLayer(shirtLayer.id);
+function selectObject(object, name, isShirt) {
+  activeLayerId = object.userData.layerId;
+  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+  const el = document.getElementById(activeLayerId) || layerListUI.firstChild;
+  if(el) el.classList.add('active');
+  
+  transformControlsUI.style.display = isShirt ? 'none' : 'block';
+  if (!isShirt) {
+    rotateSlider.value = 0;
+    opacitySlider.value = object.material.opacity;
   }
 }
 
-function disposeHierarchy(obj) {
-  obj.traverse((c) => {
-    if (c.geometry) c.geometry.dispose();
-    if (c.material) {
-      (Array.isArray(c.material) ? c.material : [c.material]).forEach((m) => {
-        if (m.map) m.map.dispose();
-        m.dispose();
-      });
+function removeLayer(id, object, el) {
+  if (activeLayerId === id) transformControls.detach();
+  object.parent.remove(object);
+  if (object.geometry) object.geometry.dispose();
+  if (object.material) {
+    if (object.material.map) object.material.map.dispose();
+    object.material.dispose();
+  }
+  el.remove();
+}
+
+// ===== 4. SISTEM DECAL (IDEA A) =====
+// Menggunakan Dummy Object untuk mengawal Decal
+function createDummyAndDecal(texture, aspect, isText = false) {
+  const w = 0.6;
+  const h = w / aspect;
+  const size = new THREE.Vector3(w, h, 1);
+
+  // 1. Cipta Dummy (Kotak halimunan)
+  const dummyGeo = new THREE.PlaneGeometry(w, h);
+  const dummyMat = new THREE.MeshBasicMaterial({ visible: false, transparent: true, opacity: 0 });
+  const dummy = new THREE.Mesh(dummyGeo, dummyMat);
+  
+  // 2. Letak Dummy pada baju melalui Raycast
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+  const hits = raycaster.intersectObject(shirtMesh, true);
+
+  let pos = new THREE.Vector3(0, 0, 0.5);
+  let normal = new THREE.Vector3(0, 0, 1);
+  if (hits.length > 0) {
+    pos.copy(hits[0].point);
+    normal.copy(hits[0].face.normal).transformDirection(hits[0].object.matrixWorld);
+    // Anjak sikit keluar supaya tak clash
+    pos.addScaledVector(normal, 0.01);
+  }
+
+  dummy.position.copy(pos);
+  dummy.lookAt(pos.clone().add(normal));
+  shirtGroup.add(dummy);
+
+  // 3. Fungsi untuk menjana Decal dari Dummy
+  const updateDecal = () => {
+    shirtGroup.updateMatrixWorld(true);
+    
+    // Tukar posisi dunia ke posisi lokal shirtMesh
+    const localPos = dummy.position.clone();
+    const localRot = dummy.quaternion.clone();
+    const localScale = dummy.scale.clone();
+
+    // Decal size perlu ambil kira scale
+    const decalSize = new THREE.Vector3(w * localScale.x, h * localScale.y, 0.2);
+
+    const decalGeo = new DecalGeometry(shirtMesh, localPos, localRot, decalSize);
+    
+    // Jika decal lama wujud, buang
+    if (dummy.userData.decalMesh) {
+      shirtGroup.remove(dummy.userData.decalMesh);
+      dummy.userData.decalMesh.geometry.dispose();
     }
-  });
+
+    const mat = new THREE.MeshStandardMaterial({
+      map: texture,
+      transparent: true,
+      depthTest: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      opacity: 1
+    });
+
+    const decalMesh = new THREE.Mesh(decalGeo, mat);
+    decalMesh.renderOrder = 2;
+    decalMesh.castShadow = false;
+    decalMesh.receiveShadow = true;
+    
+    shirtGroup.add(decalMesh);
+    dummy.userData.decalMesh = decalMesh;
+    
+    // Update material opacity jika ada
+    if (activeLayerId === dummy.userData.layerId) {
+      decalMesh.material.opacity = opacitySlider.value;
+    }
+  };
+
+  // 4. Tambah ke Scene & UI
+  const layerName = isText ? 'Teks' : `Logo ${++logoSeq}`;
+  const icon = isText ? '📝' : '🖼️';
+  addLayerUI(layerName, icon, dummy, false);
+  
+  // Simpan texture & aspect untuk decal update
+  dummy.userData.texture = texture;
+  dummy.userData.aspect = aspect;
+
+  // Jana decal kali pertama
+  updateDecal();
+  
+  // Kembalikan dummy supaya kita boleh attach gizmo
+  return dummy;
 }
 
-function syncTransformPanel() {
-  const layer = layers.get(activeLayerId);
-  const isLogo = !!layer && !layer.isShirt;
+// Event: Bila Gizmo gerak, update Decal
+transformControls.addEventListener('objectChange', () => {
+  if (activeLayerId && transformControls.object && transformControls.object.userData.texture) {
+    const dummy = transformControls.object;
+    // Jana semula decal secara real-time
+    shirtGroup.updateMatrixWorld(true);
+    
+    const w = 0.6 * dummy.scale.x;
+    const h = (0.6 / dummy.userData.aspect) * dummy.scale.y;
+    const decalSize = new THREE.Vector3(w, h, 0.2);
 
-  sizeRow.style.display = isLogo ? 'block' : 'none';
-  if (isLogo) {
-    sizeSlider.value = THREE.MathUtils.clamp(layer.object.scale.x, 0.2, 3);
+    const newGeo = new DecalGeometry(shirtMesh, dummy.position, dummy.quaternion, decalSize);
+    if (dummy.userData.decalMesh) {
+      dummy.userData.decalMesh.geometry.dispose();
+      dummy.userData.decalMesh.geometry = newGeo;
+    }
   }
-}
-
-/* =========================================================
-   6. PLACEMENT LOGO (RAYCAST + ORIENTASI)
-   ========================================================= */
-const LOGO_BASE_WIDTH = 0.5;
-const SCREEN_CENTER = new THREE.Vector2(0, 0);
-
-const logoInput = document.getElementById('logoUpload');
-
-logoInput.addEventListener('change', (e) => {
-  const files = Array.from(e.target.files || []);
-  files.forEach((file) => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => createLogo(ev.target.result);
-    reader.readAsDataURL(file);
-  });
-  logoInput.value = '';
 });
 
-function createLogo(dataUrl) {
-  new THREE.TextureLoader().load(
-    dataUrl,
-    (texture) => {
+// ===== 5. UPLOAD & TEXT =====
+document.getElementById('logoUpload').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const texture = new THREE.Texture(img);
       texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      texture.needsUpdate = true;
+      createDummyAndDecal(texture, img.width / img.height);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
 
-      const img = texture.image;
-      const aspect = (img && img.width && img.height) ? img.width / img.height : 1;
-      const w = LOGO_BASE_WIDTH;
-      const h = w / aspect;
+document.getElementById('addTextBtn').onclick = () => {
+  const text = document.getElementById('textInput').value;
+  const color = document.getElementById('textColor').value;
+  if (!text) return;
 
-      const geo = new THREE.PlaneGeometry(w, h);
-      const mat = new THREE.MeshBasicMaterial({
-        map: texture,
-        transparent: true,
-        depthTest: true,          // logo TIDAK tembus dari belakang baju
-        depthWrite: false,
-        side: THREE.FrontSide,
-        toneMapped: false,
-        polygonOffset: true,      // elak z-fighting dengan permukaan baju
-        polygonOffsetFactor: -4,
-        polygonOffsetUnits: -4
-      });
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 512;
+  canvas.height = 128;
+  ctx.fillStyle = color;
+  ctx.font = "bold 60px Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 256, 64);
 
-      const logo = new THREE.Mesh(geo, mat);
-      logo.renderOrder = 2;
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  createDummyAndDecal(texture, canvas.width / canvas.height, true);
+  document.getElementById('textInput').value = '';
+};
 
-      if (!placeOnShirt(logo)) {
-        logo.position.set(0, 0, 1.4); // fallback
-      }
+// ===== 6. KAWALAN SLIDER =====
+document.getElementById('btnTranslate').onclick = () => transformControls.setMode('translate');
+document.getElementById('btnScale').onclick = () => transformControls.setMode('scale');
+document.getElementById('btnRotate').onclick = () => transformControls.setMode('rotate');
 
-      shirtGroup.add(logo);
-      addLayer({ name: `Logo ${++logoSeq}`, icon: '🖼️', object: logo, isShirt: false });
-    },
-    undefined,
-    (err) => console.error('Gagal baca imej:', err)
-  );
-}
+// Slider Putar (Z-Axis)
+rotateSlider.addEventListener('input', (e) => {
+  const dummy = transformControls.object;
+  if (!dummy || !dummy.userData.texture) return;
+  
+  const angle = THREE.MathUtils.degToRad(parseFloat(e.target.value));
+  // Apply rotate pada paksi Z lokal dummy
+  const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
+  dummy.quaternion.copy(dummy.userData.baseQuat || dummy.quaternion).multiply(q);
+  
+  // Trigger update
+  const event = new Event('objectChange');
+  transformControls.dispatchEvent(event);
+});
+// Simpan rotation asas
+transformControls.addEventListener('mouseDown', () => {
+  if(transformControls.object) transformControls.object.userData.baseQuat = transformControls.object.quaternion.clone();
+});
 
-/**
- * Letak logo tepat pada permukaan baju yang sedang dilihat.
- * Menggunakan normal permukaan untuk orientasi supaya logo
- * "melekat" pada baju walau kamera dipusing.
- * @returns {boolean} berjaya atau tidak
- */
-function placeOnShirt(logo) {
-  if (!shirtMesh) return false;
-  shirtGroup.updateMatrixWorld(true);
-
-  const raycaster = new THREE.Raycaster();
-
-  // 1) Tembak dari tengah skrin (WYSIWYG)
-  raycaster.setFromCamera(SCREEN_CENTER, camera);
-  let hits = raycaster.intersectObject(shirtMesh, true);
-
-  // 2) Fallback: tembak ke arah pusat baju
-  if (!hits.length) {
-    const c = new THREE.Box3().setFromObject(shirtMesh).getCenter(new THREE.Vector3());
-    const dir = c.clone().sub(camera.position);
-    if (dir.lengthSq() < 1e-6) return false;
-    raycaster.set(camera.position, dir.normalize());
-    hits = raycaster.intersectObject(shirtMesh, true);
+// Slider Opacity
+opacitySlider.addEventListener('input', (e) => {
+  const dummy = transformControls.object;
+  if (dummy && dummy.userData.decalMesh) {
+    dummy.userData.decalMesh.material.opacity = parseFloat(e.target.value);
   }
-  if (!hits.length) return false;
+});
 
-  const hit = hits[0];
-  const pointWorld = hit.point.clone();
+// ===== 7. PANDANGAN KAMERA (FRONT/BACK) =====
+document.getElementById('viewFront').onclick = () => {
+  camera.position.set(0, 0, 4.5);
+  controls.target.set(0, 0, 0);
+};
+document.getElementById('viewBack').onclick = () => {
+  camera.position.set(0, 0, -4.5);
+  controls.target.set(0, 0, 0);
+};
 
-  // Normal permukaan (dalam world space)
-  let normalWorld;
-  if (hit.face) {
-    normalWorld = hit.face.normal.clone()
-      .transformDirection(hit.object.matrixWorld).normalize();
-  } else {
-    normalWorld = camera.position.clone().sub(pointWorld).normalize();
-  }
-  // Pastikan normal menghadap kamera
-  if (normalWorld.dot(camera.position.clone().sub(pointWorld)) < 0) {
-    normalWorld.negate();
-  }
-
-  // Tukar ke ruang lokal shirtGroup (supaya kekal betul walau group digerakkan)
-  const invGroup = new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert();
-  const localPoint  = pointWorld.clone().applyMatrix4(invGroup);
-  const localNormal = normalWorld.clone().transformDirection(invGroup).normalize();
-
-  // Bina basis: +Z = normal, +Y = "atas" sedekat mungkin dengan dunia
-  const up = new THREE.Vector3(0, 1, 0);
-  let xAxis = new THREE.Vector3().crossVectors(up, localNormal);
-  if (xAxis.lengthSq() < 1e-6) xAxis.set(1, 0, 0);
-  xAxis.normalize();
-  const yAxis = new THREE.Vector3().crossVectors(localNormal, xAxis).normalize();
-
-  const basis = new THREE.Matrix4().makeBasis(xAxis, yAxis, localNormal);
-  logo.quaternion.setFromRotationMatrix(basis);
-
-  // Cascade offset: elak semua logo bertindih pada titik sama
-  const count = [...layers.values()].filter((l) => !l.isShirt).length;
-  const offsetX = ((count % 3) - 1) * 0.22;
-  const offsetY = -Math.floor(count / 3) * 0.22;
-
-  logo.position.copy(localPoint)
-    .addScaledVector(xAxis, offsetX)
-    .addScaledVector(yAxis, offsetY)
-    .addScaledVector(localNormal, 0.015); // angkat sedikit dari permukaan
-
-  return true;
-}
-
-/* =========================================================
-   7. WARNA BAJU
-   ========================================================= */
-const PRESET_COLORS = [
-  '#ffffff', '#171717', '#64748b', '#dc2626',
-  '#2563eb', '#16a34a', '#ca8a04', '#9333ea'
-];
-const colorGrid = document.getElementById('colorGrid');
-
-function applyShirtColor(hex) {
-  shirtMaterials.forEach((m) => m.color.set(hex));
-}
-
-PRESET_COLORS.forEach((hex, i) => {
+// ===== 8. WARNA BAJU =====
+const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
+const grid = document.getElementById('colorGrid');
+colors.forEach((hex, i) => {
   const btn = document.createElement('button');
-  btn.type = 'button';
   btn.className = 'color-btn' + (i === 0 ? ' active' : '');
   btn.style.background = hex;
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.color-btn').forEach((b) => b.classList.remove('active'));
+  btn.onclick = () => {
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    applyShirtColor(hex);
-  });
-  colorGrid.appendChild(btn);
+    shirtMaterials.forEach(m => m.color.set(hex));
+    saveState();
+  };
+  grid.appendChild(btn);
 });
 
-document.getElementById('customColor').addEventListener('input', (e) => {
-  document.querySelectorAll('.color-btn').forEach((b) => b.classList.remove('active'));
-  applyShirtColor(e.target.value);
-});
+document.getElementById('customShirtColor').oninput = (e) => {
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  shirtMaterials.forEach(m => m.color.set(e.target.value));
+};
 
-/* =========================================================
-   8. MOD TRANSFORMASI + SLIDER SAIZ
-   ========================================================= */
-document.querySelectorAll('.mode-btn').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mode-btn').forEach((b) => b.classList.toggle('active', b === btn));
-    transformControls.setMode(btn.dataset.mode);
-  });
-});
-
-sizeSlider.addEventListener('input', () => {
-  const layer = layers.get(activeLayerId);
-  if (!layer || layer.isShirt) return;
-  layer.object.scale.setScalar(parseFloat(sizeSlider.value));
-});
-
-// Segerakkan slider bila gizmo digunakan
-transformControls.addEventListener('objectChange', () => {
-  const layer = layers.get(activeLayerId);
-  if (!layer || layer.isShirt) return;
-  sizeSlider.value = THREE.MathUtils.clamp(layer.object.scale.x, 0.2, 3);
-});
-
-/* =========================================================
-   9. SIMPAN GAMBAR
-   ========================================================= */
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const wasVisible = transformHelper.visible;
-  transformHelper.visible = false;         // sembunyikan gizmo
-
-  renderer.render(scene, camera);          // render segar sebelum tangkap
+// ===== 9. SIMPAN HD & AUTOSAVE =====
+document.getElementById('saveBtn').onclick = () => {
+  transformHelper.visible = false;
+  const currentSize = renderer.getSize(new THREE.Vector2());
+  
+  // Set resolusi HD
+  renderer.setSize(2000, 2000, false);
+  renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
-
-  transformHelper.visible = wasVisible;
+  
+  // Kembalikan saiz asal
+  renderer.setSize(currentSize.x, currentSize.y, false);
+  transformHelper.visible = true;
   renderer.render(scene, camera);
 
   const link = document.createElement('a');
-  link.download = `design-baju-${Date.now()}.png`;
+  link.download = 'design-baju-hd.png';
   link.href = dataURL;
   link.click();
-});
+};
 
-/* =========================================================
-   10. RENDER LOOP + RESIZE
-   ========================================================= */
+// Autosave ringkas (Simpan warna baju sahaja untuk demo)
+function saveState() {
+  localStorage.setItem('shirtColor', JSON.stringify(shirtMaterials[0].color.getHex()));
+}
+
+function loadState() {
+  const saved = localStorage.getItem('shirtColor');
+  if (saved) {
+    shirtMaterials.forEach(m => m.color.setHex(JSON.parse(saved)));
+  }
+}
+
+// ===== 10. RENDER LOOP & RESIZE =====
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
@@ -702,8 +610,17 @@ function animate() {
 }
 animate();
 
-window.addEventListener('resize', resize);
-</script>
+function onResize() {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  if(!w || !h) return;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+window.addEventListener('resize', onResize);
+onResize();
 
+</script>
 </body>
 </html>
