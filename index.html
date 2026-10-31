@@ -9,21 +9,21 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #121212; color: #f3f4f6; }
-    
+
     #app { display: flex; height: 100vh; }
-    
+
     /* PANEL KIRI */
     #sidebar-left {
       width: 300px; background: #18181b; padding: 24px; display: flex; flex-direction: column; gap: 20px;
       border-right: 1px solid #27272a; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto;
     }
     .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #a1a1aa; margin-bottom: 12px; }
-    
+
     .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     .color-btn:hover { transform: scale(1.1); }
     .color-btn.active { border-color: #38bdf8; transform: scale(1.1); box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
-    
+
     .custom-color-wrapper { display: flex; align-items: center; gap: 12px; background: #27272a; padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46; margin-top: 12px;}
     .custom-color-wrapper input[type="color"] { width: 32px; height: 32px; border: none; background: none; cursor: pointer; border-radius: 4px; }
     .custom-color-wrapper span { font-size: 13px; color: #d4d4d8; }
@@ -42,12 +42,11 @@
     .add-text-btn { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
     .add-text-btn:hover { background: #3f3f46; }
 
-    .gizmo-controls { display: none; background: #27272a; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46; }
-    .gizmo-controls.active { display: block; }
-    .mode-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-    .mode-btn { background: #3f3f46; border: none; color: #d4d4d8; padding: 10px 4px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit; }
-    .mode-btn:hover { background: #52525b; }
-    .mode-btn.active { background: #38bdf8; color: #000; }
+    .hint-box {
+      background: #27272a; border: 1px solid #3f3f46; border-radius: 8px;
+      padding: 12px; font-size: 12px; color: #a1a1aa; line-height: 1.7;
+    }
+    .hint-box p { margin: 0; }
 
     .save-btn {
       margin-top: auto; background: #10b981; color: #fff; border: none; padding: 16px;
@@ -57,11 +56,42 @@
     .save-btn:hover { background: #059669; transform: translateY(-2px); }
 
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
-    #viewer-container canvas { display: block; }
+
+    /* Canvas 3D */
+    #viewer-container canvas {
+      position: absolute; top: 0; left: 0; z-index: 1; display: block;
+    }
+
+    /* SVG Overlay Gizmo */
+    #gizmo-svg {
+      position: absolute; inset: 0; z-index: 5; pointer-events: none;
+      touch-action: none; overflow: visible; display: none;
+    }
+    #gizmo-svg .gizmo-stroke {
+      fill: none; stroke: #38bdf8; stroke-width: 2;
+      filter: drop-shadow(0 0 4px rgba(56,189,248,0.6));
+    }
+    #gizmo-box {
+      fill: rgba(56,189,248,0.08); stroke: #38bdf8; stroke-width: 2;
+      pointer-events: all; cursor: move;
+      filter: drop-shadow(0 0 6px rgba(56,189,248,0.4));
+    }
+    #gizmo-svg .corner {
+      fill: #ffffff; stroke: #38bdf8; stroke-width: 2;
+      pointer-events: all; cursor: nwse-resize;
+    }
+    #gizmo-rot-line {
+      stroke: #38bdf8; stroke-width: 2; stroke-dasharray: 4 3;
+    }
+    #gizmo-rot-handle {
+      fill: #38bdf8; stroke: #ffffff; stroke-width: 2;
+      pointer-events: all; cursor: grab;
+    }
 
     #view-toggles {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px);
+      display: flex; gap: 10px; background: rgba(24, 24, 27, 0.8); padding: 8px; border-radius: 12px;
+      backdrop-filter: blur(10px); z-index: 10;
     }
     #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
     #view-toggles button:hover { background: #52525b; }
@@ -72,14 +102,14 @@
     }
     #layers-header { padding: 24px 24px 16px 24px; border-bottom: 1px solid #27272a; }
     #layers-header h2 { font-size: 13px; font-weight: 600; color: #e4e4e7; text-transform: uppercase; letter-spacing: 1px;}
-    
+
     #layers-list { flex: 1; overflow-y: auto; }
     .layer-item { padding: 14px 24px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; font-size: 13px; color: #d4d4d8; }
     .layer-item:hover { background: #27272a; }
     .layer-item.active { background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38bdf8; color: #38bdf8; font-weight: 600;}
     .layer-info { display: flex; align-items: center; gap: 12px; }
     .layer-icon { font-size: 16px; }
-    
+
     .delete-btn { color: #ef4444; font-size: 14px; font-weight: bold; opacity: 0; transition: 0.2s; padding: 4px; background: none; border: none; cursor: pointer;}
     .layer-item:hover .delete-btn { opacity: 1; }
     .delete-btn:hover { transform: scale(1.2); }
@@ -102,7 +132,7 @@
         <span>Warna Custom</span>
       </div>
     </div>
-    
+
     <div>
       <div class="section-title">Design Anda</div>
       <div class="upload-btn">
@@ -120,23 +150,35 @@
       <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
     </div>
 
-    <div class="gizmo-controls" id="gizmoControls">
-      <div class="section-title" style="margin-bottom: 0;">Kawalan Logo</div>
-      <div class="mode-buttons">
-        <button class="mode-btn active" id="btnTranslate" title="Gerak">✥ Gerak</button>
-        <button class="mode-btn" id="btnScale" title="Saiz">⤢ Saiz</button>
-        <button class="mode-btn" id="btnRotate" title="Putar">⟳ Putar</button>
-      </div>
+    <div class="hint-box">
+      <div class="section-title" style="margin-bottom:6px;">Panduan</div>
+      <p>• Klik layer untuk pilih logo</p>
+      <p>• Seret dalam kotak untuk gerak</p>
+      <p>• Seret bucu untuk ubah saiz</p>
+      <p>• Seret bulatan atas untuk putar</p>
     </div>
-    
+
     <button class="save-btn" id="saveBtn">⬇️ Simpan Design HD</button>
   </div>
-  
+
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
+
+    <svg id="gizmo-svg">
+      <polygon id="gizmo-box" points="" />
+      <line id="gizmo-rot-line" x1="0" y1="0" x2="0" y2="0" />
+      <circle id="gizmo-rot-handle" cx="0" cy="0" r="9" data-handle="rot" />
+      <circle class="corner" cx="0" cy="0" r="7" data-handle="c0" />
+      <circle class="corner" cx="0" cy="0" r="7" data-handle="c1" />
+      <circle class="corner" cx="0" cy="0" r="7" data-handle="c2" />
+      <circle class="corner" cx="0" cy="0" r="7" data-handle="c3" />
+    </svg>
+
     <div id="view-toggles">
       <button id="viewFront">Hadapan</button>
       <button id="viewBack">Belakang</button>
+      <button id="viewLeft">Kiri</button>
+      <button id="viewRight">Kanan</button>
     </div>
   </div>
 
@@ -159,11 +201,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ===== 1. SETUP ASAS =====
+// ============================================================
+// 1. SETUP ASAS
+// ============================================================
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
@@ -175,7 +218,7 @@ renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-container.appendChild(renderer.domElement);
+container.prepend(renderer.domElement);
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -201,37 +244,33 @@ controls.enablePan = false;
 controls.minDistance = 1.5;
 controls.maxDistance = 10;
 
-const transformControls = new TransformControls(camera, renderer.domElement);
-transformControls.setMode('translate');
-transformControls.setSize(0.8);
-const transformHelper = transformControls.getHelper();
-scene.add(transformHelper);
-
-// Bendera untuk mengesan jika tetikus sedang menyeret Gizmo
-let isDragging = false;
-
-transformControls.addEventListener('dragging-changed', (event) => {
-  controls.enabled = !event.value;
-  isDragging = event.value;
-});
-
-// ===== 2. STATE & MODEL =====
+// ============================================================
+// 2. STATE
+// ============================================================
 const shirtGroup = new THREE.Group();
 scene.add(shirtGroup);
 
 let shirtMeshes = [];
 let shirtMaterials = [];
 let layers = [];
-let activeDummy = null;
+let activeLayer = null;
 let logoCount = 0;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
-const gizmoControlsUI = document.getElementById('gizmoControls');
+const STORAGE_KEY = 'pro-designer-3d-v2';
+const _shirtGroupInv = new THREE.Matrix4();
 
-new GLTFLoader().load('./T_shirt_gltf.gltf', 
-  (gltf) => setupShirt(gltf.scene), 
-  undefined, 
+// ============================================================
+// 3. LOAD MODEL
+// ============================================================
+new GLTFLoader().load('./T_shirt_gltf.gltf',
+  (gltf) => {
+    setupShirt(gltf.scene);
+    addBaseLayer();
+    restoreFromStorage();
+  },
+  undefined,
   (err) => {
     console.error(err);
     document.getElementById('loading').innerText = 'Gagal memuatkan fail baju.';
@@ -262,286 +301,593 @@ function setupShirt(model) {
   });
 
   shirtGroup.add(model);
+  shirtGroup.updateMatrixWorld(true);
+  _shirtGroupInv.copy(shirtGroup.matrixWorld).invert();
+
+  box.setFromObject(model);
   ground.position.y = box.min.y - 0.1;
 
   finishLoading();
-  addBaseLayer();
 }
 
 function finishLoading() {
   const el = document.getElementById('loading');
+  if (!el) return;
   el.style.opacity = '0';
   setTimeout(() => el.remove(), 500);
 }
 
-// ===== 3. SISTEM LAYER =====
-function addBaseLayer() {
-  const el = document.createElement('div');
-  el.className = 'layer-item active';
-  el.innerHTML = `<div class="layer-info"><span class="layer-icon">👕</span> <span>Baju 3D (Asas)</span></div>`;
-  el.onclick = () => {
-    transformControls.detach();
-    activeDummy = null;
-    gizmoControlsUI.classList.remove('active');
-    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-  };
-  layerListUI.appendChild(el);
+// ============================================================
+// 4. UTILITI
+// ============================================================
+function buildQuaternion(normal, spin) {
+  const n = normal.clone().normalize();
+  const worldUp = new THREE.Vector3(0, 1, 0);
+  let right = new THREE.Vector3().crossVectors(worldUp, n);
+  if (right.lengthSq() < 1e-4) right.set(1, 0, 0);
+  right.normalize();
+  const up = new THREE.Vector3().crossVectors(n, right).normalize();
+  const m = new THREE.Matrix4().makeBasis(right, up, n);
+  const q = new THREE.Quaternion().setFromRotationMatrix(m);
+  const spinQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), spin);
+  return q.multiply(spinQ);
 }
 
-function addDesignLayer(dummy, name, icon) {
-  const id = 'layer-' + Date.now() + Math.random().toString(36).substr(2, 5);
-  dummy.userData.layerId = id;
-
-  const el = document.createElement('div');
-  el.className = 'layer-item';
-  el.id = id;
-  
-  el.innerHTML = `
-    <div class="layer-info">
-      <span class="layer-icon">${icon}</span> 
-      <span>${name}</span>
-    </div>
-    <button class="delete-btn" title="Padam">✕</button>
-  `;
-
-  el.onclick = (e) => {
-    if (e.target.closest('.delete-btn')) return;
-    selectLayer(dummy, el);
-  };
-
-  el.querySelector('.delete-btn').onclick = (e) => {
-    e.stopPropagation();
-    deleteLayer(dummy, el);
-  };
-
-  layerListUI.prepend(el);
-  selectLayer(dummy, el);
+function raycastShirt(ndc) {
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects(shirtMeshes, true);
+  if (!hits.length) return null;
+  const hit = hits[0];
+  const pointLocal = shirtGroup.worldToLocal(hit.point.clone());
+  const normalWorld = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+  const normalLocal = normalWorld.clone().transformDirection(_shirtGroupInv).normalize();
+  return { point: pointLocal, normal: normalLocal };
 }
 
-function selectLayer(dummy, el) {
-  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
-  
-  activeDummy = dummy;
-  transformControls.attach(dummy);
-  gizmoControlsUI.classList.add('active');
+function loadTexture(dataURL, cb) {
+  const img = new Image();
+  img.onload = () => {
+    const tex = new THREE.Texture(img);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    cb(tex, img.width / img.height);
+  };
+  img.onerror = () => cb(null, 1);
+  img.src = dataURL;
 }
 
-function deleteLayer(dummy, el) {
-  transformControls.detach();
-  
-  if (dummy.userData.decals) {
-    dummy.userData.decals.forEach(decal => {
-      shirtGroup.remove(decal);
-      decal.geometry.dispose();
-      if (decal.material.map) decal.material.map.dispose(); // Buang texture klon
-      decal.material.dispose();
+function fileToDataURL(file, cb) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1024;
+      let w = img.width, h = img.height;
+      if (Math.max(w, h) > MAX) {
+        const s = MAX / Math.max(w, h);
+        w = Math.round(w * s);
+        h = Math.round(h * s);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      cb(canvas.toDataURL('image/png'), w / h);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// 5. DECAL
+// ============================================================
+const FLIP_BACK = true; // Kekalkan tingkah laku asal
+
+function rebuildDecal(layer) {
+  // Buang decal lama
+  layer.decals.forEach(d => {
+    shirtGroup.remove(d);
+    d.geometry.dispose();
+  });
+  layer.decals = [];
+
+  if (!shirtMeshes.length || !layer.texture) return;
+
+  const isBack = FLIP_BACK && layer.normal.z < -0.1;
+  let map = layer.texture;
+  if (isBack) {
+    if (!layer.textureBack) {
+      layer.textureBack = layer.texture.clone();
+      layer.textureBack.wrapS = THREE.RepeatWrapping;
+      layer.textureBack.repeat.x = -1;
+      layer.textureBack.needsUpdate = true;
+    }
+    map = layer.textureBack;
+  }
+
+  if (!layer.material || layer.material.map !== map) {
+    if (layer.material) layer.material.dispose();
+    layer.material = new THREE.MeshStandardMaterial({
+      map: map,
+      transparent: true,
+      depthTest: true,
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      roughness: 0.8,
+      metalness: 0
     });
   }
-  
-  if (dummy.userData.texture) dummy.userData.texture.dispose();
-  shirtGroup.remove(dummy);
-  
-  el.remove();
-  layers = layers.filter(l => l !== dummy);
-  gizmoControlsUI.classList.remove('active');
-  activeDummy = null;
-}
 
-// ===== 4. SISTEM DECAL =====
-function createDecal(dummy) {
-  if (!shirtMeshes.length) return;
-
-  if (dummy.userData.decals) {
-    dummy.userData.decals.forEach(decal => {
-      shirtGroup.remove(decal);
-      decal.geometry.dispose();
-      if (decal.material.map) decal.material.map.dispose(); // Dispose texture klon lama
-      decal.material.dispose();
-    });
-  }
-  dummy.userData.decals = [];
-
-  const w = 0.6 * dummy.scale.x;
-  const h = (0.6 / dummy.userData.aspect) * dummy.scale.y;
-  const size = new THREE.Vector3(w, h, 0.2);
-
-  // Semak jika logo berada di belakang baju
-  const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-  const isBack = currentNormal.z < -0.1; // Jika paksi Z menghadap ke belakang
+  const quat = buildQuaternion(layer.normal, layer.spin);
+  const w = layer.width;
+  const h = w / layer.aspect;
+  const depth = Math.min(0.18, Math.max(0.06, w * 0.15));
+  const size = new THREE.Vector3(w, h, depth);
 
   shirtMeshes.forEach(mesh => {
     try {
-      const decalGeo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
-      
-      if (decalGeo.attributes.position && decalGeo.attributes.position.count > 0) {
-        // KLON TEXTURE supaya kita boleh flip tanpa merosakkan logo lain
-        const tex = dummy.userData.texture.clone();
-        if (isBack) {
-          tex.wrapS = THREE.RepeatWrapping;
-          tex.repeat.x = -1; // Flip gambar secara automatik (Anti-Mirror)
-        }
-
-        const decalMat = new THREE.MeshStandardMaterial({
-          map: tex,
-          transparent: true,
-          depthTest: true,
-          depthWrite: false,
-          polygonOffset: true,
-          polygonOffsetFactor: -4,
-          roughness: 0.8
-        });
-
-        const decalMesh = new THREE.Mesh(decalGeo, decalMat);
-        decalMesh.renderOrder = 2;
-        shirtGroup.add(decalMesh);
-        dummy.userData.decals.push(decalMesh);
+      const geo = new DecalGeometry(mesh, layer.position, quat, size);
+      if (geo.attributes.position && geo.attributes.position.count > 0) {
+        const m = new THREE.Mesh(geo, layer.material);
+        m.renderOrder = 2;
+        shirtGroup.add(m);
+        layer.decals.push(m);
       } else {
-        decalGeo.dispose();
+        geo.dispose();
       }
-    } catch(e) {
-      console.warn("Decal gagal pada mesh ini:", e);
+    } catch (e) {
+      // abaikan
     }
   });
 }
 
-// Kemas kini posisi & putaran semasa Gizmo digunakan
-transformControls.addEventListener('objectChange', () => {
-  if (!activeDummy || !shirtMeshes.length) return;
+// ============================================================
+// 6. LAYER
+// ============================================================
+function createLayerObject(opts) {
+  const layer = {
+    id: 'L' + Date.now() + Math.random().toString(36).slice(2, 6),
+    type: opts.type,
+    icon: opts.icon || (opts.type === 'text' ? '📝' : '🖼️'),
+    name: opts.name || (opts.type === 'text' ? 'Teks' : 'Logo'),
+    texture: opts.texture,
+    textureBack: null,
+    dataURL: opts.dataURL,
+    aspect: opts.aspect,
+    position: new THREE.Vector3(0, 0, 1),
+    normal: new THREE.Vector3(0, 0, 1),
+    spin: 0,
+    width: 0.6,
+    decals: [],
+    material: null
+  };
+  layers.push(layer);
+  return layer;
+}
 
-  activeDummy.updateMatrixWorld();
-  const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
-  
-  const dir = worldPos.clone().sub(camera.position).normalize();
-  raycaster.set(camera.position, dir);
-  
-  const hits = raycaster.intersectObjects(shirtMeshes, true);
-  
-  if (hits.length > 0) {
-    const hit = hits[0];
-    const localHit = shirtGroup.worldToLocal(hit.point.clone());
-    activeDummy.position.copy(localHit); // Snap ke baju
+function placeLayerAtDefault(layer) {
+  const offsetX = (logoCount % 2 === 0) ? 0.15 : -0.15;
+  const offsetY = Math.floor(logoCount / 2) * -0.2;
+  const ndc = new THREE.Vector2(offsetX, offsetY);
+  const hit = raycastShirt(ndc);
+  if (hit) {
+    layer.position.copy(hit.point);
+    layer.normal.copy(hit.normal);
+  } else {
+    layer.position.set(0, 0, 1);
+    layer.normal.set(0, 0, 1);
+  }
+  logoCount++;
+}
 
-    // Jika dalam mod "Gerak", selaraskan putaran logo mengikut lekuk baju (Lengan/Leher)
-    if (isDragging && transformControls.getMode() === 'translate') {
-      const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-      const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-      
-      const up = new THREE.Vector3(0, 1, 0);
-      let right = new THREE.Vector3().crossVectors(up, localNormal);
-      if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-      right.normalize();
-      const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-      
-      const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
-      activeDummy.quaternion.setFromRotationMatrix(matrix);
-    }
+function addBaseLayer() {
+  const el = document.createElement('div');
+  el.className = 'layer-item active';
+  el.id = 'base-layer';
+  el.innerHTML = `<div class="layer-info"><span class="layer-icon">👕</span> <span>Baju 3D (Asas)</span></div>`;
+  el.onclick = () => {
+    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    activeLayer = null;
+    updateOverlay();
+  };
+  layerListUI.appendChild(el);
+}
+
+function addLayerUI(layer) {
+  const el = document.createElement('div');
+  el.className = 'layer-item';
+  el.id = layer.id;
+  el.innerHTML = `
+    <div class="layer-info">
+      <span class="layer-icon">${layer.icon}</span>
+      <span>${layer.name}</span>
+    </div>
+    <button class="delete-btn" title="Padam">✕</button>
+  `;
+  el.onclick = (e) => {
+    if (e.target.closest('.delete-btn')) return;
+    selectLayer(layer);
+  };
+  el.querySelector('.delete-btn').onclick = (e) => {
+    e.stopPropagation();
+    deleteLayer(layer);
+  };
+  layerListUI.prepend(el);
+}
+
+function selectLayer(layer) {
+  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+  const el = document.getElementById(layer.id);
+  if (el) el.classList.add('active');
+  activeLayer = layer;
+  updateOverlay();
+}
+
+function deleteLayer(layer) {
+  layer.decals.forEach(d => {
+    shirtGroup.remove(d);
+    d.geometry.dispose();
+  });
+  if (layer.material) layer.material.dispose();
+  if (layer.textureBack) layer.textureBack.dispose();
+  if (layer.texture) layer.texture.dispose();
+
+  const el = document.getElementById(layer.id);
+  if (el) el.remove();
+
+  const idx = layers.indexOf(layer);
+  if (idx >= 0) layers.splice(idx, 1);
+
+  if (activeLayer === layer) {
+    activeLayer = null;
+    updateOverlay();
+  }
+  saveToStorage();
+}
+
+// ============================================================
+// 7. SVG OVERLAY GIZMO
+// ============================================================
+const svg = document.getElementById('gizmo-svg');
+const boxPoly = document.getElementById('gizmo-box');
+const rotLine = document.getElementById('gizmo-rot-line');
+const rotHandleEl = document.getElementById('gizmo-rot-handle');
+const cornerEls = Array.from(document.querySelectorAll('#gizmo-svg .corner'));
+
+let dragState = null;
+
+function projectToScreen(worldVec) {
+  const v = worldVec.clone().project(camera);
+  const rect = container.getBoundingClientRect();
+  return {
+    x: (v.x * 0.5 + 0.5) * rect.width,
+    y: (-v.y * 0.5 + 0.5) * rect.height
+  };
+}
+
+function getLayerScreenCorners(layer) {
+  const q = buildQuaternion(layer.normal, layer.spin);
+  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(q);
+  const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
+  const w = layer.width;
+  const h = w / layer.aspect;
+  const p = layer.position;
+  const locals = [
+    p.clone().addScaledVector(right, -w / 2).addScaledVector(up, -h / 2),
+    p.clone().addScaledVector(right,  w / 2).addScaledVector(up, -h / 2),
+    p.clone().addScaledVector(right,  w / 2).addScaledVector(up,  h / 2),
+    p.clone().addScaledVector(right, -w / 2).addScaledVector(up,  h / 2)
+  ];
+  return locals.map(v => projectToScreen(shirtGroup.localToWorld(v)));
+}
+
+function updateOverlay() {
+  if (!activeLayer || !shirtMeshes.length) {
+    svg.style.display = 'none';
+    return;
   }
 
-  createDecal(activeDummy);
+  const worldPos = shirtGroup.localToWorld(activeLayer.position.clone());
+  const worldNormal = activeLayer.normal.clone().transformDirection(shirtGroup.matrixWorld).normalize();
+  const toCam = camera.position.clone().sub(worldPos).normalize();
+
+  if (worldNormal.dot(toCam) < -0.1) {
+    svg.style.display = 'none';
+    return;
+  }
+
+  svg.style.display = 'block';
+  const rect = container.getBoundingClientRect();
+  svg.setAttribute('width', rect.width);
+  svg.setAttribute('height', rect.height);
+
+  const corners = getLayerScreenCorners(activeLayer);
+  boxPoly.setAttribute('points', corners.map(p => `${p.x},${p.y}`).join(' '));
+  cornerEls.forEach((el, i) => {
+    el.setAttribute('cx', corners[i].x);
+    el.setAttribute('cy', corners[i].y);
+  });
+
+  const topMid = {
+    x: (corners[2].x + corners[3].x) / 2,
+    y: (corners[2].y + corners[3].y) / 2
+  };
+  const botMid = {
+    x: (corners[0].x + corners[1].x) / 2,
+    y: (corners[0].y + corners[1].y) / 2
+  };
+  let dx = topMid.x - botMid.x;
+  let dy = topMid.y - botMid.y;
+  const len = Math.hypot(dx, dy) || 1;
+  dx /= len;
+  dy /= len;
+  const rh = { x: topMid.x + dx * 36, y: topMid.y + dy * 36 };
+
+  rotLine.setAttribute('x1', topMid.x);
+  rotLine.setAttribute('y1', topMid.y);
+  rotLine.setAttribute('x2', rh.x);
+  rotLine.setAttribute('y2', rh.y);
+  rotHandleEl.setAttribute('cx', rh.x);
+  rotHandleEl.setAttribute('cy', rh.y);
+}
+
+// ============================================================
+// 8. POINTER HANDLERS
+// ============================================================
+function getPointerPos(e) {
+  const rect = container.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function ndcFromScreen(pos) {
+  const rect = container.getBoundingClientRect();
+  return new THREE.Vector2(
+    (pos.x / rect.width) * 2 - 1,
+    -(pos.y / rect.height) * 2 + 1
+  );
+}
+
+svg.addEventListener('pointerdown', (e) => {
+  if (!activeLayer) return;
+  const target = e.target;
+  const handle = target.dataset ? target.dataset.handle : null;
+  const isBox = target === boxPoly;
+  if (!handle && !isBox) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  const pos = getPointerPos(e);
+  const centerWorld = shirtGroup.localToWorld(activeLayer.position.clone());
+  const center = projectToScreen(centerWorld);
+
+  if (isBox) {
+    const hit = raycastShirt(ndcFromScreen(pos));
+    if (!hit) return;
+    dragState = {
+      mode: 'move',
+      pointerId: e.pointerId,
+      startHit: hit.point.clone(),
+      startPos: activeLayer.position.clone()
+    };
+  } else if (handle === 'rot') {
+    dragState = {
+      mode: 'rotate',
+      pointerId: e.pointerId,
+      center: center,
+      startAngle: Math.atan2(pos.y - center.y, pos.x - center.x),
+      startSpin: activeLayer.spin
+    };
+  } else {
+    dragState = {
+      mode: 'scale',
+      pointerId: e.pointerId,
+      center: center,
+      startDist: Math.hypot(pos.x - center.x, pos.y - center.y) || 1,
+      startWidth: activeLayer.width
+    };
+  }
+
+  controls.enabled = false;
+  window.addEventListener('pointermove', onGizmoMove);
+  window.addEventListener('pointerup', onGizmoUp);
+  window.addEventListener('pointercancel', onGizmoUp);
 });
 
-// ===== 5. FUNGSI TAMBAH LOGO & TEKS =====
+function onGizmoMove(e) {
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
+  const pos = getPointerPos(e);
+
+  if (dragState.mode === 'move') {
+    const hit = raycastShirt(ndcFromScreen(pos));
+    if (!hit) return;
+    const delta = hit.point.clone().sub(dragState.startHit);
+    activeLayer.position.copy(dragState.startPos).add(delta);
+    activeLayer.normal.copy(hit.normal);
+    rebuildDecal(activeLayer);
+    updateOverlay();
+  } else if (dragState.mode === 'scale') {
+    const dist = Math.hypot(pos.x - dragState.center.x, pos.y - dragState.center.y);
+    let w = dragState.startWidth * (dist / dragState.startDist);
+    w = Math.max(0.06, Math.min(2.5, w));
+    activeLayer.width = w;
+    rebuildDecal(activeLayer);
+    updateOverlay();
+  } else if (dragState.mode === 'rotate') {
+    const angle = Math.atan2(pos.y - dragState.center.y, pos.x - dragState.center.x);
+    const d = angle - dragState.startAngle;
+    activeLayer.spin = dragState.startSpin - d;
+    rebuildDecal(activeLayer);
+    updateOverlay();
+  }
+}
+
+function onGizmoUp(e) {
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
+  dragState = null;
+  controls.enabled = true;
+  window.removeEventListener('pointermove', onGizmoMove);
+  window.removeEventListener('pointerup', onGizmoUp);
+  window.removeEventListener('pointercancel', onGizmoUp);
+  saveToStorage();
+}
+
+// ============================================================
+// 9. PERSISTENCE
+// ============================================================
+let saveTimer = null;
+function saveToStorageDebounced() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToStorage, 300);
+}
+
+function saveToStorage() {
+  try {
+    const data = {
+      color: shirtMaterials.length ? '#' + shirtMaterials[0].color.getHexString() : '#ffffff',
+      layers: layers.map(l => ({
+        type: l.type,
+        name: l.name,
+        icon: l.icon,
+        dataURL: l.dataURL,
+        aspect: l.aspect,
+        position: l.position.toArray(),
+        normal: l.normal.toArray(),
+        spin: l.spin,
+        width: l.width
+      }))
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.warn('Gagal menyimpan design:', e);
+  }
+}
+
+async function restoreFromStorage() {
+  let data = null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) data = JSON.parse(raw);
+  } catch (e) { return; }
+  if (!data) return;
+
+  if (data.color && shirtMaterials.length) {
+    shirtMaterials.forEach(m => m.color.set(data.color));
+    const customColor = document.getElementById('customColor');
+    if (customColor) customColor.value = data.color;
+  }
+
+  const layerPromises = (data.layers || []).map(ld => new Promise(resolve => {
+    if (!ld.dataURL) { resolve(); return; }
+    loadTexture(ld.dataURL, (tex, aspect) => {
+      if (!tex) { resolve(); return; }
+      const layer = createLayerObject({
+        type: ld.type,
+        name: ld.name,
+        icon: ld.icon,
+        texture: tex,
+        dataURL: ld.dataURL,
+        aspect: ld.aspect || aspect
+      });
+      layer.position.fromArray(ld.position);
+      layer.normal.fromArray(ld.normal).normalize();
+      layer.spin = ld.spin || 0;
+      layer.width = ld.width || 0.6;
+      rebuildDecal(layer);
+      addLayerUI(layer);
+      resolve();
+    });
+  }));
+
+  await Promise.all(layerPromises);
+  logoCount = layers.length;
+}
+
+// ============================================================
+// 10. UPLOAD LOGO
+// ============================================================
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
-  if(!files.length) return;
+  if (!files.length) return;
 
-  for(let i=0; i<files.length; i++) {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        const texture = new THREE.Texture(img);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.needsUpdate = true;
-        addLogoToScene(texture, img.width / img.height);
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(files[i]);
-  }
+  Array.from(files).forEach(file => {
+    fileToDataURL(file, (dataURL, aspect) => {
+      loadTexture(dataURL, (tex, asp) => {
+        if (!tex) return;
+        const layer = createLayerObject({
+          type: 'logo',
+          name: 'Logo ' + (layers.length + 1),
+          texture: tex,
+          dataURL: dataURL,
+          aspect: asp || aspect
+        });
+        placeLayerAtDefault(layer);
+        rebuildDecal(layer);
+        addLayerUI(layer);
+        selectLayer(layer);
+        saveToStorage();
+      });
+    });
+  });
+
   e.target.value = '';
 });
 
+// ============================================================
+// 11. TAMBAH TEKS
+// ============================================================
 document.getElementById('addTextBtn').onclick = () => {
-  const text = document.getElementById('textInput').value;
+  const text = document.getElementById('textInput').value.trim();
   const color = document.getElementById('textColor').value;
   if (!text) return;
 
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = 1024;
-  canvas.height = 256;
-  ctx.fillStyle = color;
-  ctx.font = "bold 120px Inter, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, 512, 128);
+  const fontSize = 160;
+  const measureCanvas = document.createElement('canvas');
+  const mctx = measureCanvas.getContext('2d');
+  mctx.font = `bold ${fontSize}px Inter, sans-serif`;
+  const textWidth = mctx.measureText(text).width;
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  addLogoToScene(texture, canvas.width / canvas.height, true);
+  const pad = 40;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.ceil(textWidth + pad * 2);
+  canvas.height = Math.ceil(fontSize * 1.3 + pad * 2);
+  const ctx = canvas.getContext('2d');
+  ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const dataURL = canvas.toDataURL('image/png');
+
+  const layer = createLayerObject({
+    type: 'text',
+    name: 'Teks ' + (layers.filter(l => l.type === 'text').length + 1),
+    texture: tex,
+    dataURL: dataURL,
+    aspect: canvas.width / canvas.height
+  });
+  placeLayerAtDefault(layer);
+  rebuildDecal(layer);
+  addLayerUI(layer);
+  selectLayer(layer);
+  saveToStorage();
+
   document.getElementById('textInput').value = '';
 };
 
-function addLogoToScene(texture, aspect, isText = false) {
-  const dummy = new THREE.Object3D();
-  dummy.userData.texture = texture;
-  dummy.userData.aspect = aspect;
-  shirtGroup.add(dummy);
-
-  const offsetX = (logoCount % 2 === 0) ? 0.15 : -0.15;
-  const offsetY = Math.floor(logoCount / 2) * -0.2;
-
-  raycaster.setFromCamera(new THREE.Vector2(offsetX, offsetY), camera);
-  const hits = raycaster.intersectObjects(shirtMeshes, true);
-
-  if (hits.length > 0) {
-    const hit = hits[0];
-    const localHit = shirtGroup.worldToLocal(hit.point.clone());
-    dummy.position.copy(localHit);
-
-    const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-    
-    const up = new THREE.Vector3(0, 1, 0);
-    let right = new THREE.Vector3().crossVectors(up, localNormal);
-    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-    right.normalize();
-    const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-    
-    const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
-    dummy.quaternion.setFromRotationMatrix(matrix);
-  } else {
-    dummy.position.set(0, 0, 0.5);
-  }
-
-  logoCount++;
-  createDecal(dummy);
-
-  const layerName = isText ? `Teks ${logoCount}` : `Logo ${logoCount}`;
-  const icon = isText ? '📝' : '🖼️';
-  addDesignLayer(dummy, layerName, icon);
-}
-
-// ===== 6. KAWALAN UI LAIN =====
-document.getElementById('btnTranslate').onclick = (e) => {
-  transformControls.setMode('translate');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnScale').onclick = (e) => {
-  transformControls.setMode('scale');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-document.getElementById('btnRotate').onclick = (e) => {
-  transformControls.setMode('rotate');
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-};
-
+// ============================================================
+// 12. WARNA BAJU
+// ============================================================
 const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 const colorGrid = document.getElementById('colorGrid');
 colors.forEach((hex, i) => {
@@ -552,6 +898,7 @@ colors.forEach((hex, i) => {
     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     shirtMaterials.forEach(m => m.color.set(hex));
+    saveToStorage();
   };
   colorGrid.appendChild(btn);
 });
@@ -559,21 +906,38 @@ colors.forEach((hex, i) => {
 document.getElementById('customColor').addEventListener('input', (e) => {
   document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
   shirtMaterials.forEach(m => m.color.set(e.target.value));
+  saveToStorageDebounced();
 });
 
-document.getElementById('viewFront').onclick = () => { camera.position.set(0, 0, 4.5); controls.target.set(0, 0, 0); };
-document.getElementById('viewBack').onclick = () => { camera.position.set(0, 0, -4.5); controls.target.set(0, 0, 0); };
+// ============================================================
+// 13. BUTANG VIEW
+// ============================================================
+function setView(x, y, z) {
+  camera.position.set(x, y, z);
+  controls.target.set(0, 0, 0);
+  controls.update();
+}
+document.getElementById('viewFront').onclick = () => setView(0, 0, 4.5);
+document.getElementById('viewBack').onclick = () => setView(0, 0, -4.5);
+document.getElementById('viewLeft').onclick = () => setView(-4.5, 0, 0);
+document.getElementById('viewRight').onclick = () => setView(4.5, 0, 0);
 
+// ============================================================
+// 14. SAVE HD
+// ============================================================
 document.getElementById('saveBtn').onclick = () => {
-  transformHelper.visible = false;
-  const currentSize = renderer.getSize(new THREE.Vector2());
-  
-  renderer.setSize(2000, 2000, false);
+  const prevSize = renderer.getSize(new THREE.Vector2());
+  const prevPR = renderer.getPixelRatio();
+  const aspect = prevSize.x / prevSize.y;
+  const W = 2400;
+  const H = Math.round(W / aspect);
+
+  renderer.setPixelRatio(1);
+  renderer.setSize(W, H, false);
   renderer.render(scene, camera);
   const dataURL = renderer.domElement.toDataURL('image/png');
-  
-  renderer.setSize(currentSize.x, currentSize.y, false);
-  transformHelper.visible = true;
+  renderer.setPixelRatio(prevPR);
+  renderer.setSize(prevSize.x, prevSize.y, false);
   renderer.render(scene, camera);
 
   const link = document.createElement('a');
@@ -582,19 +946,24 @@ document.getElementById('saveBtn').onclick = () => {
   link.click();
 };
 
+// ============================================================
+// 15. ANIMATE & RESIZE
+// ============================================================
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
+  updateOverlay();
   renderer.render(scene, camera);
 }
 animate();
 
 window.addEventListener('resize', () => {
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  camera.aspect = width / height;
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(width, height);
+  renderer.setSize(w, h);
+  updateOverlay();
 });
 </script>
 
