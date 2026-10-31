@@ -178,6 +178,22 @@
       background: #dc2626;
       animation: pulse 1.2s infinite;
     }
+    .preview-btn {
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+    }
+    .preview-btn:hover { background: #0284c7; }
+    .preview-btn.playing {
+      background: #f59e0b;
+    }
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
@@ -406,7 +422,7 @@
       </div>
     </div>
 
-    <!-- RENDER VIDEO -->
+    <!-- RENDER VIDEO + PREVIEW -->
     <div>
       <div class="section-title">Render Video</div>
       <div class="video-controls">
@@ -434,10 +450,14 @@
           <input type="range" id="qualitySlider" min="0" max="1" step="1" value="0">
         </div>
 
+        <!-- BUTANG PLAY PREVIEW -->
+        <button class="preview-btn" id="btnPreview">▶ Mainkan Preview</button>
+
         <button class="video-btn" id="btnRenderVideo">🎥 Mulakan Render Video</button>
         <div class="hint">
-          Video Portrait (sesuai WhatsApp).<br>
-          Format: WebM (boleh convert ke MP4).
+          1. Klik <b>Mainkan Preview</b> dulu untuk lihat animasi.<br>
+          2. Bila puas hati baru klik Render Video.<br>
+          Video Portrait sesuai WhatsApp.
         </div>
       </div>
     </div>
@@ -593,12 +613,14 @@ let bgFillMode = 'stretch';
 let bgOpacity = 1;
 
 let isRecording = false;
+let isPreviewing = false;
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordStartTime = 0;
 let recordDuration = 6;
 let rotationSpeed = 1.0;
 let recordQuality = 0;
+let previewAnimationId = null;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
@@ -607,6 +629,7 @@ const btnUndo = document.getElementById('btnUndo');
 const btnRedo = document.getElementById('btnRedo');
 const bgImagePanel = document.getElementById('bgImagePanel');
 const btnRenderVideo = document.getElementById('btnRenderVideo');
+const btnPreview = document.getElementById('btnPreview');
 const recordingOverlay = document.getElementById('recording-overlay');
 const recordingText = document.getElementById('recordingText');
 
@@ -1347,7 +1370,7 @@ document.getElementById('shadowSlider').addEventListener('input', (e) => {
   document.getElementById('shadowValue').textContent = val.toFixed(2);
 });
 
-// ===== VIDEO RENDER (PORTRAIT + NO GLITCH) =====
+// ===== PREVIEW + VIDEO RENDER =====
 document.getElementById('speedSlider').addEventListener('input', (e) => {
   rotationSpeed = parseFloat(e.target.value);
   document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x';
@@ -1363,8 +1386,82 @@ document.getElementById('qualitySlider').addEventListener('input', (e) => {
   document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait';
 });
 
-btnRenderVideo.onclick = () => {
+// ===== PLAY PREVIEW =====
+btnPreview.onclick = () => {
   if (isRecording) return;
+  if (isPreviewing) {
+    stopPreview();
+  } else {
+    startPreview();
+  }
+};
+
+function startPreview() {
+  if (isPreviewing || isRecording) return;
+
+  isPreviewing = true;
+  btnPreview.classList.add('playing');
+  btnPreview.textContent = '⏹ Stop Preview';
+  btnRenderVideo.disabled = true;
+
+  transformHelper.visible = false;
+  hideFreeTransform();
+  controls.enabled = false;
+  gizmoControlsUI.classList.remove('active');
+
+  // Set nice view for preview
+  camera.position.set(0, 0.15, 5.2);
+  controls.target.set(0, 0.05, 0);
+  controls.update();
+
+  shirtGroup.rotation.y = 0;
+  const startTime = performance.now();
+  const durationMs = recordDuration * 1000;
+
+  recordingOverlay.classList.add('active');
+  recordingText.textContent = `Preview... ${recordDuration}s`;
+
+  function previewLoop(now) {
+    if (!isPreviewing) return;
+
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / durationMs, 1);
+
+    shirtGroup.rotation.y = progress * Math.PI * 2 * rotationSpeed;
+
+    const remaining = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
+    recordingText.textContent = `Preview... ${remaining}s`;
+
+    if (progress < 1) {
+      previewAnimationId = requestAnimationFrame(previewLoop);
+    } else {
+      stopPreview();
+    }
+  }
+
+  previewAnimationId = requestAnimationFrame(previewLoop);
+}
+
+function stopPreview() {
+  isPreviewing = false;
+  if (previewAnimationId) {
+    cancelAnimationFrame(previewAnimationId);
+    previewAnimationId = null;
+  }
+
+  btnPreview.classList.remove('playing');
+  btnPreview.textContent = '▶ Mainkan Preview';
+  btnRenderVideo.disabled = false;
+  recordingOverlay.classList.remove('active');
+
+  shirtGroup.rotation.y = 0;
+  transformHelper.visible = true;
+  controls.enabled = true;
+}
+
+// ===== RENDER VIDEO =====
+btnRenderVideo.onclick = () => {
+  if (isRecording || isPreviewing) return;
   startVideoRecord();
 };
 
@@ -1375,6 +1472,7 @@ async function startVideoRecord() {
   hideFreeTransform();
   controls.enabled = false;
   gizmoControlsUI.classList.remove('active');
+  btnPreview.disabled = true;
 
   const oldSize = new THREE.Vector2();
   renderer.getSize(oldSize);
@@ -1393,7 +1491,7 @@ async function startVideoRecord() {
   controls.target.set(0, 0.05, 0);
   controls.update();
 
-  // Warm-up frames (penting elak glitch)
+  // Warm-up frames
   for (let i = 0; i < 10; i++) {
     renderer.clear();
     renderer.render(scene, camera);
@@ -1433,6 +1531,7 @@ async function startVideoRecord() {
     controls.enabled = true;
     isRecording = false;
     btnRenderVideo.disabled = false;
+    btnPreview.disabled = false;
     btnRenderVideo.classList.remove('recording');
     btnRenderVideo.textContent = '🎥 Mulakan Render Video';
     recordingOverlay.classList.remove('active');
@@ -1817,13 +1916,16 @@ document.getElementById('saveBtn').onclick = () => {
 // ===== ANIMATE =====
 function animate() {
   requestAnimationFrame(animate);
-  if (!isRecording) {
+  if (!isRecording && !isPreviewing) {
     controls.update();
     renderer.render(scene, camera);
 
     if (currentMode === 'free' && activeDummy && !ftDragging) {
       updateFreeTransformHandles();
     }
+  } else if (isPreviewing) {
+    // Preview already handles rendering via its own loop, but we still need to keep the loop alive
+    renderer.render(scene, camera);
   }
 }
 animate();
