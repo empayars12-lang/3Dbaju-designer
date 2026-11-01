@@ -305,18 +305,37 @@ async function dbDelete(id) {
 
 function resizeDataURL(dataURL, max = 900) {
   return new Promise(resolve => {
-    if (!dataURL || dataURL.length < 120000) return resolve(dataURL);
+    if (!dataURL || dataURL.length < 150000) {
+      return resolve(dataURL); // kalau tak terlalu besar, biarkan asal
+    }
+
     const img = new Image();
     img.onload = () => {
-      let w = img.width, h = img.height;
-      if (w <= max && h <= max) return resolve(dataURL);
-      const r = Math.min(max / w, max / h);
-      w = Math.round(w * r); h = Math.round(h * r);
-      const c = document.createElement('canvas');
-      c.width = w; c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(c.toDataURL('image/jpeg', 0.82));
+      let w = img.width;
+      let h = img.height;
+
+      // Jika saiz dah kecil, tak payah resize
+      if (w <= max && h <= max) {
+        return resolve(dataURL);
+      }
+
+      const ratio = Math.min(max / w, max / h);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+
+      // PENTING: Clear dengan transparent dulu
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // PENTING: Guna PNG supaya transparency kekal
+      resolve(canvas.toDataURL('image/png'));
     };
+
     img.onerror = () => resolve(dataURL);
     img.src = dataURL;
   });
