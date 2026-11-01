@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Pro Designer 3D - Studio</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@400;700&family=Oswald:wght@400;600&family=Playfair+Display:wght@400;700&display=swap');
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: #121212; color: #f3f4f6; }
@@ -13,299 +13,160 @@
     #app { display: flex; height: 100vh; }
     
     #sidebar-left {
-      width: 300px; background: #18181b; padding: 24px; display: flex; flex-direction: column; gap: 20px;
+      width: 300px; background: #18181b; padding: 20px; display: flex; flex-direction: column; gap: 18px;
       border-right: 1px solid #27272a; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto;
     }
-    .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #a1a1aa; margin-bottom: 12px; }
+    .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #a1a1aa; margin-bottom: 10px; }
     
-    .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+    .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .color-btn { aspect-ratio: 1; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
     .color-btn:hover { transform: scale(1.1); }
-    .color-btn.active { border-color: #38bdf8; transform: scale(1.1); box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+    .color-btn.active { border-color: #38bdf8; transform: scale(1.1); }
     
-    .custom-color-wrapper { display: flex; align-items: center; gap: 12px; background: #27272a; padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46; margin-top: 12px;}
-    .custom-color-wrapper input[type="color"] { width: 32px; height: 32px; border: none; background: none; cursor: pointer; border-radius: 4px; }
+    .custom-color-wrapper { display: flex; align-items: center; gap: 10px; background: #27272a; padding: 8px 12px; border-radius: 8px; border: 1px solid #3f3f46; margin-top: 10px;}
+    .custom-color-wrapper input[type="color"] { width: 28px; height: 28px; border: none; background: none; cursor: pointer; }
     .custom-color-wrapper span { font-size: 13px; color: #d4d4d8; }
 
     .upload-btn {
-      background: #38bdf8; color: #000; text-align: center; padding: 14px; border-radius: 8px;
-      font-weight: 600; font-size: 14px; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
+      background: #38bdf8; color: #000; text-align: center; padding: 12px; border-radius: 8px;
+      font-weight: 600; font-size: 13px; cursor: pointer; position: relative; overflow: hidden; transition: 0.2s;
     }
-    .upload-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
+    .upload-btn:hover { background: #0ea5e9; }
     .upload-btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
     .text-input-group { display: flex; gap: 8px; margin-bottom: 8px; }
-    .text-input-group input[type="text"] { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #3f3f46; background: #27272a; color: #fff; font-family: inherit; font-size: 13px; }
-    .text-input-group input[type="color"] { width: 40px; height: 40px; border: none; background: #27272a; border-radius: 6px; cursor: pointer; padding: 2px; }
-    .add-text-btn { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
+    .text-input-group input[type="text"] { flex: 1; padding: 9px; border-radius: 6px; border: 1px solid #3f3f46; background: #27272a; color: #fff; font-size: 13px; }
+    .text-input-group input[type="color"] { width: 38px; height: 38px; border: none; background: #27272a; border-radius: 6px; cursor: pointer; }
+    
+    .add-text-btn, .small-btn, .action-btn, .preview-btn, .video-btn, .save-btn, .project-btn {
+      border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit;
+    }
+    .add-text-btn { background: #27272a; color: #d4d4d8; border: 1px solid #3f3f46; padding: 10px; font-size: 13px; width: 100%; }
     .add-text-btn:hover { background: #3f3f46; }
 
     .gizmo-controls { display: none; background: #27272a; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46; }
     .gizmo-controls.active { display: block; }
-    .mode-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
-    .mode-btn { background: #3f3f46; border: none; color: #d4d4d8; padding: 10px 4px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: inherit; }
+    .mode-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
+    .mode-btn { background: #3f3f46; border: none; color: #d4d4d8; padding: 9px 4px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
     .mode-btn:hover { background: #52525b; }
     .mode-btn.active { background: #38bdf8; color: #000; }
     .mode-btn.free { grid-column: 1 / -1; background: #7c3aed; color: #fff; }
     .mode-btn.free.active { background: #8b5cf6; }
 
-    .action-row { display: flex; gap: 8px; margin-top: 8px; }
-    .action-btn {
-      flex: 1; background: #3f3f46; color: #d4d4d8; border: 1px solid #52525b; padding: 10px;
-      border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
-    }
+    .action-row { display: flex; gap: 6px; margin-top: 8px; }
+    .action-btn { flex: 1; background: #3f3f46; color: #d4d4d8; border: 1px solid #52525b; padding: 9px; font-size: 12px; }
     .action-btn:hover { background: #52525b; }
     .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .save-btn {
-      margin-top: auto; background: #10b981; color: #fff; border: none; padding: 16px;
-      border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
-    }
-    .save-btn:hover { background: #059669; transform: translateY(-2px); }
+    .save-btn { margin-top: auto; background: #10b981; color: #fff; padding: 14px; font-size: 14px; width: 100%; }
+    .save-btn:hover { background: #059669; }
 
-    .bg-controls, .light-controls, .bg-image-controls, .video-controls {
-      background: #27272a;
-      padding: 14px;
-      border-radius: 8px;
-      border: 1px solid #3f3f46;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+    .bg-controls, .light-controls, .bg-image-controls, .video-controls, .project-controls, .text-options {
+      background: #27272a; padding: 12px; border-radius: 8px; border: 1px solid #3f3f46;
+      display: flex; flex-direction: column; gap: 10px;
     }
-    .slider-row {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .slider-row label {
-      font-size: 12px;
-      color: #d4d4d8;
-      display: flex;
-      justify-content: space-between;
-    }
-    .slider-row input[type="range"] {
-      width: 100%;
-      accent-color: #38bdf8;
-      cursor: pointer;
-    }
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 13px;
-      color: #d4d4d8;
-    }
-    .toggle-switch {
-      position: relative;
-      width: 44px;
-      height: 24px;
-      background: #3f3f46;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .toggle-switch.active {
-      background: #38bdf8;
-    }
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      background: #fff;
-      border-radius: 50%;
-      top: 3px;
-      left: 3px;
-      transition: 0.2s;
-    }
-    .toggle-switch.active::after {
-      left: 23px;
-    }
-    .small-btn {
-      background: #3f3f46;
-      color: #d4d4d8;
-      border: 1px solid #52525b;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-      width: 100%;
-    }
+    .slider-row { display: flex; flex-direction: column; gap: 5px; }
+    .slider-row label { font-size: 12px; color: #d4d4d8; display: flex; justify-content: space-between; }
+    .slider-row input[type="range"] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: #d4d4d8; }
+    .toggle-switch { position: relative; width: 42px; height: 22px; background: #3f3f46; border-radius: 11px; cursor: pointer; transition: 0.2s; }
+    .toggle-switch.active { background: #38bdf8; }
+    .toggle-switch::after { content: ''; position: absolute; width: 16px; height: 16px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: 0.2s; }
+    .toggle-switch.active::after { left: 23px; }
+
+    .small-btn { background: #3f3f46; color: #d4d4d8; border: 1px solid #52525b; padding: 8px 10px; font-size: 12px; width: 100%; }
     .small-btn:hover { background: #52525b; }
 
-    .fill-modes {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
-    .fill-btn {
-      background: #3f3f46;
-      border: none;
-      color: #d4d4d8;
-      padding: 8px 4px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+    .fill-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .fill-btn { background: #3f3f46; border: none; color: #d4d4d8; padding: 7px 4px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; }
     .fill-btn:hover { background: #52525b; }
     .fill-btn.active { background: #38bdf8; color: #000; }
 
-    .video-btn {
-      background: #7c3aed;
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.2s;
-      width: 100%;
-    }
+    .video-btn { background: #7c3aed; color: #fff; padding: 12px; font-size: 13px; width: 100%; }
     .video-btn:hover { background: #6d28d9; }
-    .video-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .video-btn.recording {
-      background: #dc2626;
-      animation: pulse 1.2s infinite;
-    }
-    .preview-btn {
-      background: #0ea5e9;
-      color: #fff;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      transition: 0.2s;
-      width: 100%;
-    }
+    .video-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .video-btn.recording { background: #dc2626; animation: pulse 1.2s infinite; }
+    .preview-btn { background: #0ea5e9; color: #fff; padding: 11px; font-size: 13px; width: 100%; }
     .preview-btn:hover { background: #0284c7; }
-    .preview-btn.playing {
-      background: #f59e0b;
+    .preview-btn.playing { background: #f59e0b; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+    .project-btn { background: #3b82f6; color: #fff; padding: 10px; font-size: 13px; width: 100%; }
+    .project-btn:hover { background: #2563eb; }
+    .project-btn.secondary { background: #3f3f46; color: #d4d4d8; }
+    .project-btn.danger { background: #7f1d1d; color: #fecaca; }
+
+    #projectList { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .project-item {
+      background: #1f1f23; border: 1px solid #3f3f46; border-radius: 6px; padding: 8px 10px;
+      display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 12px;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+    .project-item:hover { border-color: #38bdf8; }
+    .project-item.active { border-color: #38bdf8; background: rgba(56,189,248,0.1); }
+    .project-item .name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .project-item .del { color: #ef4444; background: none; border: none; cursor: pointer; font-size: 14px; padding: 0 4px; }
+
+    select, .prop-input {
+      width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #3f3f46;
+      background: #1f1f23; color: #fff; font-size: 13px; font-family: inherit;
     }
 
     #viewer-container { flex: 1; position: relative; background: radial-gradient(circle at center, #27272a 0%, #09090b 100%); overflow: hidden; }
     #viewer-container canvas { display: block; }
 
-    #free-transform {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 20;
-      display: none;
-    }
+    #free-transform { position: absolute; inset: 0; pointer-events: none; z-index: 20; display: none; }
     #free-transform.active { display: block; }
-
-    .ft-box {
-      position: absolute;
-      border: 1.5px solid #38bdf8;
-      pointer-events: none;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.4);
-    }
-    .ft-handle {
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      background: #fff;
-      border: 2px solid #38bdf8;
-      border-radius: 2px;
-      pointer-events: auto;
-      cursor: nwse-resize;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
-    }
-    .ft-handle.nw { cursor: nwse-resize; }
-    .ft-handle.ne { cursor: nesw-resize; }
-    .ft-handle.se { cursor: nwse-resize; }
-    .ft-handle.sw { cursor: nesw-resize; }
-
-    .ft-rotate-handle {
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      background: #38bdf8;
-      border: 2px solid #fff;
-      border-radius: 50%;
-      pointer-events: auto;
-      cursor: grab;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    }
-    .ft-rotate-handle:active { cursor: grabbing; }
-    .ft-rotate-line {
-      position: absolute;
-      width: 1.5px;
-      background: #38bdf8;
-      pointer-events: none;
-      transform-origin: bottom center;
-    }
+    .ft-box { position: absolute; border: 1.5px solid #38bdf8; pointer-events: none; box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
+    .ft-handle { position: absolute; width: 12px; height: 12px; background: #fff; border: 2px solid #38bdf8; border-radius: 2px; pointer-events: auto; cursor: nwse-resize; transform: translate(-50%, -50%); }
+    .ft-handle.nw { cursor: nwse-resize; } .ft-handle.ne { cursor: nesw-resize; } .ft-handle.se { cursor: nwse-resize; } .ft-handle.sw { cursor: nesw-resize; }
+    .ft-rotate-handle { position: absolute; width: 18px; height: 18px; background: #38bdf8; border: 2px solid #fff; border-radius: 50%; pointer-events: auto; cursor: grab; transform: translate(-50%, -50%); }
+    .ft-rotate-line { position: absolute; width: 1.5px; background: #38bdf8; pointer-events: none; }
 
     #view-toggles {
       position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 8px; background: rgba(24, 24, 27, 0.85); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px);
-      z-index: 15;
+      display: flex; gap: 8px; background: rgba(24, 24, 27, 0.85); padding: 8px; border-radius: 12px; backdrop-filter: blur(10px); z-index: 15;
     }
-    #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
+    #view-toggles button { background: #3f3f46; color: #fff; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
     #view-toggles button:hover { background: #52525b; }
     #view-toggles button.active { background: #38bdf8; color: #000; }
 
     #sidebar-right {
-      width: 280px; background: #18181b; border-left: 1px solid #27272a; z-index: 10;
+      width: 300px; background: #18181b; border-left: 1px solid #27272a; z-index: 10;
       display: flex; flex-direction: column; box-shadow: -4px 0 15px rgba(0,0,0,0.3);
     }
-    #layers-header { padding: 24px 24px 16px 24px; border-bottom: 1px solid #27272a; }
+    #layers-header { padding: 20px 20px 14px; border-bottom: 1px solid #27272a; }
     #layers-header h2 { font-size: 13px; font-weight: 600; color: #e4e4e7; text-transform: uppercase; letter-spacing: 1px;}
     
-    #layers-list { flex: 1; overflow-y: auto; }
-    .layer-item { padding: 14px 24px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; font-size: 13px; color: #d4d4d8; }
+    #layers-list { flex: 1; overflow-y: auto; max-height: 40%; }
+    .layer-item { padding: 12px 20px; border-bottom: 1px solid #27272a; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #d4d4d8; }
     .layer-item:hover { background: #27272a; }
     .layer-item.active { background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38bdf8; color: #38bdf8; font-weight: 600;}
-    .layer-info { display: flex; align-items: center; gap: 12px; }
-    .layer-icon { font-size: 16px; }
-    
-    .delete-btn { color: #ef4444; font-size: 14px; font-weight: bold; opacity: 0; transition: 0.2s; padding: 4px; background: none; border: none; cursor: pointer;}
+    .layer-info { display: flex; align-items: center; gap: 10px; }
+    .delete-btn { color: #ef4444; font-size: 14px; opacity: 0; background: none; border: none; cursor: pointer; }
     .layer-item:hover .delete-btn { opacity: 1; }
-    .delete-btn:hover { transform: scale(1.2); }
+
+    /* Properties Panel */
+    #properties-panel {
+      border-top: 1px solid #27272a; padding: 16px 20px; overflow-y: auto; flex: 1;
+      display: none;
+    }
+    #properties-panel.active { display: block; }
+    #properties-panel h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #a1a1aa; margin-bottom: 14px; }
+    .prop-row { margin-bottom: 12px; }
+    .prop-row label { display: block; font-size: 12px; color: #a1a1aa; margin-bottom: 5px; }
+    .prop-row input[type="text"], .prop-row input[type="number"] { width: 100%; }
 
     #loading {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
       background: #09090b; color: #38bdf8; z-index: 100; font-weight: 600; letter-spacing: 2px; transition: opacity 0.5s;
     }
-
-    .hint {
-      font-size: 11px; color: #71717a; margin-top: 6px; line-height: 1.4;
-    }
+    .hint { font-size: 11px; color: #71717a; margin-top: 4px; line-height: 1.4; }
 
     #recording-overlay {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(220, 38, 38, 0.9);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 14px;
-      z-index: 50;
-      display: none;
-      align-items: center;
-      gap: 8px;
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(220, 38, 38, 0.9); color: white; padding: 10px 20px; border-radius: 20px;
+      font-weight: 600; font-size: 14px; z-index: 50; display: none; align-items: center; gap: 8px;
     }
     #recording-overlay.active { display: flex; }
   </style>
@@ -314,6 +175,17 @@
 
 <div id="app">
   <div id="sidebar-left">
+    <!-- PROJECTS -->
+    <div>
+      <div class="section-title">Projek</div>
+      <div class="project-controls">
+        <input type="text" id="projectNameInput" class="prop-input" placeholder="Nama project..." value="Design Baru">
+        <button class="project-btn" id="btnSaveProject">💾 Simpan Project</button>
+        <button class="project-btn secondary" id="btnNewProject">+ Project Baru</button>
+        <div id="projectList"></div>
+      </div>
+    </div>
+
     <div>
       <div class="section-title">Warna Baju</div>
       <div class="color-grid" id="colorGrid"></div>
@@ -333,11 +205,24 @@
 
     <div>
       <div class="section-title">Tambah Teks</div>
-      <div class="text-input-group">
-        <input type="text" id="textInput" placeholder="Taip teks...">
-        <input type="color" id="textColor" value="#000000">
+      <div class="text-options">
+        <input type="text" id="textInput" class="prop-input" placeholder="Taip teks...">
+        <div style="display:flex; gap:8px;">
+          <input type="color" id="textColor" value="#000000" style="width:42px; height:38px; border:none; background:#1f1f23; border-radius:6px;">
+          <select id="textFont" class="prop-input" style="flex:1;">
+            <option value="Inter">Inter</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Oswald">Oswald</option>
+            <option value="Playfair Display">Playfair</option>
+            <option value="Arial">Arial</option>
+          </select>
+        </div>
+        <div class="slider-row">
+          <label><span>Saiz Teks</span><span id="textSizeValue">120</span></label>
+          <input type="range" id="textSize" min="40" max="220" value="120">
+        </div>
+        <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
       </div>
-      <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
     </div>
 
     <!-- LATAR BELAKANG -->
@@ -348,43 +233,29 @@
           <input type="color" id="bgColor" value="#09090b">
           <span>Warna Latar</span>
         </div>
-
-        <div class="upload-btn" style="padding:12px; font-size:13px;">
+        <div class="upload-btn" style="padding:11px; font-size:13px;">
           + Imej Latar Belakang
           <input type="file" id="bgImageUpload" accept="image/*">
         </div>
-
         <button class="small-btn" id="btnClearBgImage">Buang Imej Latar</button>
-
         <div class="toggle-row">
-          <span>Transparent Background</span>
+          <span>Transparent</span>
           <div class="toggle-switch" id="toggleTransparent"></div>
         </div>
-        <div class="hint">Transparent berguna bila export PNG</div>
       </div>
     </div>
 
-    <!-- BG IMAGE CONTROLS -->
     <div id="bgImagePanel" style="display:none;">
       <div class="section-title">Kawalan Imej Latar</div>
       <div class="bg-image-controls">
         <div class="slider-row">
-          <label>
-            <span>Opacity</span>
-            <span id="bgOpacityValue">1.00</span>
-          </label>
+          <label><span>Opacity</span><span id="bgOpacityValue">1.00</span></label>
           <input type="range" id="bgOpacitySlider" min="0" max="1" step="0.01" value="1">
         </div>
-
         <div class="slider-row">
-          <label>
-            <span>Saiz (Scale)</span>
-            <span id="bgScaleValue">1.00</span>
-          </label>
+          <label><span>Saiz</span><span id="bgScaleValue">1.00</span></label>
           <input type="range" id="bgScaleSlider" min="0.2" max="5" step="0.05" value="1">
         </div>
-
-        <div class="section-title" style="margin:8px 0 4px;">Fill Mode</div>
         <div class="fill-modes">
           <button class="fill-btn active" data-mode="stretch">Stretch</button>
           <button class="fill-btn" data-mode="cover">Cover</button>
@@ -399,84 +270,51 @@
       <div class="section-title">Kawalan Cahaya</div>
       <div class="light-controls">
         <div class="slider-row">
-          <label>
-            <span>Ambient Light</span>
-            <span id="ambientValue">0.50</span>
-          </label>
+          <label><span>Ambient</span><span id="ambientValue">0.50</span></label>
           <input type="range" id="ambientSlider" min="0" max="2" step="0.05" value="0.5">
         </div>
         <div class="slider-row">
-          <label>
-            <span>Directional Light</span>
-            <span id="dirValue">2.00</span>
-          </label>
+          <label><span>Directional</span><span id="dirValue">2.00</span></label>
           <input type="range" id="dirSlider" min="0" max="5" step="0.1" value="2">
         </div>
         <div class="slider-row">
-          <label>
-            <span>Bayang (Shadow)</span>
-            <span id="shadowValue">1.00</span>
-          </label>
+          <label><span>Bayang</span><span id="shadowValue">1.00</span></label>
           <input type="range" id="shadowSlider" min="0" max="1" step="0.05" value="1">
         </div>
       </div>
     </div>
 
-    <!-- RENDER VIDEO + PREVIEW -->
+    <!-- VIDEO -->
     <div>
       <div class="section-title">Render Video</div>
       <div class="video-controls">
         <div class="slider-row">
-          <label>
-            <span>Kelajuan Pusing</span>
-            <span id="speedValue">1.0x</span>
-          </label>
+          <label><span>Kelajuan</span><span id="speedValue">1.0x</span></label>
           <input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1">
         </div>
-
         <div class="slider-row">
-          <label>
-            <span>Tempoh Video</span>
-            <span id="durationValue">6s</span>
-          </label>
+          <label><span>Tempoh</span><span id="durationValue">6s</span></label>
           <input type="range" id="durationSlider" min="4" max="12" step="1" value="6">
         </div>
-
         <div class="slider-row">
-          <label>
-            <span>Kualiti</span>
-            <span id="qualityValue">720p Portrait</span>
-          </label>
+          <label><span>Kualiti</span><span id="qualityValue">720p Portrait</span></label>
           <input type="range" id="qualitySlider" min="0" max="1" step="1" value="0">
         </div>
-
-        <!-- BUTANG PLAY PREVIEW -->
         <button class="preview-btn" id="btnPreview">▶ Mainkan Preview</button>
-
-        <button class="video-btn" id="btnRenderVideo">🎥 Mulakan Render Video</button>
-        <div class="hint">
-          1. Klik <b>Mainkan Preview</b> dulu untuk lihat animasi.<br>
-          2. Bila puas hati baru klik Render Video.<br>
-          Video Portrait sesuai WhatsApp.
-        </div>
+        <button class="video-btn" id="btnRenderVideo">🎥 Render Video</button>
       </div>
     </div>
 
     <div class="gizmo-controls" id="gizmoControls">
-      <div class="section-title" style="margin-bottom: 0;">Kawalan Logo</div>
+      <div class="section-title" style="margin-bottom:0;">Kawalan Logo</div>
       <div class="mode-buttons">
         <button class="mode-btn active" id="btnTranslate">✥ Gerak</button>
-        <button class="mode-btn" id="btnScale">⤢ Saiz 3D</button>
-        <button class="mode-btn free" id="btnFree">✥ Free Transform (Ctrl+T)</button>
-      </div>
-      <div class="hint">
-        • <b>Gerak</b>: tarik logo pada permukaan baju<br>
-        • <b>Free Transform</b>: 4 petak bucu + putar<br>
-        • Tekan <b>Ctrl + T</b> untuk Free Transform
+        <button class="mode-btn" id="btnScale">⤢ Saiz</button>
+        <button class="mode-btn free" id="btnFree">✥ Free Transform</button>
       </div>
       <div class="action-row">
-        <button class="action-btn" id="btnUndo" title="Ctrl+Z">↶ Undo</button>
-        <button class="action-btn" id="btnRedo" title="Ctrl+Y">↷ Redo</button>
+        <button class="action-btn" id="btnUndo">↶ Undo</button>
+        <button class="action-btn" id="btnRedo">↷ Redo</button>
       </div>
     </div>
     
@@ -485,10 +323,7 @@
   
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
-    
-    <div id="recording-overlay">
-      <span>●</span> <span id="recordingText">Sedang merakam...</span>
-    </div>
+    <div id="recording-overlay"><span>●</span> <span id="recordingText">Sedang merakam...</span></div>
     
     <div id="free-transform">
       <div class="ft-box" id="ftBox"></div>
@@ -511,6 +346,35 @@
   <div id="sidebar-right">
     <div id="layers-header"><h2>Senarai Layer</h2></div>
     <div id="layers-list"></div>
+
+    <!-- PROPERTIES PANEL -->
+    <div id="properties-panel">
+      <h3>Properties</h3>
+      <div class="prop-row">
+        <label>Nama Layer</label>
+        <input type="text" id="propName" class="prop-input">
+      </div>
+      <div class="prop-row">
+        <label>Scale</label>
+        <input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1">
+        <div style="font-size:11px; color:#71717a; margin-top:3px;" id="propScaleValue">1.00</div>
+      </div>
+      <div class="prop-row">
+        <label>Opacity</label>
+        <input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1">
+        <div style="font-size:11px; color:#71717a; margin-top:3px;" id="propOpacityValue">1.00</div>
+      </div>
+      <div id="textProps" style="display:none;">
+        <div class="prop-row">
+          <label>Kandungan Teks</label>
+          <input type="text" id="propTextContent" class="prop-input">
+        </div>
+        <div class="prop-row">
+          <label>Warna Teks</label>
+          <input type="color" id="propTextColor" value="#000000" style="width:100%; height:36px; border:none; background:#1f1f23; border-radius:6px;">
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -530,6 +394,56 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// ===== INDEXEDDB =====
+const DB_NAME = 'ProDesigner3D';
+const DB_VERSION = 1;
+const STORE_NAME = 'projects';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveProjectToDB(project) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = project.id ? store.put(project) : store.add(project);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function getAllProjects() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function deleteProjectFromDB(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
 
 // ===== SETUP =====
 const container = document.getElementById('viewer-container');
@@ -555,8 +469,7 @@ scene.add(ambientLight);
 const mainLight = new THREE.DirectionalLight(0xffffff, 2);
 mainLight.position.set(5, 10, 5);
 mainLight.castShadow = true;
-mainLight.shadow.mapSize.width = 2048;
-mainLight.shadow.mapSize.height = 2048;
+mainLight.shadow.mapSize.set(2048, 2048);
 mainLight.shadow.intensity = 1;
 scene.add(mainLight);
 
@@ -581,12 +494,12 @@ const transformHelper = transformControls.getHelper();
 scene.add(transformHelper);
 
 let isDragging = false;
-transformControls.addEventListener('dragging-changed', (event) => {
-  controls.enabled = !event.value;
-  isDragging = event.value;
-  if (!event.value && activeDummy) {
+transformControls.addEventListener('dragging-changed', (e) => {
+  controls.enabled = !e.value;
+  isDragging = e.value;
+  if (!e.value && activeDummy) {
     pushHistory();
-    saveToLocalStorage();
+    autoSave();
   }
 });
 
@@ -601,7 +514,6 @@ let activeDummy = null;
 let logoCount = 0;
 let currentShirtColor = '#ffffff';
 let currentMode = 'translate';
-
 let history = [];
 let historyIndex = -1;
 const MAX_HISTORY = 40;
@@ -616,15 +528,18 @@ let isRecording = false;
 let isPreviewing = false;
 let mediaRecorder = null;
 let recordedChunks = [];
-let recordStartTime = 0;
 let recordDuration = 6;
 let rotationSpeed = 1.0;
 let recordQuality = 0;
 let previewAnimationId = null;
 
+let currentProjectId = null;
+let currentProjectName = 'Design Baru';
+
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
 const gizmoControlsUI = document.getElementById('gizmoControls');
+const propertiesPanel = document.getElementById('properties-panel');
 const btnUndo = document.getElementById('btnUndo');
 const btnRedo = document.getElementById('btnRedo');
 const bgImagePanel = document.getElementById('bgImagePanel');
@@ -643,25 +558,18 @@ let ftStartScale = 1;
 let ftStartAngle = 0;
 let ftCenterScreen = new THREE.Vector2();
 
-// ===== FALLBACK SHIRT =====
+// ===== FALLBACK + LOAD MODEL =====
 function createFallbackShirt() {
   const group = new THREE.Group();
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide
-  });
-
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide });
   const torso = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.8, 0.35), mat);
   torso.position.y = 0.1; torso.castShadow = true; torso.receiveShadow = true; group.add(torso);
-
   const sleeveL = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
-  sleeveL.position.set(-0.95, 0.65, 0); sleeveL.castShadow = true; sleeveL.receiveShadow = true; group.add(sleeveL);
-
+  sleeveL.position.set(-0.95, 0.65, 0); sleeveL.castShadow = true; group.add(sleeveL);
   const sleeveR = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.35), mat);
-  sleeveR.position.set(0.95, 0.65, 0); sleeveR.castShadow = true; sleeveR.receiveShadow = true; group.add(sleeveR);
-
+  sleeveR.position.set(0.95, 0.65, 0); sleeveR.castShadow = true; group.add(sleeveR);
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.25, 16), mat);
-  neck.position.y = 1.05; neck.castShadow = true; neck.receiveShadow = true; group.add(neck);
-
+  neck.position.y = 1.05; neck.castShadow = true; group.add(neck);
   return group;
 }
 
@@ -671,7 +579,6 @@ function setupShirt(model) {
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
   model.scale.setScalar(2.4 / maxDim);
   model.updateMatrixWorld(true);
-
   box.setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   model.position.sub(center);
@@ -681,7 +588,7 @@ function setupShirt(model) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
-      if (!child.material || !child.material.isMeshStandardMaterial) {
+      if (!child.material?.isMeshStandardMaterial) {
         child.material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1 });
       } else {
         child.material.color.set(0xffffff);
@@ -695,42 +602,32 @@ function setupShirt(model) {
 
   shirtGroup.add(model);
   ground.position.y = box.min.y - 0.1;
-
   finishLoading();
   addBaseLayer();
-  loadFromLocalStorage();
+  loadProjectList();
+  pushHistory();
 }
 
 function finishLoading() {
   const el = document.getElementById('loading');
-  if (el) {
-    el.style.opacity = '0';
-    setTimeout(() => el.remove(), 500);
-  }
+  if (el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }
 }
 
 const loader = new GLTFLoader();
-loader.load(
-  './T_shirt_gltf.gltf',
-  (gltf) => { setupShirt(gltf.scene); },
-  undefined,
-  (error) => {
-    console.warn('Gagal load model → guna fallback', error);
-    setupShirt(createFallbackShirt());
-  }
-);
+loader.load('./T_shirt_gltf.gltf', (gltf) => setupShirt(gltf.scene), undefined, () => setupShirt(createFallbackShirt()));
 
 // ===== LAYER SYSTEM =====
 function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active';
   el.id = 'layer-base';
-  el.innerHTML = `<div class="layer-info"><span class="layer-icon">👕</span> <span>Baju 3D (Asas)</span></div>`;
+  el.innerHTML = `<div class="layer-info"><span>👕</span> <span>Baju 3D (Asas)</span></div>`;
   el.onclick = () => {
     transformControls.detach();
     activeDummy = null;
     gizmoControlsUI.classList.remove('active');
     hideFreeTransform();
+    propertiesPanel.classList.remove('active');
     document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
   };
@@ -743,30 +640,24 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.name = name;
   dummy.userData.icon = icon;
   dummy.userData.isBg = isBg;
+  dummy.userData.opacity = 1;
 
   const el = document.createElement('div');
   el.className = 'layer-item';
   el.id = id;
-  
   el.innerHTML = `
-    <div class="layer-info">
-      <span class="layer-icon">${icon}</span> 
-      <span>${name}</span>
-    </div>
-    <button class="delete-btn" title="Padam">✕</button>
+    <div class="layer-info"><span>${icon}</span> <span class="layer-name">${name}</span></div>
+    <button class="delete-btn">✕</button>
   `;
-
   el.onclick = (e) => {
     if (e.target.closest('.delete-btn')) return;
     selectLayer(dummy, el);
   };
-
   el.querySelector('.delete-btn').onclick = (e) => {
     e.stopPropagation();
     if (isBg) clearBgImage();
     else deleteLayer(dummy, el);
   };
-
   layerListUI.prepend(el);
   selectLayer(dummy, el);
 }
@@ -774,9 +665,25 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
 function selectLayer(dummy, el) {
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
-  
   activeDummy = dummy;
   gizmoControlsUI.classList.add('active');
+  propertiesPanel.classList.add('active');
+
+  // Fill properties
+  document.getElementById('propName').value = dummy.userData.name || '';
+  document.getElementById('propScale').value = dummy.scale.x;
+  document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
+  document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
+  document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
+
+  const textProps = document.getElementById('textProps');
+  if (dummy.userData.isText) {
+    textProps.style.display = 'block';
+    document.getElementById('propTextContent').value = dummy.userData.textContent || '';
+    document.getElementById('propTextColor').value = dummy.userData.textColor || '#000000';
+  } else {
+    textProps.style.display = 'none';
+  }
 
   if (dummy.userData.isBg) transformControls.setSpace('world');
   else transformControls.setSpace('local');
@@ -794,306 +701,280 @@ function selectLayer(dummy, el) {
 function deleteLayer(dummy, el) {
   transformControls.detach();
   hideFreeTransform();
-  
+  propertiesPanel.classList.remove('active');
   if (dummy.userData.decals) {
-    dummy.userData.decals.forEach(decal => {
-      shirtGroup.remove(decal);
-      decal.geometry.dispose();
-      if (decal.material.map) decal.material.map.dispose();
-      decal.material.dispose();
+    dummy.userData.decals.forEach(d => {
+      shirtGroup.remove(d);
+      d.geometry.dispose();
+      if (d.material.map) d.material.map.dispose();
+      d.material.dispose();
     });
   }
-  
   if (dummy.userData.texture) dummy.userData.texture.dispose();
   shirtGroup.remove(dummy);
-  
   el.remove();
   layers = layers.filter(l => l !== dummy);
   gizmoControlsUI.classList.remove('active');
   activeDummy = null;
-  
   pushHistory();
-  saveToLocalStorage();
+  autoSave();
+}
+
+// ===== PROPERTIES HANDLERS =====
+document.getElementById('propName').addEventListener('change', (e) => {
+  if (!activeDummy) return;
+  activeDummy.userData.name = e.target.value;
+  const el = document.getElementById(activeDummy.userData.layerId);
+  if (el) el.querySelector('.layer-name').textContent = e.target.value;
+  autoSave();
+});
+
+document.getElementById('propScale').addEventListener('input', (e) => {
+  if (!activeDummy) return;
+  const s = parseFloat(e.target.value);
+  activeDummy.scale.setScalar(s);
+  document.getElementById('propScaleValue').textContent = s.toFixed(2);
+  if (!activeDummy.userData.isBg) createDecal(activeDummy);
+  else {
+    const aspect = activeDummy.userData.aspect || 1;
+    activeDummy.scale.set(s, s / aspect, 1);
+  }
+});
+document.getElementById('propScale').addEventListener('change', () => { pushHistory(); autoSave(); });
+
+document.getElementById('propOpacity').addEventListener('input', (e) => {
+  if (!activeDummy) return;
+  const op = parseFloat(e.target.value);
+  activeDummy.userData.opacity = op;
+  document.getElementById('propOpacityValue').textContent = op.toFixed(2);
+  if (activeDummy.userData.decals) {
+    activeDummy.userData.decals.forEach(d => d.material.opacity = op);
+  }
+  if (activeDummy.userData.isBg && activeDummy.material) {
+    activeDummy.material.opacity = op;
+  }
+});
+document.getElementById('propOpacity').addEventListener('change', () => { pushHistory(); autoSave(); });
+
+document.getElementById('propTextContent').addEventListener('change', () => {
+  if (!activeDummy?.userData.isText) return;
+  updateTextLayer(activeDummy);
+});
+document.getElementById('propTextColor').addEventListener('change', () => {
+  if (!activeDummy?.userData.isText) return;
+  updateTextLayer(activeDummy);
+});
+
+function updateTextLayer(dummy) {
+  const text = document.getElementById('propTextContent').value.trim() || dummy.userData.textContent;
+  const color = document.getElementById('propTextColor').value;
+  const size = 120;
+  const font = 'Inter';
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 1024;
+  canvas.height = 256;
+  ctx.fillStyle = color;
+  ctx.font = `bold ${size}px ${font}, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 512, 128);
+
+  if (dummy.userData.texture) dummy.userData.texture.dispose();
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  dummy.userData.texture = texture;
+  dummy.userData.textContent = text;
+  dummy.userData.textColor = color;
+  dummy.userData.dataURL = canvas.toDataURL('image/png');
+  dummy.userData.aspect = canvas.width / canvas.height;
+  createDecal(dummy);
+  pushHistory();
+  autoSave();
 }
 
 // ===== DECAL =====
-function isOnSleeve(dummy) {
-  return Math.abs(dummy.position.x) > 0.34;
-}
+function isOnSleeve(dummy) { return Math.abs(dummy.position.x) > 0.34; }
 
 function createDecal(dummy) {
   if (!shirtMeshes.length || dummy.userData.isBg) return;
-
   if (dummy.userData.decals) {
-    dummy.userData.decals.forEach(decal => {
-      shirtGroup.remove(decal);
-      decal.geometry.dispose();
-      if (decal.material.map) decal.material.map.dispose();
-      decal.material.dispose();
+    dummy.userData.decals.forEach(d => {
+      shirtGroup.remove(d);
+      d.geometry.dispose();
+      if (d.material.map) d.material.map.dispose();
+      d.material.dispose();
     });
   }
   dummy.userData.decals = [];
 
   const onSleeve = isOnSleeve(dummy);
   const baseSize = onSleeve ? 0.92 : 0.58;
-  const depth    = onSleeve ? 0.38 : 0.22;
-
+  const depth = onSleeve ? 0.38 : 0.22;
   const w = baseSize * dummy.scale.x;
   const h = (baseSize / dummy.userData.aspect) * dummy.scale.y;
   const size = new THREE.Vector3(w, h, depth);
-
   const currentNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
   const isBack = currentNormal.z < -0.15;
 
   shirtMeshes.forEach(mesh => {
     try {
       const decalGeo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
-      
-      if (decalGeo.attributes.position && decalGeo.attributes.position.count > 0) {
+      if (decalGeo.attributes.position?.count > 0) {
         const tex = dummy.userData.texture.clone();
-        if (isBack) {
-          tex.wrapS = THREE.RepeatWrapping;
-          tex.repeat.x = -1;
-        }
-
-        const decalMat = new THREE.MeshStandardMaterial({
-          map: tex,
-          transparent: true,
-          depthTest: true,
-          depthWrite: false,
-          polygonOffset: true,
-          polygonOffsetFactor: -4,
-          roughness: 0.8
+        if (isBack) { tex.wrapS = THREE.RepeatWrapping; tex.repeat.x = -1; }
+        const mat = new THREE.MeshStandardMaterial({
+          map: tex, transparent: true, depthTest: true, depthWrite: false,
+          polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
+          opacity: dummy.userData.opacity || 1
         });
-
-        const decalMesh = new THREE.Mesh(decalGeo, decalMat);
+        const decalMesh = new THREE.Mesh(decalGeo, mat);
         decalMesh.renderOrder = 2;
         shirtGroup.add(decalMesh);
         dummy.userData.decals.push(decalMesh);
-      } else {
-        decalGeo.dispose();
-      }
+      } else decalGeo.dispose();
     } catch(e) {}
   });
 }
 
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy) return;
-
   if (activeDummy.userData.isBg) {
-    const s = activeDummy.scale.x;
-    document.getElementById('bgScaleSlider').value = s;
-    document.getElementById('bgScaleValue').textContent = s.toFixed(2);
+    document.getElementById('bgScaleSlider').value = activeDummy.scale.x;
+    document.getElementById('bgScaleValue').textContent = activeDummy.scale.x.toFixed(2);
+    document.getElementById('propScale').value = activeDummy.scale.x;
+    document.getElementById('propScaleValue').textContent = activeDummy.scale.x.toFixed(2);
     return;
   }
-
-  if (!shirtMeshes.length) return;
-
   if (transformControls.getMode() === 'scale') {
     const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
     activeDummy.scale.setScalar(Math.max(0.12, Math.min(s, 4.5)));
+    document.getElementById('propScale').value = activeDummy.scale.x;
+    document.getElementById('propScaleValue').textContent = activeDummy.scale.x.toFixed(2);
   }
-
   if (transformControls.getMode() === 'translate') {
     activeDummy.updateMatrixWorld();
     const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
     const dir = worldPos.clone().sub(camera.position).normalize();
     raycaster.set(camera.position, dir);
     const hits = raycaster.intersectObjects(shirtMeshes, true);
-    
     if (hits.length > 0) {
       const hit = hits[0];
       const localHit = shirtGroup.worldToLocal(hit.point.clone());
       activeDummy.position.copy(localHit);
-
       if (isDragging) {
         const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
         const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-        
         const up = new THREE.Vector3(0, 1, 0);
         let right = new THREE.Vector3().crossVectors(up, localNormal);
         if (right.lengthSq() < 0.001) right.set(1, 0, 0);
         right.normalize();
         const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-        
-        const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
-        activeDummy.quaternion.setFromRotationMatrix(matrix);
+        activeDummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, localNormal));
       }
     }
   }
-
   createDecal(activeDummy);
   if (currentMode === 'free') updateFreeTransformHandles();
 });
 
-// ===== FREE TRANSFORM =====
+// ===== FREE TRANSFORM (simplified keep) =====
 function showFreeTransform() {
   if (!activeDummy) return;
   ftEl.classList.add('active');
   updateFreeTransformHandles();
 }
-
 function hideFreeTransform() {
   ftEl.classList.remove('active');
   ftDragging = null;
 }
-
 function getLogoCorners(dummy) {
   if (dummy.userData.isBg) {
     const box = new THREE.Box3().setFromObject(dummy);
-    const min = box.min;
-    const max = box.max;
-    return [
-      new THREE.Vector3(min.x, max.y, min.z),
-      new THREE.Vector3(max.x, max.y, min.z),
-      new THREE.Vector3(max.x, min.y, min.z),
-      new THREE.Vector3(min.x, min.y, min.z),
-    ];
+    return [new THREE.Vector3(box.min.x, box.max.y, box.min.z), new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+            new THREE.Vector3(box.max.x, box.min.y, box.min.z), new THREE.Vector3(box.min.x, box.min.y, box.min.z)];
   }
-
   const base = isOnSleeve(dummy) ? 0.92 : 0.58;
   const halfW = (base * dummy.scale.x) * 0.5;
   const halfH = ((base / dummy.userData.aspect) * dummy.scale.y) * 0.5;
-
-  const corners = [
-    new THREE.Vector3(-halfW,  halfH, 0),
-    new THREE.Vector3( halfW,  halfH, 0),
-    new THREE.Vector3( halfW, -halfH, 0),
-    new THREE.Vector3(-halfW, -halfH, 0),
-  ];
-
+  const corners = [new THREE.Vector3(-halfW, halfH, 0), new THREE.Vector3(halfW, halfH, 0), new THREE.Vector3(halfW, -halfH, 0), new THREE.Vector3(-halfW, -halfH, 0)];
   dummy.updateMatrixWorld(true);
   return corners.map(c => c.applyMatrix4(dummy.matrixWorld));
 }
-
 function worldToScreen(pos) {
   const v = pos.clone().project(camera);
-  const x = (v.x * 0.5 + 0.5) * container.clientWidth;
-  const y = (-v.y * 0.5 + 0.5) * container.clientHeight;
-  return new THREE.Vector2(x, y);
+  return new THREE.Vector2((v.x * 0.5 + 0.5) * container.clientWidth, (-v.y * 0.5 + 0.5) * container.clientHeight);
 }
-
 function updateFreeTransformHandles() {
   if (!activeDummy || currentMode !== 'free') return;
-
-  const corners = getLogoCorners(activeDummy);
-  const screens = corners.map(worldToScreen);
-
-  const xs = screens.map(p => p.x);
-  const ys = screens.map(p => p.y);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-
-  ftBox.style.left = minX + 'px';
-  ftBox.style.top = minY + 'px';
-  ftBox.style.width = (maxX - minX) + 'px';
-  ftBox.style.height = (maxY - minY) + 'px';
-
-  const order = ['nw', 'ne', 'se', 'sw'];
-  order.forEach((key, i) => {
+  const screens = getLogoCorners(activeDummy).map(worldToScreen);
+  const xs = screens.map(p => p.x), ys = screens.map(p => p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  ftBox.style.left = minX + 'px'; ftBox.style.top = minY + 'px';
+  ftBox.style.width = (maxX - minX) + 'px'; ftBox.style.height = (maxY - minY) + 'px';
+  ['nw','ne','se','sw'].forEach((key, i) => {
     const h = ftEl.querySelector(`.ft-handle.${key}`);
-    if (h) {
-      h.style.left = screens[i].x + 'px';
-      h.style.top  = screens[i].y + 'px';
-    }
+    if (h) { h.style.left = screens[i].x + 'px'; h.style.top = screens[i].y + 'px'; }
   });
-
-  const center = new THREE.Vector2((minX + maxX) / 2, (minY + maxY) / 2);
+  const center = new THREE.Vector2((minX + maxX)/2, (minY + maxY)/2);
   ftCenterScreen.copy(center);
-
-  const rotY = minY - 28;
-  ftRotateHandle.style.left = center.x + 'px';
-  ftRotateHandle.style.top  = rotY + 'px';
-
-  const lineH = Math.abs(center.y - rotY);
-  ftRotateLine.style.left = center.x + 'px';
-  ftRotateLine.style.top = rotY + 'px';
-  ftRotateLine.style.height = lineH + 'px';
+  ftRotateHandle.style.left = center.x + 'px'; ftRotateHandle.style.top = (minY - 28) + 'px';
+  ftRotateLine.style.left = center.x + 'px'; ftRotateLine.style.top = (minY - 28) + 'px';
+  ftRotateLine.style.height = Math.abs(center.y - (minY - 28)) + 'px';
 }
 
 ftEl.querySelectorAll('.ft-handle').forEach(h => {
   h.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     if (!activeDummy) return;
-    ftDragging = 'scale';
-    ftStartMouse.set(e.clientX, e.clientY);
-    ftStartScale = activeDummy.scale.x;
-    controls.enabled = false;
-    h.setPointerCapture(e.pointerId);
+    ftDragging = 'scale'; ftStartMouse.set(e.clientX, e.clientY); ftStartScale = activeDummy.scale.x;
+    controls.enabled = false; h.setPointerCapture(e.pointerId);
   });
 });
-
 ftRotateHandle.addEventListener('pointerdown', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   if (!activeDummy) return;
-  ftDragging = 'rotate';
-  ftStartMouse.set(e.clientX, e.clientY);
-  const dx = e.clientX - ftCenterScreen.x;
-  const dy = e.clientY - ftCenterScreen.y;
-  ftStartAngle = Math.atan2(dy, dx);
-  controls.enabled = false;
-  ftRotateHandle.setPointerCapture(e.pointerId);
+  ftDragging = 'rotate'; ftStartMouse.set(e.clientX, e.clientY);
+  ftStartAngle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
+  controls.enabled = false; ftRotateHandle.setPointerCapture(e.pointerId);
 });
-
 window.addEventListener('pointermove', (e) => {
   if (!ftDragging || !activeDummy) return;
-
   if (ftDragging === 'scale') {
-    const dx = e.clientX - ftCenterScreen.x;
-    const dy = e.clientY - ftCenterScreen.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-
-    const startDx = ftStartMouse.x - ftCenterScreen.x;
-    const startDy = ftStartMouse.y - ftCenterScreen.y;
-    const startDist = Math.sqrt(startDx*startDx + startDy*startDy) || 1;
-
-    let newScale = ftStartScale * (dist / startDist);
-    newScale = Math.max(0.12, Math.min(newScale, 8));
+    const dist = Math.hypot(e.clientX - ftCenterScreen.x, e.clientY - ftCenterScreen.y);
+    const startDist = Math.hypot(ftStartMouse.x - ftCenterScreen.x, ftStartMouse.y - ftCenterScreen.y) || 1;
+    let newScale = Math.max(0.12, Math.min(ftStartScale * (dist / startDist), 8));
     activeDummy.scale.setScalar(newScale);
-
+    document.getElementById('propScale').value = newScale;
+    document.getElementById('propScaleValue').textContent = newScale.toFixed(2);
     if (activeDummy.userData.isBg) {
-      document.getElementById('bgScaleSlider').value = newScale;
-      document.getElementById('bgScaleValue').textContent = newScale.toFixed(2);
-    } else {
-      createDecal(activeDummy);
-    }
+      const aspect = activeDummy.userData.aspect || 1;
+      activeDummy.scale.set(newScale, newScale / aspect, 1);
+    } else createDecal(activeDummy);
     updateFreeTransformHandles();
   }
-
   if (ftDragging === 'rotate' && !activeDummy.userData.isBg) {
-    const dx = e.clientX - ftCenterScreen.x;
-    const dy = e.clientY - ftCenterScreen.y;
-    const angle = Math.atan2(dy, dx);
+    const angle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
     const delta = angle - ftStartAngle;
-
-    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), delta);
-    activeDummy.quaternion.multiplyQuaternions(q, activeDummy.quaternion);
+    activeDummy.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1), delta), activeDummy.quaternion);
     ftStartAngle = angle;
-
     createDecal(activeDummy);
     updateFreeTransformHandles();
   }
 });
-
 window.addEventListener('pointerup', () => {
   if (ftDragging) {
-    ftDragging = null;
-    controls.enabled = true;
-    pushHistory();
-    saveToLocalStorage();
+    ftDragging = null; controls.enabled = true;
+    pushHistory(); autoSave();
   }
 });
 
 // ===== ADD LOGO / TEXT =====
 document.getElementById('logoUpload').addEventListener('change', (e) => {
   const files = e.target.files;
-  if(!files.length) return;
-
-  for(let i=0; i<files.length; i++) {
+  if (!files.length) return;
+  for (let i = 0; i < files.length; i++) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = new Image();
@@ -1110,29 +991,35 @@ document.getElementById('logoUpload').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
+document.getElementById('textSize').addEventListener('input', (e) => {
+  document.getElementById('textSizeValue').textContent = e.target.value;
+});
+
 document.getElementById('addTextBtn').onclick = () => {
   const text = document.getElementById('textInput').value.trim();
-  const color = document.getElementById('textColor').value;
   if (!text) return;
+  const color = document.getElementById('textColor').value;
+  const font = document.getElementById('textFont').value;
+  const size = parseInt(document.getElementById('textSize').value);
 
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   canvas.width = 1024;
   canvas.height = 256;
   ctx.fillStyle = color;
-  ctx.font = "bold 120px Inter, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
+  ctx.font = `bold ${size}px ${font}, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
   ctx.fillText(text, 512, 128);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   const dataURL = canvas.toDataURL('image/png');
-  addLogoToScene(texture, canvas.width / canvas.height, true, dataURL, text, color);
+  addLogoToScene(texture, canvas.width / canvas.height, true, dataURL, text, color, font, size);
   document.getElementById('textInput').value = '';
 };
 
-function addLogoToScene(texture, aspect, isText = false, dataURL = null, textContent = '', textColor = '#000000') {
+function addLogoToScene(texture, aspect, isText = false, dataURL = null, textContent = '', textColor = '#000000', font = 'Inter', fontSize = 120) {
   const dummy = new THREE.Object3D();
   dummy.userData.texture = texture;
   dummy.userData.aspect = aspect;
@@ -1140,44 +1027,35 @@ function addLogoToScene(texture, aspect, isText = false, dataURL = null, textCon
   dummy.userData.dataURL = dataURL;
   dummy.userData.textContent = textContent;
   dummy.userData.textColor = textColor;
+  dummy.userData.font = font;
+  dummy.userData.fontSize = fontSize;
+  dummy.userData.opacity = 1;
   shirtGroup.add(dummy);
 
   const offsetX = (logoCount % 2 === 0) ? 0.12 : -0.12;
   const offsetY = Math.floor(logoCount / 2) * -0.18;
-
   raycaster.setFromCamera(new THREE.Vector2(offsetX, offsetY), camera);
   const hits = raycaster.intersectObjects(shirtMeshes, true);
-
   if (hits.length > 0) {
     const hit = hits[0];
-    const localHit = shirtGroup.worldToLocal(hit.point.clone());
-    dummy.position.copy(localHit);
-
+    dummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
     const normal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
     const localNormal = normal.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-    
     const up = new THREE.Vector3(0, 1, 0);
     let right = new THREE.Vector3().crossVectors(up, localNormal);
     if (right.lengthSq() < 0.001) right.set(1, 0, 0);
     right.normalize();
     const actualUp = new THREE.Vector3().crossVectors(localNormal, right).normalize();
-    
-    const matrix = new THREE.Matrix4().makeBasis(right, actualUp, localNormal);
-    dummy.quaternion.setFromRotationMatrix(matrix);
-  } else {
-    dummy.position.set(0, 0.1, 0.4);
-  }
+    dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, localNormal));
+  } else dummy.position.set(0, 0.1, 0.4);
 
   logoCount++;
   createDecal(dummy);
   layers.push(dummy);
-
   const layerName = isText ? `Teks ${logoCount}` : `Logo ${logoCount}`;
-  const icon = isText ? '📝' : '🖼️';
-  addDesignLayer(dummy, layerName, icon);
-  
+  addDesignLayer(dummy, layerName, isText ? '📝' : '🖼️');
   pushHistory();
-  saveToLocalStorage();
+  autoSave();
 }
 
 // ===== BACKGROUND =====
@@ -1192,86 +1070,55 @@ function applySolidBackground() {
     container.style.background = currentBgColor;
   }
 }
-
 function createBgPlane(texture, aspect) {
   if (bgPlane) {
     scene.remove(bgPlane);
     if (bgPlane.material.map) bgPlane.material.map.dispose();
-    bgPlane.material.dispose();
-    bgPlane.geometry.dispose();
+    bgPlane.material.dispose(); bgPlane.geometry.dispose();
     const oldEl = document.getElementById(bgPlane.userData.layerId);
     if (oldEl) oldEl.remove();
     layers = layers.filter(l => l !== bgPlane);
   }
-
-  const geo = new THREE.PlaneGeometry(1, 1);
-  const mat = new THREE.MeshBasicMaterial({
-    map: texture,
-    transparent: true,
-    opacity: bgOpacity,
-    depthWrite: false,
-    side: THREE.DoubleSide
-  });
-
-  bgPlane = new THREE.Mesh(geo, mat);
+  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: bgOpacity, depthWrite: false, side: THREE.DoubleSide });
+  bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
   bgPlane.position.set(0, 0, -6);
   bgPlane.scale.set(12, 12 / aspect, 1);
   bgPlane.renderOrder = -10;
   bgPlane.userData.isBg = true;
   bgPlane.userData.aspect = aspect;
   bgPlane.userData.texture = texture;
-
+  bgPlane.userData.opacity = bgOpacity;
   scene.add(bgPlane);
   layers.push(bgPlane);
-
   addDesignLayer(bgPlane, 'Latar Imej', '🖼️', true);
   bgImagePanel.style.display = 'block';
-
   applyFillMode(bgFillMode);
 }
-
 function clearBgImage() {
   if (bgPlane) {
     scene.remove(bgPlane);
     if (bgPlane.material.map) bgPlane.material.map.dispose();
-    bgPlane.material.dispose();
-    bgPlane.geometry.dispose();
-
+    bgPlane.material.dispose(); bgPlane.geometry.dispose();
     const el = document.getElementById(bgPlane.userData.layerId);
     if (el) el.remove();
     layers = layers.filter(l => l !== bgPlane);
     bgPlane = null;
   }
   bgImagePanel.style.display = 'none';
-  transformControls.detach();
-  activeDummy = null;
+  transformControls.detach(); activeDummy = null;
   gizmoControlsUI.classList.remove('active');
+  propertiesPanel.classList.remove('active');
   applySolidBackground();
-  pushHistory();
-  saveToLocalStorage();
+  pushHistory(); autoSave();
 }
-
 function applyFillMode(mode) {
   if (!bgPlane) return;
   bgFillMode = mode;
-
-  document.querySelectorAll('.fill-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.mode === mode);
-  });
-
+  document.querySelectorAll('.fill-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   const aspect = bgPlane.userData.aspect || 1;
-
-  if (mode === 'stretch') {
-    bgPlane.scale.set(16, 16 / aspect, 1);
-    bgPlane.position.set(0, 0, -6);
-  } else if (mode === 'cover') {
-    bgPlane.scale.set(20, 20 / aspect, 1);
-    bgPlane.position.set(0, 0, -6);
-  } else if (mode === 'contain') {
-    bgPlane.scale.set(10, 10 / aspect, 1);
-    bgPlane.position.set(0, 0, -6);
-  }
-
+  if (mode === 'stretch') { bgPlane.scale.set(16, 16/aspect, 1); bgPlane.position.set(0,0,-6); }
+  else if (mode === 'cover') { bgPlane.scale.set(20, 20/aspect, 1); bgPlane.position.set(0,0,-6); }
+  else if (mode === 'contain') { bgPlane.scale.set(10, 10/aspect, 1); bgPlane.position.set(0,0,-6); }
   document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
   document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
 }
@@ -1280,15 +1127,10 @@ document.getElementById('bgColor').addEventListener('input', (e) => {
   currentBgColor = e.target.value;
   if (!bgPlane) applySolidBackground();
 });
-document.getElementById('bgColor').addEventListener('change', () => {
-  pushHistory();
-  saveToLocalStorage();
-});
-
+document.getElementById('bgColor').addEventListener('change', () => { pushHistory(); autoSave(); });
 document.getElementById('bgImageUpload').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = (ev) => {
     const img = new Image();
@@ -1296,41 +1138,30 @@ document.getElementById('bgImageUpload').addEventListener('change', (e) => {
       const texture = new THREE.Texture(img);
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.needsUpdate = true;
-
       isTransparentBg = false;
       document.getElementById('toggleTransparent').classList.remove('active');
       applySolidBackground();
-
       createBgPlane(texture, img.width / img.height);
-      pushHistory();
-      saveToLocalStorage();
+      pushHistory(); autoSave();
     };
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
   e.target.value = '';
 });
-
 document.getElementById('btnClearBgImage').onclick = clearBgImage;
-
 document.getElementById('toggleTransparent').onclick = function() {
   isTransparentBg = !isTransparentBg;
   this.classList.toggle('active', isTransparentBg);
   applySolidBackground();
-  pushHistory();
-  saveToLocalStorage();
+  pushHistory(); autoSave();
 };
-
 document.getElementById('bgOpacitySlider').addEventListener('input', (e) => {
   bgOpacity = parseFloat(e.target.value);
   document.getElementById('bgOpacityValue').textContent = bgOpacity.toFixed(2);
   if (bgPlane) bgPlane.material.opacity = bgOpacity;
 });
-document.getElementById('bgOpacitySlider').addEventListener('change', () => {
-  pushHistory();
-  saveToLocalStorage();
-});
-
+document.getElementById('bgOpacitySlider').addEventListener('change', () => { pushHistory(); autoSave(); });
 document.getElementById('bgScaleSlider').addEventListener('input', (e) => {
   const s = parseFloat(e.target.value);
   document.getElementById('bgScaleValue').textContent = s.toFixed(2);
@@ -1339,29 +1170,19 @@ document.getElementById('bgScaleSlider').addEventListener('input', (e) => {
     bgPlane.scale.set(s, s / aspect, 1);
   }
 });
-document.getElementById('bgScaleSlider').addEventListener('change', () => {
-  pushHistory();
-  saveToLocalStorage();
-});
-
+document.getElementById('bgScaleSlider').addEventListener('change', () => { pushHistory(); autoSave(); });
 document.querySelectorAll('.fill-btn').forEach(btn => {
-  btn.onclick = () => {
-    applyFillMode(btn.dataset.mode);
-    pushHistory();
-    saveToLocalStorage();
-  };
+  btn.onclick = () => { applyFillMode(btn.dataset.mode); pushHistory(); autoSave(); };
 });
 
 // ===== LIGHT =====
 document.getElementById('ambientSlider').addEventListener('input', (e) => {
-  const val = parseFloat(e.target.value);
-  ambientLight.intensity = val;
-  document.getElementById('ambientValue').textContent = val.toFixed(2);
+  ambientLight.intensity = parseFloat(e.target.value);
+  document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2);
 });
 document.getElementById('dirSlider').addEventListener('input', (e) => {
-  const val = parseFloat(e.target.value);
-  mainLight.intensity = val;
-  document.getElementById('dirValue').textContent = val.toFixed(2);
+  mainLight.intensity = parseFloat(e.target.value);
+  document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2);
 });
 document.getElementById('shadowSlider').addEventListener('input', (e) => {
   const val = parseFloat(e.target.value);
@@ -1370,311 +1191,45 @@ document.getElementById('shadowSlider').addEventListener('input', (e) => {
   document.getElementById('shadowValue').textContent = val.toFixed(2);
 });
 
-// ===== PREVIEW + VIDEO RENDER =====
-document.getElementById('speedSlider').addEventListener('input', (e) => {
-  rotationSpeed = parseFloat(e.target.value);
-  document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x';
-});
-
-document.getElementById('durationSlider').addEventListener('input', (e) => {
-  recordDuration = parseInt(e.target.value);
-  document.getElementById('durationValue').textContent = recordDuration + 's';
-});
-
-document.getElementById('qualitySlider').addEventListener('input', (e) => {
-  recordQuality = parseInt(e.target.value);
-  document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait';
-});
-
-// ===== PLAY PREVIEW =====
-btnPreview.onclick = () => {
-  if (isRecording) return;
-  if (isPreviewing) {
-    stopPreview();
-  } else {
-    startPreview();
-  }
-};
-
-function startPreview() {
-  if (isPreviewing || isRecording) return;
-
-  isPreviewing = true;
-  btnPreview.classList.add('playing');
-  btnPreview.textContent = '⏹ Stop Preview';
-  btnRenderVideo.disabled = true;
-
-  transformHelper.visible = false;
-  hideFreeTransform();
-  controls.enabled = false;
-  gizmoControlsUI.classList.remove('active');
-
-  // Set nice view for preview
-  camera.position.set(0, 0.15, 5.2);
-  controls.target.set(0, 0.05, 0);
-  controls.update();
-
-  shirtGroup.rotation.y = 0;
-  const startTime = performance.now();
-  const durationMs = recordDuration * 1000;
-
-  recordingOverlay.classList.add('active');
-  recordingText.textContent = `Preview... ${recordDuration}s`;
-
-  function previewLoop(now) {
-    if (!isPreviewing) return;
-
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / durationMs, 1);
-
-    shirtGroup.rotation.y = progress * Math.PI * 2 * rotationSpeed;
-
-    const remaining = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
-    recordingText.textContent = `Preview... ${remaining}s`;
-
-    if (progress < 1) {
-      previewAnimationId = requestAnimationFrame(previewLoop);
-    } else {
-      stopPreview();
-    }
-  }
-
-  previewAnimationId = requestAnimationFrame(previewLoop);
-}
-
-function stopPreview() {
-  isPreviewing = false;
-  if (previewAnimationId) {
-    cancelAnimationFrame(previewAnimationId);
-    previewAnimationId = null;
-  }
-
-  btnPreview.classList.remove('playing');
-  btnPreview.textContent = '▶ Mainkan Preview';
-  btnRenderVideo.disabled = false;
-  recordingOverlay.classList.remove('active');
-
-  shirtGroup.rotation.y = 0;
-  transformHelper.visible = true;
-  controls.enabled = true;
-}
-
-// ===== RENDER VIDEO =====
-btnRenderVideo.onclick = () => {
-  if (isRecording || isPreviewing) return;
-  startVideoRecord();
-};
-
-async function startVideoRecord() {
-  if (isRecording) return;
-
-  transformHelper.visible = false;
-  hideFreeTransform();
-  controls.enabled = false;
-  gizmoControlsUI.classList.remove('active');
-  btnPreview.disabled = true;
-
-  const oldSize = new THREE.Vector2();
-  renderer.getSize(oldSize);
-  const oldPixelRatio = renderer.getPixelRatio();
-
-  // Portrait
-  const targetW = recordQuality === 0 ? 720 : 1080;
-  const targetH = recordQuality === 0 ? 1280 : 1920;
-
-  renderer.setPixelRatio(1);
-  renderer.setSize(targetW, targetH, false);
-
-  camera.aspect = targetW / targetH;
-  camera.updateProjectionMatrix();
-  camera.position.set(0, 0.15, 5.2);
-  controls.target.set(0, 0.05, 0);
-  controls.update();
-
-  // Warm-up frames
-  for (let i = 0; i < 10; i++) {
-    renderer.clear();
-    renderer.render(scene, camera);
-  }
-
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-  const stream = renderer.domElement.captureStream(30);
-  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-    ? 'video/webm;codecs=vp9'
-    : 'video/webm';
-
-  recordedChunks = [];
-  mediaRecorder = new MediaRecorder(stream, {
-    mimeType,
-    videoBitsPerSecond: recordQuality === 0 ? 5000000 : 8000000
-  });
-
-  mediaRecorder.ondataavailable = (e) => {
-    if (e.data.size > 0) recordedChunks.push(e.data);
-  };
-
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `design-baju-portrait-${recordQuality === 0 ? '720p' : '1080p'}-${Date.now()}.webm`;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    renderer.setPixelRatio(oldPixelRatio);
-    renderer.setSize(oldSize.x, oldSize.y, false);
-    camera.aspect = oldSize.x / oldSize.y;
-    camera.updateProjectionMatrix();
-    transformHelper.visible = true;
-    controls.enabled = true;
-    isRecording = false;
-    btnRenderVideo.disabled = false;
-    btnPreview.disabled = false;
-    btnRenderVideo.classList.remove('recording');
-    btnRenderVideo.textContent = '🎥 Mulakan Render Video';
-    recordingOverlay.classList.remove('active');
-
-    shirtGroup.rotation.y = 0;
-  };
-
-  isRecording = true;
-  btnRenderVideo.disabled = true;
-  btnRenderVideo.classList.add('recording');
-  btnRenderVideo.textContent = '⏹ Sedang Merakam...';
-  recordingOverlay.classList.add('active');
-
-  mediaRecorder.start(100);
-  shirtGroup.rotation.y = 0;
-
-  recordStartTime = performance.now();
-  const durationMs = recordDuration * 1000;
-
-  function recordLoop(now) {
-    if (!isRecording) return;
-
-    const elapsed = now - recordStartTime;
-    const progress = Math.min(elapsed / durationMs, 1);
-
-    shirtGroup.rotation.y = progress * Math.PI * 2 * rotationSpeed;
-
-    const remaining = Math.max(0, Math.ceil((durationMs - elapsed) / 1000));
-    recordingText.textContent = `Sedang merakam... ${remaining}s`;
-
-    renderer.render(scene, camera);
-
-    if (progress < 1) {
-      requestAnimationFrame(recordLoop);
-    } else {
-      setTimeout(() => {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-          mediaRecorder.stop();
+// ===== PROJECT SYSTEM =====
+async function loadProjectList() {
+  const list = document.getElementById('projectList');
+  list.innerHTML = '';
+  const projects = await getAllProjects();
+  projects.sort((a, b) => (b.updated || 0) - (a.updated || 0));
+  projects.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'project-item' + (p.id === currentProjectId ? ' active' : '');
+    item.innerHTML = `<span class="name">${p.name}</span><button class="del">✕</button>`;
+    item.onclick = (e) => {
+      if (e.target.classList.contains('del')) return;
+      loadProject(p);
+    };
+    item.querySelector('.del').onclick = async (e) => {
+      e.stopPropagation();
+      if (confirm(`Padam project "${p.name}"?`)) {
+        await deleteProjectFromDB(p.id);
+        if (currentProjectId === p.id) {
+          currentProjectId = null;
+          document.getElementById('projectNameInput').value = 'Design Baru';
         }
-      }, 150);
-    }
-  }
-
-  requestAnimationFrame(recordLoop);
+        loadProjectList();
+      }
+    };
+    list.appendChild(item);
+  });
 }
 
-// ===== UI CONTROLS =====
-function setMode(mode) {
-  currentMode = mode;
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-
-  if (mode === 'translate') {
-    document.getElementById('btnTranslate').classList.add('active');
-    hideFreeTransform();
-    if (activeDummy) {
-      transformControls.attach(activeDummy);
-      transformControls.setMode('translate');
-    }
-  } else if (mode === 'scale') {
-    document.getElementById('btnScale').classList.add('active');
-    hideFreeTransform();
-    if (activeDummy) {
-      transformControls.attach(activeDummy);
-      transformControls.setMode('scale');
-    }
-  } else if (mode === 'free') {
-    document.getElementById('btnFree').classList.add('active');
-    transformControls.detach();
-    if (activeDummy) showFreeTransform();
-  }
-}
-
-document.getElementById('btnTranslate').onclick = () => setMode('translate');
-document.getElementById('btnScale').onclick = () => setMode('scale');
-document.getElementById('btnFree').onclick = () => setMode('free');
-
-const colors = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
-const colorGrid = document.getElementById('colorGrid');
-colors.forEach((hex, i) => {
-  const btn = document.createElement('button');
-  btn.className = 'color-btn' + (i === 0 ? ' active' : '');
-  btn.style.background = hex;
-  btn.onclick = () => {
-    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentShirtColor = hex;
-    shirtMaterials.forEach(m => m.color.set(hex));
-    pushHistory();
-    saveToLocalStorage();
-  };
-  colorGrid.appendChild(btn);
-});
-
-document.getElementById('customColor').addEventListener('input', (e) => {
-  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-  currentShirtColor = e.target.value;
-  shirtMaterials.forEach(m => m.color.set(e.target.value));
-});
-document.getElementById('customColor').addEventListener('change', () => {
-  pushHistory();
-  saveToLocalStorage();
-});
-
-function setActiveViewBtn(id) {
-  document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-document.getElementById('viewFront').onclick = () => {
-  camera.position.set(0, 0, 4.5);
-  controls.target.set(0, 0, 0);
-  setActiveViewBtn('viewFront');
-};
-document.getElementById('viewBack').onclick = () => {
-  camera.position.set(0, 0, -4.5);
-  controls.target.set(0, 0, 0);
-  setActiveViewBtn('viewBack');
-};
-document.getElementById('viewRight').onclick = () => {
-  camera.position.set(4.5, 0, 0);
-  controls.target.set(0, 0, 0);
-  setActiveViewBtn('viewRight');
-};
-document.getElementById('viewLeft').onclick = () => {
-  camera.position.set(-4.5, 0, 0);
-  controls.target.set(0, 0, 0);
-  setActiveViewBtn('viewLeft');
-};
-
-// ===== HISTORY =====
 function getCurrentState() {
   return {
     color: currentShirtColor,
     bgColor: currentBgColor,
-    isTransparentBg: isTransparentBg,
+    isTransparentBg,
     ambient: ambientLight.intensity,
     directional: mainLight.intensity,
     shadow: mainLight.shadow.intensity,
-    bgOpacity: bgOpacity,
-    bgFillMode: bgFillMode,
-    bgTransform: bgPlane ? {
-      position: bgPlane.position.toArray(),
-      scale: bgPlane.scale.toArray()
-    } : null,
+    bgOpacity,
+    bgFillMode,
     layers: layers.filter(d => !d.userData.isBg).map(d => ({
       position: d.position.toArray(),
       quaternion: d.quaternion.toArray(),
@@ -1684,16 +1239,90 @@ function getCurrentState() {
       dataURL: d.userData.dataURL,
       textContent: d.userData.textContent,
       textColor: d.userData.textColor,
+      font: d.userData.font,
+      fontSize: d.userData.fontSize,
       name: d.userData.name,
-      icon: d.userData.icon
+      icon: d.userData.icon,
+      opacity: d.userData.opacity || 1
     }))
   };
 }
 
-function pushHistory() {
-  if (historyIndex < history.length - 1) {
-    history = history.slice(0, historyIndex + 1);
+async function autoSave() {
+  if (!currentProjectId) return;
+  try {
+    const state = getCurrentState();
+    // simple thumbnail
+    transformHelper.visible = false;
+    renderer.render(scene, camera);
+    const thumb = renderer.domElement.toDataURL('image/jpeg', 0.4);
+    transformHelper.visible = true;
+
+    await saveProjectToDB({
+      id: currentProjectId,
+      name: currentProjectName,
+      state,
+      thumb,
+      updated: Date.now()
+    });
+  } catch (err) {
+    console.warn('Auto-save gagal', err);
   }
+}
+
+document.getElementById('btnSaveProject').onclick = async () => {
+  const name = document.getElementById('projectNameInput').value.trim() || 'Design Baru';
+  currentProjectName = name;
+  const state = getCurrentState();
+
+  transformHelper.visible = false;
+  renderer.render(scene, camera);
+  const thumb = renderer.domElement.toDataURL('image/jpeg', 0.45);
+  transformHelper.visible = true;
+
+  const project = {
+    id: currentProjectId || undefined,
+    name,
+    state,
+    thumb,
+    updated: Date.now()
+  };
+  const id = await saveProjectToDB(project);
+  currentProjectId = id;
+  await loadProjectList();
+  alert('Project berjaya disimpan!');
+};
+
+document.getElementById('btnNewProject').onclick = () => {
+  if (!confirm('Buat project baru? Design semasa akan dikosongkan.')) return;
+  clearAllLayers();
+  currentProjectId = null;
+  currentProjectName = 'Design Baru';
+  document.getElementById('projectNameInput').value = 'Design Baru';
+  currentShirtColor = '#ffffff';
+  shirtMaterials.forEach(m => m.color.set(0xffffff));
+  document.getElementById('customColor').value = '#ffffff';
+  applySolidBackground();
+  history = [];
+  historyIndex = -1;
+  pushHistory();
+  loadProjectList();
+};
+
+async function loadProject(p) {
+  currentProjectId = p.id;
+  currentProjectName = p.name;
+  document.getElementById('projectNameInput').value = p.name;
+  await restoreState(p.state);
+  history = [getCurrentState()];
+  historyIndex = 0;
+  updateUndoRedoButtons();
+  loadProjectList();
+}
+
+// ===== HISTORY + RESTORE =====
+function pushHistory() {
+  if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
   history.push(getCurrentState());
   if (history.length > MAX_HISTORY) history.shift();
   historyIndex = history.length - 1;
@@ -1703,47 +1332,39 @@ function pushHistory() {
 function clearAllLayers() {
   [...layers].forEach(d => {
     if (d.userData.isBg) return;
-    if (d.userData.decals) {
-      d.userData.decals.forEach(decal => {
-        shirtGroup.remove(decal);
-        decal.geometry.dispose();
-        if (decal.material.map) decal.material.map.dispose();
-        decal.material.dispose();
-      });
-    }
+    if (d.userData.decals) d.userData.decals.forEach(decal => {
+      shirtGroup.remove(decal); decal.geometry.dispose();
+      if (decal.material.map) decal.material.map.dispose();
+      decal.material.dispose();
+    });
     if (d.userData.texture) d.userData.texture.dispose();
     shirtGroup.remove(d);
   });
   layers = layers.filter(l => l.userData.isBg);
   logoCount = 0;
   [...layerListUI.children].forEach(el => {
-    if (el.id !== 'layer-base' && !el.querySelector('.layer-info span:last-child')?.textContent.includes('Latar')) {
-      el.remove();
-    }
+    if (el.id !== 'layer-base' && !el.querySelector('.layer-name')?.textContent.includes('Latar')) el.remove();
   });
 }
 
 async function restoreState(state) {
   clearAllLayers();
   hideFreeTransform();
-  
+  propertiesPanel.classList.remove('active');
+
   currentShirtColor = state.color || '#ffffff';
   shirtMaterials.forEach(m => m.color.set(currentShirtColor));
   document.getElementById('customColor').value = currentShirtColor;
-  document.querySelectorAll('.color-btn').forEach(b => {
-    b.classList.toggle('active', b.style.background === currentShirtColor);
-  });
 
   currentBgColor = state.bgColor || '#09090b';
   document.getElementById('bgColor').value = currentBgColor;
   isTransparentBg = !!state.isTransparentBg;
   document.getElementById('toggleTransparent').classList.toggle('active', isTransparentBg);
-  
+
   ambientLight.intensity = state.ambient ?? 0.5;
   mainLight.intensity = state.directional ?? 2;
   mainLight.shadow.intensity = state.shadow ?? 1;
   ground.material.opacity = 0.3 * (state.shadow ?? 1);
-  
   document.getElementById('ambientSlider').value = ambientLight.intensity;
   document.getElementById('dirSlider').value = mainLight.intensity;
   document.getElementById('shadowSlider').value = mainLight.shadow.intensity;
@@ -1752,60 +1373,45 @@ async function restoreState(state) {
   document.getElementById('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
 
   bgOpacity = state.bgOpacity ?? 1;
-  document.getElementById('bgOpacitySlider').value = bgOpacity;
-  document.getElementById('bgOpacityValue').textContent = bgOpacity.toFixed(2);
-
   bgFillMode = state.bgFillMode || 'stretch';
+  applySolidBackground();
 
-  if (bgPlane && state.bgTransform) {
-    bgPlane.position.fromArray(state.bgTransform.position);
-    bgPlane.scale.fromArray(state.bgTransform.scale);
-    bgPlane.material.opacity = bgOpacity;
-    applyFillMode(bgFillMode);
-  } else {
-    applySolidBackground();
-  }
-
-  const promises = (state.layers || []).map((ldata) => {
-    return new Promise((resolve) => {
-      if (!ldata.dataURL) { resolve(); return; }
-      const img = new Image();
-      img.onload = () => {
-        try {
-          const texture = new THREE.Texture(img);
-          texture.colorSpace = THREE.SRGBColorSpace;
-          texture.needsUpdate = true;
-
-          const dummy = new THREE.Object3D();
-          dummy.userData.texture = texture;
-          dummy.userData.aspect = ldata.aspect || 1;
-          dummy.userData.isText = !!ldata.isText;
-          dummy.userData.dataURL = ldata.dataURL;
-          dummy.userData.textContent = ldata.textContent || '';
-          dummy.userData.textColor = ldata.textColor || '#000000';
-          dummy.userData.name = ldata.name || 'Logo';
-          dummy.userData.icon = ldata.icon || '🖼️';
-
-          dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
-          dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
-          dummy.scale.fromArray(ldata.scale || [1, 1, 1]);
-
-          const s = Math.max(dummy.scale.x, dummy.scale.y, dummy.scale.z);
-          dummy.scale.setScalar(Math.max(0.12, s));
-
-          shirtGroup.add(dummy);
-          createDecal(dummy);
-          layers.push(dummy);
-          logoCount++;
-          addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
-        } catch (err) {}
-        resolve();
-      };
-      img.onerror = () => resolve();
-      img.src = ldata.dataURL;
-    });
-  });
-
+  const promises = (state.layers || []).map(ldata => new Promise(resolve => {
+    if (!ldata.dataURL) return resolve();
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const texture = new THREE.Texture(img);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.needsUpdate = true;
+        const dummy = new THREE.Object3D();
+        dummy.userData.texture = texture;
+        dummy.userData.aspect = ldata.aspect || 1;
+        dummy.userData.isText = !!ldata.isText;
+        dummy.userData.dataURL = ldata.dataURL;
+        dummy.userData.textContent = ldata.textContent || '';
+        dummy.userData.textColor = ldata.textColor || '#000000';
+        dummy.userData.font = ldata.font || 'Inter';
+        dummy.userData.fontSize = ldata.fontSize || 120;
+        dummy.userData.name = ldata.name || 'Logo';
+        dummy.userData.icon = ldata.icon || '🖼️';
+        dummy.userData.opacity = ldata.opacity || 1;
+        dummy.position.fromArray(ldata.position || [0,0,0.4]);
+        dummy.quaternion.fromArray(ldata.quaternion || [0,0,0,1]);
+        dummy.scale.fromArray(ldata.scale || [1,1,1]);
+        const s = Math.max(dummy.scale.x, dummy.scale.y, dummy.scale.z);
+        dummy.scale.setScalar(Math.max(0.12, s));
+        shirtGroup.add(dummy);
+        createDecal(dummy);
+        layers.push(dummy);
+        logoCount++;
+        addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
+      } catch(e) {}
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = ldata.dataURL;
+  }));
   await Promise.all(promises);
 
   transformControls.detach();
@@ -1817,132 +1423,251 @@ async function restoreState(state) {
 function undo() {
   if (historyIndex <= 0) return;
   historyIndex--;
-  restoreState(history[historyIndex]).then(() => {
-    updateUndoRedoButtons();
-    saveToLocalStorage();
-  });
+  restoreState(history[historyIndex]).then(() => { updateUndoRedoButtons(); autoSave(); });
 }
-
 function redo() {
   if (historyIndex >= history.length - 1) return;
   historyIndex++;
-  restoreState(history[historyIndex]).then(() => {
-    updateUndoRedoButtons();
-    saveToLocalStorage();
-  });
+  restoreState(history[historyIndex]).then(() => { updateUndoRedoButtons(); autoSave(); });
 }
-
 function updateUndoRedoButtons() {
   btnUndo.disabled = historyIndex <= 0;
   btnRedo.disabled = historyIndex >= history.length - 1;
 }
-
 btnUndo.onclick = undo;
 btnRedo.onclick = redo;
 
+// ===== VIDEO (same as before, shortened for space) =====
+document.getElementById('speedSlider').oninput = (e) => {
+  rotationSpeed = parseFloat(e.target.value);
+  document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x';
+};
+document.getElementById('durationSlider').oninput = (e) => {
+  recordDuration = parseInt(e.target.value);
+  document.getElementById('durationValue').textContent = recordDuration + 's';
+};
+document.getElementById('qualitySlider').oninput = (e) => {
+  recordQuality = parseInt(e.target.value);
+  document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait';
+};
+
+btnPreview.onclick = () => {
+  if (isRecording) return;
+  if (isPreviewing) stopPreview();
+  else startPreview();
+};
+
+function startPreview() {
+  if (isPreviewing || isRecording) return;
+  isPreviewing = true;
+  btnPreview.classList.add('playing');
+  btnPreview.textContent = '⏹ Stop Preview';
+  btnRenderVideo.disabled = true;
+  transformHelper.visible = false;
+  hideFreeTransform();
+  controls.enabled = false;
+  camera.position.set(0, 0.15, 5.2);
+  controls.target.set(0, 0.05, 0);
+  controls.update();
+  shirtGroup.rotation.y = 0;
+  const start = performance.now();
+  const dur = recordDuration * 1000;
+  recordingOverlay.classList.add('active');
+  function loop(now) {
+    if (!isPreviewing) return;
+    const p = Math.min((now - start) / dur, 1);
+    shirtGroup.rotation.y = p * Math.PI * 2 * rotationSpeed;
+    recordingText.textContent = `Preview... ${Math.ceil((dur - (now - start))/1000)}s`;
+    if (p < 1) previewAnimationId = requestAnimationFrame(loop);
+    else stopPreview();
+  }
+  previewAnimationId = requestAnimationFrame(loop);
+}
+function stopPreview() {
+  isPreviewing = false;
+  if (previewAnimationId) cancelAnimationFrame(previewAnimationId);
+  btnPreview.classList.remove('playing');
+  btnPreview.textContent = '▶ Mainkan Preview';
+  btnRenderVideo.disabled = false;
+  recordingOverlay.classList.remove('active');
+  shirtGroup.rotation.y = 0;
+  transformHelper.visible = true;
+  controls.enabled = true;
+}
+
+btnRenderVideo.onclick = () => {
+  if (isRecording || isPreviewing) return;
+  startVideoRecord();
+};
+
+async function startVideoRecord() {
+  if (isRecording) return;
+  transformHelper.visible = false;
+  hideFreeTransform();
+  controls.enabled = false;
+  btnPreview.disabled = true;
+
+  const oldSize = new THREE.Vector2();
+  renderer.getSize(oldSize);
+  const oldPR = renderer.getPixelRatio();
+  const tw = recordQuality === 0 ? 720 : 1080;
+  const th = recordQuality === 0 ? 1280 : 1920;
+  renderer.setPixelRatio(1);
+  renderer.setSize(tw, th, false);
+  camera.aspect = tw / th;
+  camera.updateProjectionMatrix();
+  camera.position.set(0, 0.15, 5.2);
+  controls.target.set(0, 0.05, 0);
+  controls.update();
+
+  for (let i = 0; i < 10; i++) { renderer.clear(); renderer.render(scene, camera); }
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  const stream = renderer.domElement.captureStream(30);
+  const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+  recordedChunks = [];
+  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: recordQuality === 0 ? 5000000 : 8000000 });
+  mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `design-portrait-${Date.now()}.webm`;
+    a.click();
+    renderer.setPixelRatio(oldPR);
+    renderer.setSize(oldSize.x, oldSize.y, false);
+    camera.aspect = oldSize.x / oldSize.y;
+    camera.updateProjectionMatrix();
+    transformHelper.visible = true;
+    controls.enabled = true;
+    isRecording = false;
+    btnRenderVideo.disabled = false;
+    btnPreview.disabled = false;
+    btnRenderVideo.classList.remove('recording');
+    btnRenderVideo.textContent = '🎥 Render Video';
+    recordingOverlay.classList.remove('active');
+    shirtGroup.rotation.y = 0;
+  };
+
+  isRecording = true;
+  btnRenderVideo.disabled = true;
+  btnRenderVideo.classList.add('recording');
+  btnRenderVideo.textContent = '⏹ Sedang Merakam...';
+  recordingOverlay.classList.add('active');
+  mediaRecorder.start(100);
+  shirtGroup.rotation.y = 0;
+  const start = performance.now();
+  const dur = recordDuration * 1000;
+  function loop(now) {
+    if (!isRecording) return;
+    const p = Math.min((now - start) / dur, 1);
+    shirtGroup.rotation.y = p * Math.PI * 2 * rotationSpeed;
+    recordingText.textContent = `Sedang merakam... ${Math.ceil((dur - (now - start))/1000)}s`;
+    renderer.render(scene, camera);
+    if (p < 1) requestAnimationFrame(loop);
+    else setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 150);
+  }
+  requestAnimationFrame(loop);
+}
+
+// ===== UI =====
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  if (mode === 'translate') {
+    document.getElementById('btnTranslate').classList.add('active');
+    hideFreeTransform();
+    if (activeDummy) { transformControls.attach(activeDummy); transformControls.setMode('translate'); }
+  } else if (mode === 'scale') {
+    document.getElementById('btnScale').classList.add('active');
+    hideFreeTransform();
+    if (activeDummy) { transformControls.attach(activeDummy); transformControls.setMode('scale'); }
+  } else {
+    document.getElementById('btnFree').classList.add('active');
+    transformControls.detach();
+    if (activeDummy) showFreeTransform();
+  }
+}
+document.getElementById('btnTranslate').onclick = () => setMode('translate');
+document.getElementById('btnScale').onclick = () => setMode('scale');
+document.getElementById('btnFree').onclick = () => setMode('free');
+
+const colors = ['#ffffff','#171717','#64748b','#dc2626','#2563eb','#16a34a','#ca8a04','#9333ea'];
+colors.forEach((hex, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'color-btn' + (i === 0 ? ' active' : '');
+  btn.style.background = hex;
+  btn.onclick = () => {
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentShirtColor = hex;
+    shirtMaterials.forEach(m => m.color.set(hex));
+    pushHistory(); autoSave();
+  };
+  document.getElementById('colorGrid').appendChild(btn);
+});
+document.getElementById('customColor').oninput = (e) => {
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  currentShirtColor = e.target.value;
+  shirtMaterials.forEach(m => m.color.set(e.target.value));
+};
+document.getElementById('customColor').onchange = () => { pushHistory(); autoSave(); };
+
+document.getElementById('viewFront').onclick = () => { camera.position.set(0,0,4.5); controls.target.set(0,0,0); setActiveViewBtn('viewFront'); };
+document.getElementById('viewBack').onclick = () => { camera.position.set(0,0,-4.5); controls.target.set(0,0,0); setActiveViewBtn('viewBack'); };
+document.getElementById('viewRight').onclick = () => { camera.position.set(4.5,0,0); controls.target.set(0,0,0); setActiveViewBtn('viewRight'); };
+document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5,0,0); controls.target.set(0,0,0); setActiveViewBtn('viewLeft'); };
+function setActiveViewBtn(id) {
+  document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey) {
-    if (e.key === 'z' || e.key === 'Z') {
-      e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
-    }
-    if (e.key === 'y' || e.key === 'Y') {
-      e.preventDefault();
-      redo();
-    }
-    if (e.key === 't' || e.key === 'T') {
-      e.preventDefault();
-      if (activeDummy) setMode('free');
-    }
-  }
-
-  if (!e.ctrlKey && !e.metaKey && activeDummy) {
-    if (e.key === 'g' || e.key === 'G') setMode('translate');
-    if (e.key === 's' || e.key === 'S') setMode('scale');
-    if (e.key === 'r' || e.key === 'R' || e.key === 't' || e.key === 'T') setMode('free');
+    if (e.key === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
+    if (e.key === 'y') { e.preventDefault(); redo(); }
+    if (e.key === 't') { e.preventDefault(); if (activeDummy) setMode('free'); }
+    if (e.key === 's') { e.preventDefault(); document.getElementById('btnSaveProject').click(); }
   }
 });
-
-// ===== LOCAL STORAGE =====
-function saveToLocalStorage() {
-  try {
-    localStorage.setItem('proDesigner3D_state', JSON.stringify(getCurrentState()));
-  } catch (err) {
-    console.warn('Gagal simpan ke localStorage:', err);
-  }
-}
-
-async function loadFromLocalStorage() {
-  try {
-    const raw = localStorage.getItem('proDesigner3D_state');
-    if (!raw) { pushHistory(); return; }
-    const state = JSON.parse(raw);
-    if (state && Array.isArray(state.layers)) {
-      await restoreState(state);
-      history = [getCurrentState()];
-      historyIndex = 0;
-      updateUndoRedoButtons();
-    } else {
-      pushHistory();
-    }
-  } catch (err) {
-    console.warn('Gagal load dari localStorage:', err);
-    pushHistory();
-  }
-}
 
 // ===== SAVE HD =====
 document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false;
   hideFreeTransform();
-  const currentSize = renderer.getSize(new THREE.Vector2());
-  
+  const size = renderer.getSize(new THREE.Vector2());
   renderer.setSize(2000, 2000, false);
   renderer.render(scene, camera);
-  const dataURL = renderer.domElement.toDataURL('image/png');
-  
-  renderer.setSize(currentSize.x, currentSize.y, false);
+  const a = document.createElement('a');
+  a.download = 'design-baju-hd.png';
+  a.href = renderer.domElement.toDataURL('image/png');
+  a.click();
+  renderer.setSize(size.x, size.y, false);
   transformHelper.visible = true;
   if (currentMode === 'free' && activeDummy) showFreeTransform();
   renderer.render(scene, camera);
-
-  const link = document.createElement('a');
-  link.download = isTransparentBg ? 'design-baju-transparent.png' : 'design-baju-hd.png';
-  link.href = dataURL;
-  link.click();
 };
 
 // ===== ANIMATE =====
 function animate() {
   requestAnimationFrame(animate);
-  if (!isRecording && !isPreviewing) {
+  if (!isRecording) {
     controls.update();
     renderer.render(scene, camera);
-
-    if (currentMode === 'free' && activeDummy && !ftDragging) {
-      updateFreeTransformHandles();
-    }
-  } else if (isPreviewing) {
-    // Preview already handles rendering via its own loop, but we still need to keep the loop alive
-    renderer.render(scene, camera);
+    if (currentMode === 'free' && activeDummy && !ftDragging) updateFreeTransformHandles();
   }
 }
 animate();
 
 window.addEventListener('resize', () => {
   if (isRecording) return;
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  camera.aspect = width / height;
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(width, height);
-  if (currentMode === 'free') updateFreeTransformHandles();
+  renderer.setSize(w, h);
 });
 
-// Initial
 applySolidBackground();
 </script>
-
 </body>
 </html>
