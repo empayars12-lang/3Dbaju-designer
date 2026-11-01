@@ -253,8 +253,8 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ===== INDEXEDDB STABIL =====
-const DB_NAME = 'ProDesigner3D_v3';
+// ===== INDEXEDDB (FIXED) =====
+const DB_NAME = 'ProDesigner3D_v4';
 const DB_VERSION = 1;
 const STORE = 'projects';
 
@@ -276,7 +276,9 @@ async function dbSave(project) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
-    const req = project.id ? tx.objectStore(STORE).put(project) : tx.objectStore(STORE).add(project);
+    const store = tx.objectStore(STORE);
+    // PENTING: jika ada id → put, jika tiada id → add
+    const req = ('id' in project && project.id != null) ? store.put(project) : store.add(project);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
@@ -303,7 +305,7 @@ async function dbDelete(id) {
 
 function resizeDataURL(dataURL, max = 900) {
   return new Promise(resolve => {
-    if (!dataURL || dataURL.length < 150000) return resolve(dataURL);
+    if (!dataURL || dataURL.length < 120000) return resolve(dataURL);
     const img = new Image();
     img.onload = () => {
       let w = img.width, h = img.height;
@@ -379,7 +381,7 @@ let isDragging = false;
 transformControls.addEventListener('dragging-changed', e => {
   controls.enabled = !e.value;
   isDragging = e.value;
-  if (!e.value && activeDummy) { pushHistory(); }
+  if (!e.value && activeDummy) pushHistory();
 });
 
 // ===== STATE =====
@@ -923,7 +925,10 @@ async function loadProjectList() {
       e.stopPropagation();
       if (confirm(`Padam "${p.name}"?`)) {
         await dbDelete(p.id);
-        if (currentProjectId === p.id) { currentProjectId = null; document.getElementById('projectNameInput').value = 'Design Baru'; }
+        if (currentProjectId === p.id) {
+          currentProjectId = null;
+          document.getElementById('projectNameInput').value = 'Design Baru';
+        }
         loadProjectList();
       }
     };
@@ -955,24 +960,47 @@ async function loadProject(p) {
   }
 }
 
+// ===== SIMPAN PROJECT (FIXED - TIADA LAGI DataError) =====
 document.getElementById('btnSaveProject').onclick = async () => {
   const name = document.getElementById('projectNameInput').value.trim() || 'Design Baru';
   currentProjectName = name;
+
   try {
     const state = await getStateForSave();
+
     transformHelper.visible = false;
     renderer.render(scene, camera);
     const thumb = renderer.domElement.toDataURL('image/jpeg', 0.4);
     transformHelper.visible = true;
 
-    const project = { id: currentProjectId || undefined, name, state, thumb, updated: Date.now() };
+    // PENTING: Jangan letak id: undefined
+    let project;
+    if (currentProjectId != null) {
+      // Update project sedia ada
+      project = {
+        id: currentProjectId,
+        name,
+        state,
+        thumb,
+        updated: Date.now()
+      };
+    } else {
+      // Project baru - JANGAN letak property id langsung
+      project = {
+        name,
+        state,
+        thumb,
+        updated: Date.now()
+      };
+    }
+
     const id = await dbSave(project);
     currentProjectId = id;
     await loadProjectList();
     showToast('✅ Project berjaya disimpan');
   } catch (err) {
     console.error(err);
-    showToast('❌ Gagal simpan. Cuba kurangkan logo atau saiz gambar.', true);
+    showToast('❌ Gagal simpan project', true);
   }
 };
 
