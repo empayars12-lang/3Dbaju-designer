@@ -10,8 +10,6 @@
     html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
     #app{display:flex;height:100vh}
     #sidebar-left{width:300px;background:#18181b;padding:14px;display:flex;flex-direction:column;gap:8px;border-right:1px solid #27272a;z-index:10;overflow-y:auto}
-    
-    /* ===== ACCORDION ===== */
     .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden}
     .accordion-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#d4d4d8}
     .accordion-header:hover{background:#27272a}
@@ -19,7 +17,6 @@
     .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
     .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
     .accordion-item.open .accordion-body{max-height:900px;padding:10px 12px 14px}
-
     .color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
     .color-btn{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s}
     .color-btn:hover{transform:scale(1.1)}
@@ -61,8 +58,9 @@
     .project-btn{background:#3b82f6;color:#fff;padding:10px;font-size:13px;width:100%;margin-bottom:6px}
     .project-btn.secondary{background:#3f3f46;color:#d4d4d8}
     #projectList{max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-top:6px}
-    .project-item{background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px}
+    .project-item{background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;gap:6px}
     .project-item:hover,.project-item.active{border-color:#38bdf8}
+    .project-item .thumb{width:32px;height:32px;object-fit:cover;border-radius:4px;background:#18181b;flex-shrink:0}
     .project-item .name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .project-item .del{color:#ef4444;background:none;border:none;cursor:pointer;font-size:13px}
     select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f3f46;background:#1f1f23;color:#fff;font-size:13px;font-family:inherit}
@@ -109,7 +107,6 @@
 <body>
 <div id="app">
   <div id="sidebar-left">
-    <!-- PROJEK -->
     <div class="accordion-item open">
       <div class="accordion-header">Projek <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -120,7 +117,6 @@
       </div>
     </div>
 
-    <!-- WARNA BAJU -->
     <div class="accordion-item open">
       <div class="accordion-header">Warna Baju <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -132,7 +128,6 @@
       </div>
     </div>
 
-    <!-- DESIGN ANDA -->
     <div class="accordion-item open">
       <div class="accordion-header">Design Anda <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -140,7 +135,6 @@
       </div>
     </div>
 
-    <!-- TAMBAH TEKS -->
     <div class="accordion-item">
       <div class="accordion-header">Tambah Teks <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -163,7 +157,6 @@
       </div>
     </div>
 
-    <!-- LATAR BELAKANG -->
     <div class="accordion-item">
       <div class="accordion-header">Latar Belakang <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -187,7 +180,6 @@
       </div>
     </div>
 
-    <!-- CAHAYA -->
     <div class="accordion-item">
       <div class="accordion-header">Kawalan Cahaya <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -197,7 +189,6 @@
       </div>
     </div>
 
-    <!-- VIDEO -->
     <div class="accordion-item">
       <div class="accordion-header">Render Video <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -209,7 +200,6 @@
       </div>
     </div>
 
-    <!-- GIZMO (muncul bila pilih layer) -->
     <div class="gizmo-controls" id="gizmoControls">
       <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:8px">Kawalan Logo</div>
       <div class="mode-buttons">
@@ -254,13 +244,11 @@
       <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
       <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
       <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
-      
       <div class="align-row">
         <button class="align-btn" id="btnAlignCenterX">Center X</button>
         <button class="align-btn" id="btnAlignCenterY">Center Y</button>
       </div>
       <button class="small-btn" id="btnDuplicate" style="margin-top:10px">Duplicate Layer</button>
-
       <div id="textProps" style="display:none;margin-top:12px">
         <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
         <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
@@ -349,10 +337,8 @@ function resizeDataURL(dataURL, max = 900) {
       w = Math.round(w * r); h = Math.round(h * r);
       const c = document.createElement('canvas');
       c.width = w; c.height = h;
-      const ctx = c.getContext('2d');
-      ctx.clearRect(0, 0, w, h);
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(c.toDataURL('image/png')); // PENTING: PNG untuk transparency
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/png'));
     };
     img.onerror = () => resolve(dataURL);
     img.src = dataURL;
@@ -364,8 +350,18 @@ function showToast(msg, isError = false) {
   t.textContent = msg;
   t.className = isError ? 'error' : '';
   t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 2800);
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.style.display = 'none', 2800);
 }
+
+// Pre-load fonts so canvas text is correct
+async function ensureFontLoaded(font) {
+  try { await document.fonts.load(`bold 120px "${font}"`); } catch (e) {}
+}
+ensureFontLoaded('Inter');
+ensureFontLoaded('Roboto');
+ensureFontLoaded('Oswald');
+ensureFontLoaded('Playfair Display');
 
 // ===== THREE SETUP =====
 const container = document.getElementById('viewer-container');
@@ -481,8 +477,8 @@ function setupShirt(model) {
   });
   shirtGroup.add(model);
   ground.position.y = box.min.y - 0.1;
-  document.getElementById('loading').style.opacity = '0';
-  setTimeout(() => document.getElementById('loading')?.remove(), 400);
+  const loadingEl = document.getElementById('loading');
+  if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
   addBaseLayer();
   loadProjectList().then(loadLastProject);
   pushHistory();
@@ -517,42 +513,31 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
 
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
-  el.innerHTML = `
-    <div class="layer-info">
-      <span>${icon}</span>
-      <span class="layer-name">${name}</span>
-    </div>
-    <div class="layer-actions">
-      <button class="vis" title="Visibility">👁️</button>
-      <button class="lock" title="Lock">🔓</button>
-      <button class="del" title="Padam">✕</button>
-    </div>
-  `;
+  // XSS-safe: build with DOM, not innerHTML for user-controlled text
+  const info = document.createElement('div'); info.className = 'layer-info';
+  const ic = document.createElement('span'); ic.textContent = icon;
+  const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
+  info.appendChild(ic); info.appendChild(nm);
+  const actions = document.createElement('div'); actions.className = 'layer-actions';
+  const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.title = 'Visibility'; bVis.textContent = '👁️';
+  const bLock = document.createElement('button'); bLock.className = 'lock'; bLock.title = 'Lock'; bLock.textContent = '🔓';
+  const bDel = document.createElement('button'); bDel.className = 'del'; bDel.title = 'Padam'; bDel.textContent = '✕';
+  actions.appendChild(bVis); actions.appendChild(bLock); actions.appendChild(bDel);
+  el.appendChild(info); el.appendChild(actions);
+
   el.onclick = e => {
     if (e.target.closest('.layer-actions')) return;
     selectLayer(dummy, el);
   };
-  el.querySelector('.del').onclick = e => {
-    e.stopPropagation();
-    if (isBg) clearBgImage(); else deleteLayer(dummy, el);
-  };
-  el.querySelector('.vis').onclick = e => {
-    e.stopPropagation();
-    toggleVisibility(dummy, el);
-  };
-  el.querySelector('.lock').onclick = e => {
-    e.stopPropagation();
-    toggleLock(dummy, el);
-  };
+  bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
+  bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
+  bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
   layerListUI.prepend(el);
   selectLayer(dummy, el);
 }
 
 function selectLayer(dummy, el) {
-  if (dummy.userData.locked) {
-    showToast('Layer dikunci', true);
-    return;
-  }
+  if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   activeDummy = dummy;
@@ -581,13 +566,11 @@ function toggleVisibility(dummy, el) {
   dummy.userData.visible = !dummy.userData.visible;
   const visBtn = el.querySelector('.vis');
   if (dummy.userData.visible) {
-    visBtn.classList.remove('hidden');
-    visBtn.textContent = '👁️';
+    visBtn.classList.remove('hidden'); visBtn.textContent = '👁️';
     if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = true);
     if (dummy.userData.isBg) dummy.visible = true;
   } else {
-    visBtn.classList.add('hidden');
-    visBtn.textContent = '👁️‍🗨️';
+    visBtn.classList.add('hidden'); visBtn.textContent = '👁️‍🗨️';
     if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = false);
     if (dummy.userData.isBg) dummy.visible = false;
   }
@@ -597,25 +580,19 @@ function toggleLock(dummy, el) {
   dummy.userData.locked = !dummy.userData.locked;
   const lockBtn = el.querySelector('.lock');
   if (dummy.userData.locked) {
-    lockBtn.textContent = '🔒';
-    el.classList.add('locked');
+    lockBtn.textContent = '🔒'; el.classList.add('locked');
     if (activeDummy === dummy) {
-      transformControls.detach();
-      hideFreeTransform();
-      gizmoControlsUI.classList.remove('active');
-      propertiesPanel.classList.remove('active');
+      transformControls.detach(); hideFreeTransform();
+      gizmoControlsUI.classList.remove('active'); propertiesPanel.classList.remove('active');
       activeDummy = null;
     }
-  } else {
-    lockBtn.textContent = '🔓';
-    el.classList.remove('locked');
-  }
+  } else { lockBtn.textContent = '🔓'; el.classList.remove('locked'); }
 }
 
 function deleteLayer(dummy, el) {
   transformControls.detach(); hideFreeTransform(); propertiesPanel.classList.remove('active');
-  if (dummy.userData.decals) dummy.userData.decals.forEach(d => { shirtGroup.remove(d); d.geometry.dispose(); d.material.map?.dispose(); d.material.dispose(); });
-  dummy.userData.texture?.dispose();
+  disposeDummyDecals(dummy);
+  disposeDummyTextures(dummy);
   shirtGroup.remove(dummy);
   el.remove();
   layers = layers.filter(l => l !== dummy);
@@ -624,22 +601,42 @@ function deleteLayer(dummy, el) {
   pushHistory();
 }
 
+function disposeDummyDecals(dummy) {
+  if (dummy.userData.decals) {
+    dummy.userData.decals.forEach(d => { shirtGroup.remove(d); d.geometry.dispose(); d.material.dispose(); });
+    dummy.userData.decals = [];
+  }
+}
+
+function disposeDummyTextures(dummy) {
+  dummy.userData.texture?.dispose();
+  dummy.userData._decalTexFront?.dispose?.();
+  dummy.userData._decalTexBack?.dispose?.();
+  dummy.userData._decalTexFront = null;
+  dummy.userData._decalTexBack = null;
+}
+
 // Properties
 document.getElementById('propName').onchange = e => {
   if (!activeDummy) return;
   activeDummy.userData.name = e.target.value;
   const el = document.getElementById(activeDummy.userData.layerId);
   if (el) el.querySelector('.layer-name').textContent = e.target.value;
+  pushHistory();
 };
 document.getElementById('propScale').oninput = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   const s = +e.target.value;
-  activeDummy.scale.setScalar(s);
   document.getElementById('propScaleValue').textContent = s.toFixed(2);
   if (activeDummy.userData.isBg) {
     const a = activeDummy.userData.aspect || 1;
     activeDummy.scale.set(s, s / a, 1);
-  } else createDecal(activeDummy);
+    document.getElementById('bgScaleSlider').value = s;
+    document.getElementById('bgScaleValue').textContent = s.toFixed(2);
+  } else {
+    activeDummy.scale.setScalar(s);
+    scheduleDecal(activeDummy);
+  }
 };
 document.getElementById('propScale').onchange = () => pushHistory();
 document.getElementById('propOpacity').oninput = e => {
@@ -658,16 +655,12 @@ document.getElementById('propTextColor').onchange = () => { if (activeDummy?.use
 document.getElementById('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
   activeDummy.position.x = 0;
-  createDecal(activeDummy);
-  pushHistory();
-  showToast('Center X');
+  createDecalNow(activeDummy); pushHistory(); showToast('Center X');
 };
 document.getElementById('btnAlignCenterY').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
   activeDummy.position.y = 0.15;
-  createDecal(activeDummy);
-  pushHistory();
-  showToast('Center Y');
+  createDecalNow(activeDummy); pushHistory(); showToast('Center Y');
 };
 
 // Duplicate
@@ -678,42 +671,38 @@ document.getElementById('btnDuplicate').onclick = () => {
   tex.needsUpdate = true;
   const dummy = new THREE.Object3D();
   dummy.userData = {
-    texture: tex,
-    aspect: src.userData.aspect,
-    isText: src.userData.isText,
-    dataURL: src.userData.dataURL,
-    textContent: src.userData.textContent,
-    textColor: src.userData.textColor,
-    font: src.userData.font,
-    fontSize: src.userData.fontSize,
-    opacity: src.userData.opacity,
-    visible: true,
-    locked: false
+    texture: tex, aspect: src.userData.aspect, isText: src.userData.isText,
+    dataURL: src.userData.dataURL, textContent: src.userData.textContent,
+    textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
+    opacity: src.userData.opacity, visible: true, locked: false
   };
-  dummy.position.copy(src.position);
-  dummy.position.x += 0.12;
-  dummy.quaternion.copy(src.quaternion);
-  dummy.scale.copy(src.scale);
+  dummy.position.copy(src.position); dummy.position.x += 0.12;
+  dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
   shirtGroup.add(dummy);
-  createDecal(dummy);
+  createDecalNow(dummy);
   layers.push(dummy);
   logoCount++;
   addDesignLayer(dummy, (src.userData.name || 'Logo') + ' Copy', src.userData.icon || '🖼️');
-  pushHistory();
-  showToast('Layer diduplicate');
+  pushHistory(); showToast('Layer diduplicate');
 };
 
-function updateTextLayer(dummy) {
+async function updateTextLayer(dummy) {
   const text = document.getElementById('propTextContent').value.trim() || dummy.userData.textContent;
   const color = document.getElementById('propTextColor').value;
+  const font = dummy.userData.font || 'Inter';
+  const size = dummy.userData.fontSize || 120;
+  await ensureFontLoaded(font);
   const canvas = document.createElement('canvas');
   canvas.width = 1024; canvas.height = 256;
   const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 1024, 256);
   ctx.fillStyle = color;
-  ctx.font = `bold 120px Inter,sans-serif`;
+  ctx.font = `bold ${size}px "${font}",sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(text, 512, 128);
   dummy.userData.texture?.dispose();
+  dummy.userData._decalTexFront?.dispose?.(); dummy.userData._decalTexBack?.dispose?.();
+  dummy.userData._decalTexFront = null; dummy.userData._decalTexBack = null;
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   dummy.userData.texture = tex;
@@ -721,30 +710,64 @@ function updateTextLayer(dummy) {
   dummy.userData.textColor = color;
   dummy.userData.dataURL = canvas.toDataURL('image/png');
   dummy.userData.aspect = 4;
-  createDecal(dummy);
+  createDecalNow(dummy);
   pushHistory();
 }
 
-// ===== DECAL =====
+// ===== DECAL (throttled + cached textures) =====
+const SHIRT_BASE_SIZE = 0.58;
+const SLEEVE_BASE_SIZE = 0.92;
 function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
-function createDecal(dummy) {
-  if (!shirtMeshes.length || dummy.userData.isBg) return;
-  if (dummy.userData.decals) dummy.userData.decals.forEach(d => { shirtGroup.remove(d); d.geometry.dispose(); d.material.map?.dispose(); d.material.dispose(); });
-  dummy.userData.decals = [];
+
+let decalQueuedDummy = null;
+let decalQueued = false;
+function scheduleDecal(dummy) {
+  decalQueuedDummy = dummy;
+  if (decalQueued) return;
+  decalQueued = true;
+  requestAnimationFrame(() => {
+    decalQueued = false;
+    if (decalQueuedDummy) createDecalNow(decalQueuedDummy);
+    decalQueuedDummy = null;
+  });
+}
+
+function getDecalTexture(dummy, isBack) {
+  if (!dummy.userData.texture) return null;
+  if (isBack) {
+    if (!dummy.userData._decalTexBack || dummy.userData._decalTexBackSrc !== dummy.userData.texture) {
+      dummy.userData._decalTexBack?.dispose?.();
+      const t = dummy.userData.texture.clone();
+      t.wrapS = THREE.RepeatWrapping; t.repeat.x = -1; t.needsUpdate = true;
+      dummy.userData._decalTexBack = t;
+      dummy.userData._decalTexBackSrc = dummy.userData.texture;
+    }
+    return dummy.userData._decalTexBack;
+  }
+  if (!dummy.userData._decalTexFront || dummy.userData._decalTexFrontSrc !== dummy.userData.texture) {
+    dummy.userData._decalTexFront?.dispose?.();
+    dummy.userData._decalTexFront = dummy.userData.texture;
+    dummy.userData._decalTexFrontSrc = dummy.userData.texture;
+  }
+  return dummy.userData._decalTexFront;
+}
+
+function createDecalNow(dummy) {
+  if (!shirtMeshes.length || dummy.userData.isBg || !dummy.userData.texture) return;
+  disposeDummyDecals(dummy);
   const onSleeve = isOnSleeve(dummy);
-  const base = onSleeve ? 0.92 : 0.58;
+  const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   const depth = onSleeve ? 0.38 : 0.22;
   const w = base * dummy.scale.x;
   const h = (base / (dummy.userData.aspect || 1)) * dummy.scale.y;
   const size = new THREE.Vector3(w, h, depth);
   const isBack = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
+  const tex = getDecalTexture(dummy, isBack);
 
   shirtMeshes.forEach(mesh => {
     try {
       const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
       if (geo.attributes.position?.count > 0) {
-        const tex = dummy.userData.texture.clone();
-        if (isBack) { tex.wrapS = THREE.RepeatWrapping; tex.repeat.x = -1; }
         const mat = new THREE.MeshStandardMaterial({
           map: tex, transparent: true, depthTest: true, depthWrite: false,
           polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
@@ -795,7 +818,7 @@ transformControls.addEventListener('objectChange', () => {
       }
     }
   }
-  createDecal(activeDummy);
+  scheduleDecal(activeDummy);
   if (currentMode === 'free') updateFreeTransformHandles();
 });
 
@@ -807,7 +830,7 @@ function getLogoCorners(d) {
     const b = new THREE.Box3().setFromObject(d);
     return [new THREE.Vector3(b.min.x, b.max.y, b.min.z), new THREE.Vector3(b.max.x, b.max.y, b.min.z), new THREE.Vector3(b.max.x, b.min.y, b.min.z), new THREE.Vector3(b.min.x, b.min.y, b.min.z)];
   }
-  const base = isOnSleeve(d) ? 0.92 : 0.58;
+  const base = isOnSleeve(d) ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   const hw = base * d.scale.x * 0.5, hh = (base / (d.userData.aspect || 1)) * d.scale.y * 0.5;
   const cs = [new THREE.Vector3(-hw, hh, 0), new THREE.Vector3(hw, hh, 0), new THREE.Vector3(hw, -hh, 0), new THREE.Vector3(-hw, -hh, 0)];
   d.updateMatrixWorld(true);
@@ -848,19 +871,21 @@ ftRotateHandle.onpointerdown = e => {
   ftStartAngle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
   controls.enabled = false; ftRotateHandle.setPointerCapture(e.pointerId);
 };
-window.onpointermove = e => {
+window.addEventListener('pointermove', e => {
   if (!ftDragging || !activeDummy) return;
   if (ftDragging === 'scale') {
     const dist = Math.hypot(e.clientX - ftCenterScreen.x, e.clientY - ftCenterScreen.y);
     const startDist = Math.hypot(ftStartMouse.x - ftCenterScreen.x, ftStartMouse.y - ftCenterScreen.y) || 1;
     let ns = Math.max(0.12, Math.min(ftStartScale * (dist / startDist), 8));
-    activeDummy.scale.setScalar(ns);
     document.getElementById('propScale').value = ns;
     document.getElementById('propScaleValue').textContent = ns.toFixed(2);
     if (activeDummy.userData.isBg) {
       const a = activeDummy.userData.aspect || 1;
       activeDummy.scale.set(ns, ns / a, 1);
-    } else createDecal(activeDummy);
+    } else {
+      activeDummy.scale.setScalar(ns);
+      scheduleDecal(activeDummy);
+    }
     updateFreeTransformHandles();
   }
   if (ftDragging === 'rotate' && !activeDummy.userData.isBg) {
@@ -868,11 +893,11 @@ window.onpointermove = e => {
     const delta = ang - ftStartAngle;
     activeDummy.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), delta), activeDummy.quaternion);
     ftStartAngle = ang;
-    createDecal(activeDummy);
+    scheduleDecal(activeDummy);
     updateFreeTransformHandles();
   }
-};
-window.onpointerup = () => { if (ftDragging) { ftDragging = null; controls.enabled = true; pushHistory(); } };
+});
+window.addEventListener('pointerup', () => { if (ftDragging) { ftDragging = null; controls.enabled = true; pushHistory(); } });
 
 // ===== ADD LOGO / TEXT =====
 document.getElementById('logoUpload').onchange = e => {
@@ -892,17 +917,19 @@ document.getElementById('logoUpload').onchange = e => {
   e.target.value = '';
 };
 document.getElementById('textSize').oninput = e => document.getElementById('textSizeValue').textContent = e.target.value;
-document.getElementById('addTextBtn').onclick = () => {
+document.getElementById('addTextBtn').onclick = async () => {
   const text = document.getElementById('textInput').value.trim();
   if (!text) return;
   const color = document.getElementById('textColor').value;
   const font = document.getElementById('textFont').value;
   const size = +document.getElementById('textSize').value;
+  await ensureFontLoaded(font);
   const canvas = document.createElement('canvas');
   canvas.width = 1024; canvas.height = 256;
   const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 1024, 256);
   ctx.fillStyle = color;
-  ctx.font = `bold ${size}px ${font},sans-serif`;
+  ctx.font = `bold ${size}px "${font}",sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(text, 512, 128);
   const tex = new THREE.CanvasTexture(canvas);
@@ -932,7 +959,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
   } else dummy.position.set(0, 0.1, 0.4);
   logoCount++;
-  createDecal(dummy);
+  createDecalNow(dummy);
   layers.push(dummy);
   addDesignLayer(dummy, isText ? `Teks ${logoCount}` : `Logo ${logoCount}`, isText ? '📝' : '🖼️');
   pushHistory();
@@ -980,6 +1007,7 @@ function applyFillMode(mode) {
   if (mode === 'stretch') bgPlane.scale.set(16, 16 / a, 1);
   else if (mode === 'cover') bgPlane.scale.set(20, 20 / a, 1);
   else if (mode === 'contain') bgPlane.scale.set(10, 10 / a, 1);
+  else if (mode === 'free') { /* leave scale as-is, slider controls */ }
   bgPlane.position.set(0, 0, -6);
   document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
   document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
@@ -1017,13 +1045,16 @@ document.getElementById('bgScaleSlider').oninput = e => {
 document.getElementById('bgScaleSlider').onchange = () => pushHistory();
 document.querySelectorAll('.fill-btn').forEach(b => b.onclick = () => { applyFillMode(b.dataset.mode); pushHistory(); });
 
-// ===== LIGHT =====
+// ===== LIGHT (added pushHistory) =====
 document.getElementById('ambientSlider').oninput = e => { ambientLight.intensity = +e.target.value; document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2); };
+document.getElementById('ambientSlider').onchange = () => pushHistory();
 document.getElementById('dirSlider').oninput = e => { mainLight.intensity = +e.target.value; document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2); };
+document.getElementById('dirSlider').onchange = () => pushHistory();
 document.getElementById('shadowSlider').oninput = e => {
   const v = +e.target.value; mainLight.shadow.intensity = v; ground.material.opacity = 0.3 * v;
   document.getElementById('shadowValue').textContent = v.toFixed(2);
 };
+document.getElementById('shadowSlider').onchange = () => pushHistory();
 
 // ===== PROJECT =====
 async function getStateForSave() {
@@ -1032,33 +1063,18 @@ async function getStateForSave() {
     let dataURL = d.userData.dataURL;
     if (dataURL) dataURL = await resizeDataURL(dataURL, 900);
     processed.push({
-      position: d.position.toArray(),
-      quaternion: d.quaternion.toArray(),
-      scale: d.scale.toArray(),
-      aspect: d.userData.aspect,
-      isText: !!d.userData.isText,
-      dataURL,
-      textContent: d.userData.textContent || '',
-      textColor: d.userData.textColor || '#000000',
-      font: d.userData.font || 'Inter',
-      fontSize: d.userData.fontSize || 120,
-      name: d.userData.name || 'Logo',
-      icon: d.userData.icon || '🖼️',
-      opacity: d.userData.opacity || 1,
-      visible: d.userData.visible !== false,
-      locked: !!d.userData.locked
+      position: d.position.toArray(), quaternion: d.quaternion.toArray(), scale: d.scale.toArray(),
+      aspect: d.userData.aspect, isText: !!d.userData.isText, dataURL,
+      textContent: d.userData.textContent || '', textColor: d.userData.textColor || '#000000',
+      font: d.userData.font || 'Inter', fontSize: d.userData.fontSize || 120,
+      name: d.userData.name || 'Logo', icon: d.userData.icon || '🖼️',
+      opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked
     });
   }
   return {
-    color: currentShirtColor,
-    bgColor: currentBgColor,
-    isTransparentBg,
-    ambient: ambientLight.intensity,
-    directional: mainLight.intensity,
-    shadow: mainLight.shadow.intensity,
-    bgOpacity,
-    bgFillMode,
-    layers: processed
+    color: currentShirtColor, bgColor: currentBgColor, isTransparentBg,
+    ambient: ambientLight.intensity, directional: mainLight.intensity, shadow: mainLight.shadow.intensity,
+    bgOpacity, bgFillMode, layers: processed
   };
 }
 
@@ -1070,16 +1086,18 @@ async function loadProjectList() {
   projects.forEach(p => {
     const item = document.createElement('div');
     item.className = 'project-item' + (p.id === currentProjectId ? ' active' : '');
-    item.innerHTML = `<span class="name">${p.name}</span><button class="del">✕</button>`;
+    if (p.thumb) {
+      const img = document.createElement('img'); img.className = 'thumb'; img.src = p.thumb; item.appendChild(img);
+    }
+    const nameEl = document.createElement('span'); nameEl.className = 'name'; nameEl.textContent = p.name;
+    const delBtn = document.createElement('button'); delBtn.className = 'del'; delBtn.textContent = '✕';
+    item.appendChild(nameEl); item.appendChild(delBtn);
     item.onclick = e => { if (!e.target.classList.contains('del')) loadProject(p); };
-    item.querySelector('.del').onclick = async e => {
+    delBtn.onclick = async e => {
       e.stopPropagation();
       if (confirm(`Padam "${p.name}"?`)) {
         await dbDelete(p.id);
-        if (currentProjectId === p.id) {
-          currentProjectId = null;
-          document.getElementById('projectNameInput').value = 'Design Baru';
-        }
+        if (currentProjectId === p.id) { currentProjectId = null; document.getElementById('projectNameInput').value = 'Design Baru'; }
         loadProjectList();
       }
     };
@@ -1105,10 +1123,7 @@ async function loadProject(p) {
     updateUndoRedoButtons();
     await loadProjectList();
     showToast('Project dimuatkan');
-  } catch (err) {
-    console.error(err);
-    showToast('Gagal load project', true);
-  }
+  } catch (err) { console.error(err); showToast('Gagal load project', true); }
 }
 
 document.getElementById('btnSaveProject').onclick = async () => {
@@ -1120,28 +1135,20 @@ document.getElementById('btnSaveProject').onclick = async () => {
     renderer.render(scene, camera);
     const thumb = renderer.domElement.toDataURL('image/jpeg', 0.4);
     transformHelper.visible = true;
-
-    let project;
-    if (currentProjectId != null) {
-      project = { id: currentProjectId, name, state, thumb, updated: Date.now() };
-    } else {
-      project = { name, state, thumb, updated: Date.now() };
-    }
+    let project = currentProjectId != null
+      ? { id: currentProjectId, name, state, thumb, updated: Date.now() }
+      : { name, state, thumb, updated: Date.now() };
     const id = await dbSave(project);
     currentProjectId = id;
     await loadProjectList();
     showToast('✅ Project berjaya disimpan');
-  } catch (err) {
-    console.error(err);
-    showToast('❌ Gagal simpan project', true);
-  }
+  } catch (err) { console.error(err); showToast('❌ Gagal simpan project', true); }
 };
 
 document.getElementById('btnNewProject').onclick = () => {
   if (!confirm('Buat project baru? Design semasa akan dikosongkan.')) return;
   clearAllLayers();
-  currentProjectId = null;
-  currentProjectName = 'Design Baru';
+  currentProjectId = null; currentProjectName = 'Design Baru';
   document.getElementById('projectNameInput').value = 'Design Baru';
   currentShirtColor = '#ffffff';
   shirtMaterials.forEach(m => m.color.set(0xffffff));
@@ -1153,20 +1160,19 @@ document.getElementById('btnNewProject').onclick = () => {
 };
 
 // ===== HISTORY =====
-function pushHistory() {
+async function pushHistory() {
   if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
-  getStateForSave().then(s => {
-    history.push(s);
-    if (history.length > 40) history.shift();
-    historyIndex = history.length - 1;
-    updateUndoRedoButtons();
-  });
+  const s = await getStateForSave();
+  history.push(s);
+  if (history.length > 40) history.shift();
+  historyIndex = history.length - 1;
+  updateUndoRedoButtons();
 }
 function clearAllLayers() {
   [...layers].forEach(d => {
     if (d.userData.isBg) return;
-    if (d.userData.decals) d.userData.decals.forEach(decal => { shirtGroup.remove(decal); decal.geometry.dispose(); decal.material.map?.dispose(); decal.material.dispose(); });
-    d.userData.texture?.dispose();
+    disposeDummyDecals(d);
+    disposeDummyTextures(d);
     shirtGroup.remove(d);
   });
   layers = layers.filter(l => l.userData.isBg);
@@ -1226,21 +1232,14 @@ async function restoreState(state) {
           const s = Math.max(...(ldata.scale || [1, 1, 1]));
           dummy.scale.setScalar(Math.max(0.12, s));
           shirtGroup.add(dummy);
-          createDecal(dummy);
+          createDecalNow(dummy);
           layers.push(dummy);
           logoCount++;
           addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
-          // restore lock/vis state
           const el = document.getElementById(dummy.userData.layerId);
           if (el) {
-            if (!dummy.userData.visible) {
-              el.querySelector('.vis').classList.add('hidden');
-              el.querySelector('.vis').textContent = '👁️‍🗨️';
-            }
-            if (dummy.userData.locked) {
-              el.querySelector('.lock').textContent = '🔒';
-              el.classList.add('locked');
-            }
+            if (!dummy.userData.visible) { el.querySelector('.vis').classList.add('hidden'); el.querySelector('.vis').textContent = '👁️‍🗨️'; }
+            if (dummy.userData.locked) { el.querySelector('.lock').textContent = '🔒'; el.classList.add('locked'); }
           }
         } catch (e) { console.warn(e); }
         resolve();
@@ -1253,16 +1252,8 @@ async function restoreState(state) {
   gizmoControlsUI.classList.remove('active');
   document.getElementById('layer-base')?.classList.add('active');
 }
-function undo() {
-  if (historyIndex <= 0) return;
-  historyIndex--;
-  restoreState(history[historyIndex]).then(updateUndoRedoButtons);
-}
-function redo() {
-  if (historyIndex >= history.length - 1) return;
-  historyIndex++;
-  restoreState(history[historyIndex]).then(updateUndoRedoButtons);
-}
+function undo() { if (historyIndex <= 0) return; historyIndex--; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
+function redo() { if (historyIndex >= history.length - 1) return; historyIndex++; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
 function updateUndoRedoButtons() {
   btnUndo.disabled = historyIndex <= 0;
   btnRedo.disabled = historyIndex >= history.length - 1;
@@ -1381,22 +1372,45 @@ document.getElementById('viewRight').onclick = () => { camera.position.set(4.5,0
 document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5,0,0); controls.target.set(0,0,0); setActive('viewLeft'); };
 function setActive(id) { document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
-window.onkeydown = e => {
+window.addEventListener('keydown', e => {
+  // Ignore if user is typing in an input/select
+  const tag = document.activeElement?.tagName;
+  const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
   if (e.ctrlKey || e.metaKey) {
     if (e.key === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
     if (e.key === 'y') { e.preventDefault(); redo(); }
     if (e.key === 's') { e.preventDefault(); document.getElementById('btnSaveProject').click(); }
     if (e.key === 't') { e.preventDefault(); if (activeDummy) setMode('free'); }
-    if (e.key === 'd') { e.preventDefault(); document.getElementById('btnDuplicate').click(); }
+    if (e.key === 'd') { e.preventDefault(); if (activeDummy && !activeDummy.userData.isBg) document.getElementById('btnDuplicate').click(); }
+    return;
   }
-};
+  if (isEditing) return;
+  if ((e.key === 'Delete' || e.key === 'Backspace') && activeDummy && !activeDummy.userData.isBg) {
+    e.preventDefault();
+    const el = document.getElementById(activeDummy.userData.layerId);
+    if (el) deleteLayer(activeDummy, el);
+  }
+  if (e.key === 'Escape') {
+    transformControls.detach(); hideFreeTransform();
+    activeDummy = null; gizmoControlsUI.classList.remove('active');
+    propertiesPanel.classList.remove('active');
+  }
+});
 
 document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false; hideFreeTransform();
-  const s = renderer.getSize(new THREE.Vector2());
-  renderer.setSize(2000, 2000, false); renderer.render(scene, camera);
-  const a = document.createElement('a'); a.download = 'design-baju-hd.png'; a.href = renderer.domElement.toDataURL('image/png'); a.click();
-  renderer.setSize(s.x, s.y, false); transformHelper.visible = true;
+  const oldSize = renderer.getSize(new THREE.Vector2());
+  const oldPR = renderer.getPixelRatio();
+  renderer.setPixelRatio(1);
+  renderer.setSize(2000, 2000, false);
+  renderer.render(scene, camera);
+  const a = document.createElement('a');
+  a.download = 'design-baju-hd.png';
+  a.href = renderer.domElement.toDataURL('image/png');
+  a.click();
+  renderer.setPixelRatio(oldPR);
+  renderer.setSize(oldSize.x, oldSize.y, false);
+  transformHelper.visible = true;
   if (currentMode === 'free' && activeDummy) showFreeTransform();
   renderer.render(scene, camera);
 };
@@ -1410,11 +1424,11 @@ function animate() {
   }
 }
 animate();
-window.onresize = () => {
+window.addEventListener('resize', () => {
   if (isRecording) return;
   const w = container.clientWidth, h = container.clientHeight;
   camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
-};
+});
 applySolidBackground();
 </script>
 </body>
