@@ -838,7 +838,7 @@ function createCurvedDecal(dummy, curve) {
   const pos = geo.attributes.position;
 
   const halfW = w / 2;
-  const maxAngle = (Math.PI / 2) * curve * 0.01;
+  const maxAngle = (Math.PI / 2) * curve * 0.00;
   const sinA = Math.sin(maxAngle);
   const arcRadius = halfW / Math.max(0.001, sinA);
   
@@ -868,7 +868,7 @@ function createCurvedDecal(dummy, curve) {
   mesh.position.copy(dummy.position);
   
   // Tolak sedikit ke luar (0.005) supaya tepi yang melengkung tidak menembusi baju
-  const localNormal = new THREE.Vector3(0, 0, 0).applyQuaternion(dummy.quaternion);
+  const localNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
   mesh.position.add(localNormal.multiplyScalar(-0.000));
 
   mesh.quaternion.copy(dummy.quaternion);
