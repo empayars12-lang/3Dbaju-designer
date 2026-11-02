@@ -839,35 +839,29 @@ function createCurvedDecal(dummy, curve) {
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   
   dummy.updateMatrixWorld(true);
-  const dummyWorldPos = new THREE.Vector3().setFromMatrixPosition(dummy.matrixWorld);
   const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-  
-  // Ukur radius lengan secara dinamik supaya lekung betul-betul ikut baju
-  const ray = new THREE.Raycaster(dummyWorldPos, dummyNormal.clone().negate());
-  const hits = ray.intersectObjects(shirtMeshes, true);
-  
-  let R = 0.35; // Saiz radius lengan default jika gagal ukur
-  if (hits.length) {
-    R = Math.min(hits[0].distance * 0.5, 0.5); // Kira radius dari diameter lengan
-  }
   
   const pos = geo.attributes.position;
   const halfW = w / 2;
   // Slider 'curve' mengawal sudut lengkok (0 = rata, 1 = 90 darjah)
   const maxAngle = (Math.PI / 2) * curve; 
   
+  // Formula matematik tepat untuk dapatkan radius silinder sempurna (mengelakkan jarak di belakang)
+  const R = halfW / Math.max(0.001, Math.sin(maxAngle)); 
+  
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const u = x / halfW; 
     const angle = u * maxAngle;
     const newX = Math.sin(angle) * R;
+    // Hujung logo melengkung masuk ke dalam mengikut garisan lengan
     const newZ = (Math.cos(angle) - 1) * R; 
     pos.setX(i, newX);
     pos.setZ(i, newZ);
   }
   geo.computeVertexNormals();
 
-  // PENTING: Jangan flip texture jika di lengan (mengelakkan logo terbalik di bahagian belakang)
+  // PENTING: Jangan flip texture jika di lengan (mengelakkan logo terbalik)
   const isBack = !onSleeve && dummyNormal.z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
 
@@ -881,8 +875,8 @@ function createCurvedDecal(dummy, curve) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
   
-  // Tolak sikit sahaja (0.001) untuk elak z-fighting
-  mesh.position.add(dummyNormal.clone().multiplyScalar(0.001)); 
+  // Tolak keluar sedikit sahaja (0.002) supaya tidak tembus baju, tapi tetap lekap rapat
+  mesh.position.add(dummyNormal.clone().multiplyScalar(0.002)); 
 
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
