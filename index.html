@@ -841,14 +841,14 @@ function createCurvedDecal(dummy, curve) {
   const maxAngle = (Math.PI / 2) * curve * 0.75;
   const sinA = Math.sin(maxAngle);
   const arcRadius = halfW / Math.max(0.001, sinA);
-  const bulge = arcRadius * (1 - Math.cos(maxAngle));
-
+  
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const u = x / halfW;
     const angle = u * maxAngle;
     const newX = Math.sin(angle) * arcRadius;
-    const newZ = (Math.cos(angle) - 1) * arcRadius + bulge;
+    // Fix: Bahagian tengah kekal di Z=0 (melekat pada baju), tepi melengkung ke dalam (Z negatif)
+    const newZ = (Math.cos(angle) - 1) * arcRadius; 
     pos.setX(i, newX);
     pos.setZ(i, newZ);
   }
@@ -866,6 +866,11 @@ function createCurvedDecal(dummy, curve) {
 
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
+  
+  // Tolak sedikit ke luar (0.005) supaya tepi yang melengkung tidak menembusi baju
+  const localNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
+  mesh.position.add(localNormal.multiplyScalar(0.005));
+
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
