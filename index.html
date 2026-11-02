@@ -868,8 +868,8 @@ function createCurvedDecal(dummy, curve) {
   mesh.position.copy(dummy.position);
   
   // Tolak sedikit ke luar (0.005) supaya tepi yang melengkung tidak menembusi baju
-  const localNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-  mesh.position.add(localNormal.multiplyScalar(-0.003));
+  const localNormal = new THREE.Vector3(0, 0, 0).applyQuaternion(dummy.quaternion);
+  mesh.position.add(localNormal.multiplyScalar(-0.000));
 
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
