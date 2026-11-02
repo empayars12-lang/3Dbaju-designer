@@ -9,8 +9,17 @@
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
     #app{display:flex;height:100vh}
-    #sidebar-left{width:300px;background:#18181b;padding:18px;display:flex;flex-direction:column;gap:16px;border-right:1px solid #27272a;z-index:10;overflow-y:auto}
-    .section-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:#a1a1aa;margin-bottom:8px}
+    #sidebar-left{width:300px;background:#18181b;padding:14px;display:flex;flex-direction:column;gap:8px;border-right:1px solid #27272a;z-index:10;overflow-y:auto}
+    
+    /* ===== ACCORDION ===== */
+    .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden}
+    .accordion-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#d4d4d8}
+    .accordion-header:hover{background:#27272a}
+    .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#71717a}
+    .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
+    .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
+    .accordion-item.open .accordion-body{max-height:900px;padding:10px 12px 14px}
+
     .color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
     .color-btn{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s}
     .color-btn:hover{transform:scale(1.1)}
@@ -18,12 +27,12 @@
     .custom-color-wrapper{display:flex;align-items:center;gap:10px;background:#27272a;padding:8px 12px;border-radius:8px;border:1px solid #3f3f46;margin-top:8px}
     .custom-color-wrapper input[type=color]{width:28px;height:28px;border:none;background:none;cursor:pointer}
     .custom-color-wrapper span{font-size:13px;color:#d4d4d8}
-    .upload-btn{background:#38bdf8;color:#000;text-align:center;padding:12px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;position:relative;overflow:hidden}
+    .upload-btn{background:#38bdf8;color:#000;text-align:center;padding:11px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;position:relative;overflow:hidden}
     .upload-btn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
-    .add-text-btn,.small-btn,.action-btn,.preview-btn,.video-btn,.save-btn,.project-btn{border:none;border-radius:6px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+    .add-text-btn,.small-btn,.action-btn,.preview-btn,.video-btn,.save-btn,.project-btn,.align-btn{border:none;border-radius:6px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
     .add-text-btn{background:#27272a;color:#d4d4d8;border:1px solid #3f3f46;padding:10px;font-size:13px;width:100%}
     .add-text-btn:hover{background:#3f3f46}
-    .gizmo-controls{display:none;background:#27272a;padding:12px;border-radius:8px;border:1px solid #3f3f46}
+    .gizmo-controls{display:none;background:#1f1f23;padding:12px;border-radius:8px;border:1px solid #2e2e32}
     .gizmo-controls.active{display:block}
     .mode-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
     .mode-btn{background:#3f3f46;border:none;color:#d4d4d8;padding:9px 4px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
@@ -32,32 +41,34 @@
     .action-row{display:flex;gap:6px;margin-top:8px}
     .action-btn{flex:1;background:#3f3f46;color:#d4d4d8;border:1px solid #52525b;padding:9px;font-size:12px}
     .action-btn:disabled{opacity:.4;cursor:not-allowed}
-    .save-btn{margin-top:auto;background:#10b981;color:#fff;padding:14px;font-size:14px;width:100%}
-    .bg-controls,.light-controls,.bg-image-controls,.video-controls,.project-controls,.text-options{background:#27272a;padding:12px;border-radius:8px;border:1px solid #3f3f46;display:flex;flex-direction:column;gap:10px}
-    .slider-row{display:flex;flex-direction:column;gap:5px}
+    .save-btn{margin-top:10px;background:#10b981;color:#fff;padding:13px;font-size:14px;width:100%}
+    .slider-row{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
     .slider-row label{font-size:12px;color:#d4d4d8;display:flex;justify-content:space-between}
     .slider-row input[type=range]{width:100%;accent-color:#38bdf8;cursor:pointer}
-    .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;margin:6px 0}
     .toggle-switch{position:relative;width:42px;height:22px;background:#3f3f46;border-radius:11px;cursor:pointer}
     .toggle-switch.active{background:#38bdf8}
     .toggle-switch::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
     .toggle-switch.active::after{left:23px}
-    .small-btn{background:#3f3f46;color:#d4d4d8;border:1px solid #52525b;padding:8px 10px;font-size:12px;width:100%}
+    .small-btn{background:#3f3f46;color:#d4d4d8;border:1px solid #52525b;padding:8px 10px;font-size:12px;width:100%;margin-top:6px}
     .fill-modes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
     .fill-btn{background:#3f3f46;border:none;color:#d4d4d8;padding:7px 4px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer}
     .fill-btn.active{background:#38bdf8;color:#000}
-    .video-btn{background:#7c3aed;color:#fff;padding:12px;font-size:13px;width:100%}
+    .video-btn{background:#7c3aed;color:#fff;padding:11px;font-size:13px;width:100%}
     .video-btn.recording{background:#dc2626}
-    .preview-btn{background:#0ea5e9;color:#fff;padding:11px;font-size:13px;width:100%}
+    .preview-btn{background:#0ea5e9;color:#fff;padding:10px;font-size:13px;width:100%;margin-bottom:6px}
     .preview-btn.playing{background:#f59e0b}
-    .project-btn{background:#3b82f6;color:#fff;padding:10px;font-size:13px;width:100%}
+    .project-btn{background:#3b82f6;color:#fff;padding:10px;font-size:13px;width:100%;margin-bottom:6px}
     .project-btn.secondary{background:#3f3f46;color:#d4d4d8}
-    #projectList{max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
-    .project-item{background:#1f1f23;border:1px solid #3f3f46;border-radius:6px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px}
+    #projectList{max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-top:6px}
+    .project-item{background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px}
     .project-item:hover,.project-item.active{border-color:#38bdf8}
     .project-item .name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .project-item .del{color:#ef4444;background:none;border:none;cursor:pointer;font-size:14px}
+    .project-item .del{color:#ef4444;background:none;border:none;cursor:pointer;font-size:13px}
     select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f3f46;background:#1f1f23;color:#fff;font-size:13px;font-family:inherit}
+    .align-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+    .align-btn{background:#3f3f46;color:#d4d4d8;padding:8px;font-size:12px}
+    .align-btn:hover{background:#52525b}
     #viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden}
     #viewer-container canvas{display:block}
     #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
@@ -70,22 +81,25 @@
     #view-toggles button{background:#3f3f46;color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
     #view-toggles button.active{background:#38bdf8;color:#000}
     #sidebar-right{width:300px;background:#18181b;border-left:1px solid #27272a;display:flex;flex-direction:column}
-    #layers-header{padding:18px 18px 12px;border-bottom:1px solid #27272a}
+    #layers-header{padding:16px 16px 10px;border-bottom:1px solid #27272a}
     #layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
-    #layers-list{flex:1;overflow-y:auto;max-height:42%}
-    .layer-item{padding:12px 18px;border-bottom:1px solid #27272a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8}
+    #layers-list{flex:1;overflow-y:auto;max-height:45%}
+    .layer-item{padding:10px 14px;border-bottom:1px solid #27272a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px}
     .layer-item:hover{background:#27272a}
     .layer-item.active{background:rgba(56,189,248,.1);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
-    .layer-info{display:flex;align-items:center;gap:10px}
-    .delete-btn{color:#ef4444;font-size:14px;opacity:0;background:none;border:none;cursor:pointer}
-    .layer-item:hover .delete-btn{opacity:1}
-    #properties-panel{border-top:1px solid #27272a;padding:16px 18px;overflow-y:auto;flex:1;display:none}
+    .layer-item.locked{opacity:.65}
+    .layer-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+    .layer-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .layer-actions{display:flex;gap:4px;align-items:center}
+    .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7}
+    .layer-actions button:hover{opacity:1}
+    .layer-actions .vis.hidden{opacity:.35}
+    #properties-panel{border-top:1px solid #27272a;padding:14px 16px;overflow-y:auto;flex:1;display:none}
     #properties-panel.active{display:block}
     #properties-panel h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:12px}
-    .prop-row{margin-bottom:12px}
+    .prop-row{margin-bottom:11px}
     .prop-row label{display:block;font-size:12px;color:#a1a1aa;margin-bottom:5px}
     #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#09090b;color:#38bdf8;z-index:100;font-weight:600;letter-spacing:2px;transition:opacity .5s}
-    .hint{font-size:11px;color:#71717a;margin-top:4px;line-height:1.4}
     #recording-overlay{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:rgba(220,38,38,.9);color:#fff;padding:10px 20px;border-radius:20px;font-weight:600;font-size:14px;z-index:50;display:none;align-items:center;gap:8px}
     #recording-overlay.active{display:flex}
     #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;z-index:200;display:none}
@@ -95,35 +109,43 @@
 <body>
 <div id="app">
   <div id="sidebar-left">
-    <div>
-      <div class="section-title">Projek</div>
-      <div class="project-controls">
-        <input type="text" id="projectNameInput" class="prop-input" placeholder="Nama project..." value="Design Baru">
+    <!-- PROJEK -->
+    <div class="accordion-item open">
+      <div class="accordion-header">Projek <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <input type="text" id="projectNameInput" class="prop-input" placeholder="Nama project..." value="Design Baru" style="margin-bottom:8px">
         <button class="project-btn" id="btnSaveProject">💾 Simpan Project</button>
         <button class="project-btn secondary" id="btnNewProject">+ Project Baru</button>
         <div id="projectList"></div>
       </div>
     </div>
 
-    <div>
-      <div class="section-title">Warna Baju</div>
-      <div class="color-grid" id="colorGrid"></div>
-      <div class="custom-color-wrapper">
-        <input type="color" id="customColor" value="#ffffff">
-        <span>Warna Custom</span>
+    <!-- WARNA BAJU -->
+    <div class="accordion-item open">
+      <div class="accordion-header">Warna Baju <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="color-grid" id="colorGrid"></div>
+        <div class="custom-color-wrapper">
+          <input type="color" id="customColor" value="#ffffff">
+          <span>Warna Custom</span>
+        </div>
       </div>
     </div>
 
-    <div>
-      <div class="section-title">Design Anda</div>
-      <div class="upload-btn">+ Tambah Logo<input type="file" id="logoUpload" accept="image/*" multiple></div>
+    <!-- DESIGN ANDA -->
+    <div class="accordion-item open">
+      <div class="accordion-header">Design Anda <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="upload-btn">+ Tambah Logo<input type="file" id="logoUpload" accept="image/*" multiple></div>
+      </div>
     </div>
 
-    <div>
-      <div class="section-title">Tambah Teks</div>
-      <div class="text-options">
-        <input type="text" id="textInput" class="prop-input" placeholder="Taip teks...">
-        <div style="display:flex;gap:8px">
+    <!-- TAMBAH TEKS -->
+    <div class="accordion-item">
+      <div class="accordion-header">Tambah Teks <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <input type="text" id="textInput" class="prop-input" placeholder="Taip teks..." style="margin-bottom:8px">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
           <input type="color" id="textColor" value="#000000" style="width:42px;height:38px;border:none;background:#1f1f23;border-radius:6px">
           <select id="textFont" class="prop-input" style="flex:1">
             <option value="Inter">Inter</option>
@@ -141,45 +163,44 @@
       </div>
     </div>
 
-    <div>
-      <div class="section-title">Latar Belakang</div>
-      <div class="bg-controls">
+    <!-- LATAR BELAKANG -->
+    <div class="accordion-item">
+      <div class="accordion-header">Latar Belakang <span class="arrow">▼</span></div>
+      <div class="accordion-body">
         <div class="custom-color-wrapper" style="margin-top:0">
           <input type="color" id="bgColor" value="#09090b">
           <span>Warna Latar</span>
         </div>
-        <div class="upload-btn" style="padding:11px;font-size:13px">+ Imej Latar<input type="file" id="bgImageUpload" accept="image/*"></div>
+        <div class="upload-btn" style="margin-top:8px;padding:10px;font-size:13px">+ Imej Latar<input type="file" id="bgImageUpload" accept="image/*"></div>
         <button class="small-btn" id="btnClearBgImage">Buang Imej Latar</button>
         <div class="toggle-row"><span>Transparent</span><div class="toggle-switch" id="toggleTransparent"></div></div>
-      </div>
-    </div>
-
-    <div id="bgImagePanel" style="display:none">
-      <div class="section-title">Kawalan Imej Latar</div>
-      <div class="bg-image-controls">
-        <div class="slider-row"><label><span>Opacity</span><span id="bgOpacityValue">1.00</span></label><input type="range" id="bgOpacitySlider" min="0" max="1" step="0.01" value="1"></div>
-        <div class="slider-row"><label><span>Saiz</span><span id="bgScaleValue">1.00</span></label><input type="range" id="bgScaleSlider" min="0.2" max="5" step="0.05" value="1"></div>
-        <div class="fill-modes">
-          <button class="fill-btn active" data-mode="stretch">Stretch</button>
-          <button class="fill-btn" data-mode="cover">Cover</button>
-          <button class="fill-btn" data-mode="contain">Contain</button>
-          <button class="fill-btn" data-mode="free">Free</button>
+        <div id="bgImagePanel" style="display:none;margin-top:10px">
+          <div class="slider-row"><label><span>Opacity</span><span id="bgOpacityValue">1.00</span></label><input type="range" id="bgOpacitySlider" min="0" max="1" step="0.01" value="1"></div>
+          <div class="slider-row"><label><span>Saiz</span><span id="bgScaleValue">1.00</span></label><input type="range" id="bgScaleSlider" min="0.2" max="5" step="0.05" value="1"></div>
+          <div class="fill-modes">
+            <button class="fill-btn active" data-mode="stretch">Stretch</button>
+            <button class="fill-btn" data-mode="cover">Cover</button>
+            <button class="fill-btn" data-mode="contain">Contain</button>
+            <button class="fill-btn" data-mode="free">Free</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div>
-      <div class="section-title">Kawalan Cahaya</div>
-      <div class="light-controls">
+    <!-- CAHAYA -->
+    <div class="accordion-item">
+      <div class="accordion-header">Kawalan Cahaya <span class="arrow">▼</span></div>
+      <div class="accordion-body">
         <div class="slider-row"><label><span>Ambient</span><span id="ambientValue">0.50</span></label><input type="range" id="ambientSlider" min="0" max="2" step="0.05" value="0.5"></div>
         <div class="slider-row"><label><span>Directional</span><span id="dirValue">2.00</span></label><input type="range" id="dirSlider" min="0" max="5" step="0.1" value="2"></div>
         <div class="slider-row"><label><span>Bayang</span><span id="shadowValue">1.00</span></label><input type="range" id="shadowSlider" min="0" max="1" step="0.05" value="1"></div>
       </div>
     </div>
 
-    <div>
-      <div class="section-title">Render Video</div>
-      <div class="video-controls">
+    <!-- VIDEO -->
+    <div class="accordion-item">
+      <div class="accordion-header">Render Video <span class="arrow">▼</span></div>
+      <div class="accordion-body">
         <div class="slider-row"><label><span>Kelajuan</span><span id="speedValue">1.0x</span></label><input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1"></div>
         <div class="slider-row"><label><span>Tempoh</span><span id="durationValue">6s</span></label><input type="range" id="durationSlider" min="4" max="12" step="1" value="6"></div>
         <div class="slider-row"><label><span>Kualiti</span><span id="qualityValue">720p Portrait</span></label><input type="range" id="qualitySlider" min="0" max="1" step="1" value="0"></div>
@@ -188,8 +209,9 @@
       </div>
     </div>
 
+    <!-- GIZMO (muncul bila pilih layer) -->
     <div class="gizmo-controls" id="gizmoControls">
-      <div class="section-title" style="margin-bottom:0">Kawalan Logo</div>
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:8px">Kawalan Logo</div>
       <div class="mode-buttons">
         <button class="mode-btn active" id="btnTranslate">✥ Gerak</button>
         <button class="mode-btn" id="btnScale">⤢ Saiz</button>
@@ -232,7 +254,14 @@
       <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
       <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
       <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
-      <div id="textProps" style="display:none">
+      
+      <div class="align-row">
+        <button class="align-btn" id="btnAlignCenterX">Center X</button>
+        <button class="align-btn" id="btnAlignCenterY">Center Y</button>
+      </div>
+      <button class="small-btn" id="btnDuplicate" style="margin-top:10px">Duplicate Layer</button>
+
+      <div id="textProps" style="display:none;margin-top:12px">
         <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
         <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
       </div>
@@ -253,8 +282,15 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ===== INDEXEDDB (FIXED) =====
-const DB_NAME = 'ProDesigner3D_v4';
+// ===== ACCORDION =====
+document.querySelectorAll('.accordion-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.parentElement.classList.toggle('open');
+  });
+});
+
+// ===== INDEXEDDB =====
+const DB_NAME = 'ProDesigner3D_v5';
 const DB_VERSION = 1;
 const STORE = 'projects';
 
@@ -277,7 +313,6 @@ async function dbSave(project) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
     const store = tx.objectStore(STORE);
-    // PENTING: jika ada id → put, jika tiada id → add
     const req = ('id' in project && project.id != null) ? store.put(project) : store.add(project);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -305,37 +340,20 @@ async function dbDelete(id) {
 
 function resizeDataURL(dataURL, max = 900) {
   return new Promise(resolve => {
-    if (!dataURL || dataURL.length < 150000) {
-      return resolve(dataURL); // kalau tak terlalu besar, biarkan asal
-    }
-
+    if (!dataURL || dataURL.length < 150000) return resolve(dataURL);
     const img = new Image();
     img.onload = () => {
-      let w = img.width;
-      let h = img.height;
-
-      // Jika saiz dah kecil, tak payah resize
-      if (w <= max && h <= max) {
-        return resolve(dataURL);
-      }
-
-      const ratio = Math.min(max / w, max / h);
-      w = Math.round(w * ratio);
-      h = Math.round(h * ratio);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-
-      // PENTING: Clear dengan transparent dulu
+      let w = img.width, h = img.height;
+      if (w <= max && h <= max) return resolve(dataURL);
+      const r = Math.min(max / w, max / h);
+      w = Math.round(w * r); h = Math.round(h * r);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
-
-      // PENTING: Guna PNG supaya transparency kekal
-      resolve(canvas.toDataURL('image/png'));
+      resolve(c.toDataURL('image/png')); // PENTING: PNG untuk transparency
     };
-
     img.onerror = () => resolve(dataURL);
     img.src = dataURL;
   });
@@ -476,7 +494,7 @@ new GLTFLoader().load('./T_shirt_gltf.gltf', g => setupShirt(g.scene), undefined
 function addBaseLayer() {
   const el = document.createElement('div');
   el.className = 'layer-item active'; el.id = 'layer-base';
-  el.innerHTML = `<div class="layer-info"><span>👕</span><span>Baju 3D (Asas)</span></div>`;
+  el.innerHTML = `<div class="layer-info"><span>👕</span><span class="layer-name">Baju 3D (Asas)</span></div>`;
   el.onclick = () => {
     transformControls.detach(); activeDummy = null;
     gizmoControlsUI.classList.remove('active'); hideFreeTransform();
@@ -494,20 +512,47 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.icon = icon;
   dummy.userData.isBg = isBg;
   dummy.userData.opacity = dummy.userData.opacity ?? 1;
+  dummy.userData.visible = true;
+  dummy.userData.locked = false;
 
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
-  el.innerHTML = `<div class="layer-info"><span>${icon}</span><span class="layer-name">${name}</span></div><button class="delete-btn">✕</button>`;
-  el.onclick = e => { if (!e.target.closest('.delete-btn')) selectLayer(dummy, el); };
-  el.querySelector('.delete-btn').onclick = e => {
+  el.innerHTML = `
+    <div class="layer-info">
+      <span>${icon}</span>
+      <span class="layer-name">${name}</span>
+    </div>
+    <div class="layer-actions">
+      <button class="vis" title="Visibility">👁️</button>
+      <button class="lock" title="Lock">🔓</button>
+      <button class="del" title="Padam">✕</button>
+    </div>
+  `;
+  el.onclick = e => {
+    if (e.target.closest('.layer-actions')) return;
+    selectLayer(dummy, el);
+  };
+  el.querySelector('.del').onclick = e => {
     e.stopPropagation();
     if (isBg) clearBgImage(); else deleteLayer(dummy, el);
+  };
+  el.querySelector('.vis').onclick = e => {
+    e.stopPropagation();
+    toggleVisibility(dummy, el);
+  };
+  el.querySelector('.lock').onclick = e => {
+    e.stopPropagation();
+    toggleLock(dummy, el);
   };
   layerListUI.prepend(el);
   selectLayer(dummy, el);
 }
 
 function selectLayer(dummy, el) {
+  if (dummy.userData.locked) {
+    showToast('Layer dikunci', true);
+    return;
+  }
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   activeDummy = dummy;
@@ -532,6 +577,41 @@ function selectLayer(dummy, el) {
   else { hideFreeTransform(); transformControls.attach(dummy); transformControls.setMode(currentMode === 'scale' ? 'scale' : 'translate'); }
 }
 
+function toggleVisibility(dummy, el) {
+  dummy.userData.visible = !dummy.userData.visible;
+  const visBtn = el.querySelector('.vis');
+  if (dummy.userData.visible) {
+    visBtn.classList.remove('hidden');
+    visBtn.textContent = '👁️';
+    if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = true);
+    if (dummy.userData.isBg) dummy.visible = true;
+  } else {
+    visBtn.classList.add('hidden');
+    visBtn.textContent = '👁️‍🗨️';
+    if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = false);
+    if (dummy.userData.isBg) dummy.visible = false;
+  }
+}
+
+function toggleLock(dummy, el) {
+  dummy.userData.locked = !dummy.userData.locked;
+  const lockBtn = el.querySelector('.lock');
+  if (dummy.userData.locked) {
+    lockBtn.textContent = '🔒';
+    el.classList.add('locked');
+    if (activeDummy === dummy) {
+      transformControls.detach();
+      hideFreeTransform();
+      gizmoControlsUI.classList.remove('active');
+      propertiesPanel.classList.remove('active');
+      activeDummy = null;
+    }
+  } else {
+    lockBtn.textContent = '🔓';
+    el.classList.remove('locked');
+  }
+}
+
 function deleteLayer(dummy, el) {
   transformControls.detach(); hideFreeTransform(); propertiesPanel.classList.remove('active');
   if (dummy.userData.decals) dummy.userData.decals.forEach(d => { shirtGroup.remove(d); d.geometry.dispose(); d.material.map?.dispose(); d.material.dispose(); });
@@ -552,7 +632,7 @@ document.getElementById('propName').onchange = e => {
   if (el) el.querySelector('.layer-name').textContent = e.target.value;
 };
 document.getElementById('propScale').oninput = e => {
-  if (!activeDummy) return;
+  if (!activeDummy || activeDummy.userData.locked) return;
   const s = +e.target.value;
   activeDummy.scale.setScalar(s);
   document.getElementById('propScaleValue').textContent = s.toFixed(2);
@@ -573,6 +653,55 @@ document.getElementById('propOpacity').oninput = e => {
 document.getElementById('propOpacity').onchange = () => pushHistory();
 document.getElementById('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 document.getElementById('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
+
+// Alignment
+document.getElementById('btnAlignCenterX').onclick = () => {
+  if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
+  activeDummy.position.x = 0;
+  createDecal(activeDummy);
+  pushHistory();
+  showToast('Center X');
+};
+document.getElementById('btnAlignCenterY').onclick = () => {
+  if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
+  activeDummy.position.y = 0.15;
+  createDecal(activeDummy);
+  pushHistory();
+  showToast('Center Y');
+};
+
+// Duplicate
+document.getElementById('btnDuplicate').onclick = () => {
+  if (!activeDummy || activeDummy.userData.isBg) return;
+  const src = activeDummy;
+  const tex = src.userData.texture.clone();
+  tex.needsUpdate = true;
+  const dummy = new THREE.Object3D();
+  dummy.userData = {
+    texture: tex,
+    aspect: src.userData.aspect,
+    isText: src.userData.isText,
+    dataURL: src.userData.dataURL,
+    textContent: src.userData.textContent,
+    textColor: src.userData.textColor,
+    font: src.userData.font,
+    fontSize: src.userData.fontSize,
+    opacity: src.userData.opacity,
+    visible: true,
+    locked: false
+  };
+  dummy.position.copy(src.position);
+  dummy.position.x += 0.12;
+  dummy.quaternion.copy(src.quaternion);
+  dummy.scale.copy(src.scale);
+  shirtGroup.add(dummy);
+  createDecal(dummy);
+  layers.push(dummy);
+  logoCount++;
+  addDesignLayer(dummy, (src.userData.name || 'Logo') + ' Copy', src.userData.icon || '🖼️');
+  pushHistory();
+  showToast('Layer diduplicate');
+};
 
 function updateTextLayer(dummy) {
   const text = document.getElementById('propTextContent').value.trim() || dummy.userData.textContent;
@@ -623,6 +752,7 @@ function createDecal(dummy) {
         });
         const m = new THREE.Mesh(geo, mat);
         m.renderOrder = 2;
+        m.visible = dummy.userData.visible !== false;
         shirtGroup.add(m);
         dummy.userData.decals.push(m);
       } else geo.dispose();
@@ -631,7 +761,7 @@ function createDecal(dummy) {
 }
 
 transformControls.addEventListener('objectChange', () => {
-  if (!activeDummy) return;
+  if (!activeDummy || activeDummy.userData.locked) return;
   if (activeDummy.userData.isBg) {
     document.getElementById('bgScaleSlider').value = activeDummy.scale.x;
     document.getElementById('bgScaleValue').textContent = activeDummy.scale.x.toFixed(2);
@@ -670,7 +800,7 @@ transformControls.addEventListener('objectChange', () => {
 });
 
 // ===== FREE TRANSFORM =====
-function showFreeTransform() { if (activeDummy) { ftEl.classList.add('active'); updateFreeTransformHandles(); } }
+function showFreeTransform() { if (activeDummy && !activeDummy.userData.locked) { ftEl.classList.add('active'); updateFreeTransformHandles(); } }
 function hideFreeTransform() { ftEl.classList.remove('active'); ftDragging = null; }
 function getLogoCorners(d) {
   if (d.userData.isBg) {
@@ -706,14 +836,14 @@ function updateFreeTransformHandles() {
 ftEl.querySelectorAll('.ft-handle').forEach(h => {
   h.onpointerdown = e => {
     e.preventDefault(); e.stopPropagation();
-    if (!activeDummy) return;
+    if (!activeDummy || activeDummy.userData.locked) return;
     ftDragging = 'scale'; ftStartMouse.set(e.clientX, e.clientY); ftStartScale = activeDummy.scale.x;
     controls.enabled = false; h.setPointerCapture(e.pointerId);
   };
 });
 ftRotateHandle.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
-  if (!activeDummy) return;
+  if (!activeDummy || activeDummy.userData.locked) return;
   ftDragging = 'rotate';
   ftStartAngle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
   controls.enabled = false; ftRotateHandle.setPointerCapture(e.pointerId);
@@ -783,7 +913,7 @@ document.getElementById('addTextBtn').onclick = () => {
 
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120) {
   const dummy = new THREE.Object3D();
-  dummy.userData = { texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, opacity: 1 };
+  dummy.userData = { texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, opacity: 1, visible: true, locked: false };
   shirtGroup.add(dummy);
   const ox = logoCount % 2 === 0 ? 0.12 : -0.12;
   const oy = Math.floor(logoCount / 2) * -0.18;
@@ -824,7 +954,7 @@ function createBgPlane(texture, aspect) {
   bgPlane.position.set(0, 0, -6);
   bgPlane.scale.set(12, 12 / aspect, 1);
   bgPlane.renderOrder = -10;
-  bgPlane.userData = { isBg: true, aspect, texture, opacity: bgOpacity };
+  bgPlane.userData = { isBg: true, aspect, texture, opacity: bgOpacity, visible: true, locked: false };
   scene.add(bgPlane);
   layers.push(bgPlane);
   addDesignLayer(bgPlane, 'Latar Imej', '🖼️', true);
@@ -895,7 +1025,7 @@ document.getElementById('shadowSlider').oninput = e => {
   document.getElementById('shadowValue').textContent = v.toFixed(2);
 };
 
-// ===== PROJECT SYSTEM (FIXED) =====
+// ===== PROJECT =====
 async function getStateForSave() {
   const processed = [];
   for (const d of layers.filter(l => !l.userData.isBg)) {
@@ -914,7 +1044,9 @@ async function getStateForSave() {
       fontSize: d.userData.fontSize || 120,
       name: d.userData.name || 'Logo',
       icon: d.userData.icon || '🖼️',
-      opacity: d.userData.opacity || 1
+      opacity: d.userData.opacity || 1,
+      visible: d.userData.visible !== false,
+      locked: !!d.userData.locked
     });
   }
   return {
@@ -979,40 +1111,22 @@ async function loadProject(p) {
   }
 }
 
-// ===== SIMPAN PROJECT (FIXED - TIADA LAGI DataError) =====
 document.getElementById('btnSaveProject').onclick = async () => {
   const name = document.getElementById('projectNameInput').value.trim() || 'Design Baru';
   currentProjectName = name;
-
   try {
     const state = await getStateForSave();
-
     transformHelper.visible = false;
     renderer.render(scene, camera);
     const thumb = renderer.domElement.toDataURL('image/jpeg', 0.4);
     transformHelper.visible = true;
 
-    // PENTING: Jangan letak id: undefined
     let project;
     if (currentProjectId != null) {
-      // Update project sedia ada
-      project = {
-        id: currentProjectId,
-        name,
-        state,
-        thumb,
-        updated: Date.now()
-      };
+      project = { id: currentProjectId, name, state, thumb, updated: Date.now() };
     } else {
-      // Project baru - JANGAN letak property id langsung
-      project = {
-        name,
-        state,
-        thumb,
-        updated: Date.now()
-      };
+      project = { name, state, thumb, updated: Date.now() };
     }
-
     const id = await dbSave(project);
     currentProjectId = id;
     await loadProjectList();
@@ -1104,7 +1218,8 @@ async function restoreState(state) {
             dataURL: ldata.dataURL, textContent: ldata.textContent || '',
             textColor: ldata.textColor || '#000', font: ldata.font || 'Inter',
             fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
-            icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1
+            icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
+            visible: ldata.visible !== false, locked: !!ldata.locked
           };
           dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
           dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
@@ -1115,6 +1230,18 @@ async function restoreState(state) {
           layers.push(dummy);
           logoCount++;
           addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
+          // restore lock/vis state
+          const el = document.getElementById(dummy.userData.layerId);
+          if (el) {
+            if (!dummy.userData.visible) {
+              el.querySelector('.vis').classList.add('hidden');
+              el.querySelector('.vis').textContent = '👁️‍🗨️';
+            }
+            if (dummy.userData.locked) {
+              el.querySelector('.lock').textContent = '🔒';
+              el.classList.add('locked');
+            }
+          }
         } catch (e) { console.warn(e); }
         resolve();
       };
@@ -1260,6 +1387,7 @@ window.onkeydown = e => {
     if (e.key === 'y') { e.preventDefault(); redo(); }
     if (e.key === 's') { e.preventDefault(); document.getElementById('btnSaveProject').click(); }
     if (e.key === 't') { e.preventDefault(); if (activeDummy) setMode('free'); }
+    if (e.key === 'd') { e.preventDefault(); document.getElementById('btnDuplicate').click(); }
   }
 };
 
