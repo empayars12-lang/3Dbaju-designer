@@ -246,7 +246,6 @@
       <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
       <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
 
-      <!-- NEW: Curve slider -->
       <div class="prop-row" id="curveRow">
         <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
         <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
@@ -551,7 +550,6 @@ function selectLayer(dummy, el) {
   document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
 
-  // Curve slider
   const curveRow = document.getElementById('curveRow');
   if (dummy.userData.isBg) {
     curveRow.style.display = 'none';
@@ -614,19 +612,26 @@ function deleteLayer(dummy, el) {
 }
 
 function disposeDummyDecals(dummy) {
-  if (dummy.userData.decals) {
-    dummy.userData.decals.forEach(d => {
-      shirtGroup.remove(d);
-      d.geometry?.dispose?.();
-      d.material?.dispose?.();
-    });
+  if (!dummy.userData.decals) {
     dummy.userData.decals = [];
+    return;
   }
+  dummy.userData.decals.forEach(d => {
+    shirtGroup.remove(d);
+    d.geometry?.dispose?.();
+    d.material?.dispose?.();
+  });
+  dummy.userData.decals = [];
 }
+
 function disposeDummyTextures(dummy) {
   dummy.userData.texture?.dispose();
-  dummy.userData._decalTexFront?.dispose?.();
-  dummy.userData._decalTexBack?.dispose?.();
+  if (dummy.userData._decalTexFront && dummy.userData._decalTexFront !== dummy.userData.texture) {
+    dummy.userData._decalTexFront.dispose?.();
+  }
+  if (dummy.userData._decalTexBack && dummy.userData._decalTexBack !== dummy.userData.texture) {
+    dummy.userData._decalTexBack.dispose?.();
+  }
   dummy.userData._decalTexFront = null;
   dummy.userData._decalTexBack = null;
 }
@@ -703,7 +708,8 @@ document.getElementById('btnDuplicate').onclick = () => {
     dataURL: src.userData.dataURL, textContent: src.userData.textContent,
     textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
     opacity: src.userData.opacity, visible: true, locked: false,
-    curve: src.userData.curve || 0
+    curve: src.userData.curve || 0,
+    decals: []
   };
   dummy.position.copy(src.position); dummy.position.x += 0.12;
   dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
@@ -819,31 +825,27 @@ function createFlatDecal(dummy) {
   });
 }
 
-// ⭐ Curved decal — cylindrical arc that follows sleeve, keeps image shape intact
-// Adjustable "lekung" via curve amount: 0=rata, 1=lengkung kuat
+// Curved decal — cylindrical arc that follows sleeve, keeps image shape intact
 function createCurvedDecal(dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   const w = base * dummy.scale.x;
   const h = (base / (dummy.userData.aspect || 1)) * dummy.scale.y;
 
-  // Segment count: more segments = smoother arc (but heavier)
   const segX = Math.max(16, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
   const segY = 4;
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
 
   const halfW = w / 2;
-  // Max half-arc angle: 0.75 * 90° = ~67.5° at curve=1
   const maxAngle = (Math.PI / 2) * curve * 0.75;
   const sinA = Math.sin(maxAngle);
   const arcRadius = halfW / Math.max(0.001, sinA);
-  // Offset so edges sit at Z=0 (surface) and center bulges outward slightly
   const bulge = arcRadius * (1 - Math.cos(maxAngle));
 
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
-    const u = x / halfW; // -1..1
+    const u = x / halfW;
     const angle = u * maxAngle;
     const newX = Math.sin(angle) * arcRadius;
     const newZ = (Math.cos(angle) - 1) * arcRadius + bulge;
@@ -1029,7 +1031,10 @@ document.getElementById('addTextBtn').onclick = async () => {
 
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120) {
   const dummy = new THREE.Object3D();
-  dummy.userData = { texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, opacity: 1, visible: true, locked: false, curve: 0 };
+  dummy.userData = { 
+    texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, 
+    opacity: 1, visible: true, locked: false, curve: 0, decals: [] 
+  };
   shirtGroup.add(dummy);
   const ox = logoCount % 2 === 0 ? 0.12 : -0.12;
   const oy = Math.floor(logoCount / 2) * -0.18;
@@ -1048,7 +1053,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
   } else dummy.position.set(0, 0.1, 0.4);
 
-  // ⭐ Auto-set curve untuk lengan
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
 
   logoCount++;
@@ -1321,7 +1325,7 @@ async function restoreState(state) {
             fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
             icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
             visible: ldata.visible !== false, locked: !!ldata.locked,
-            curve: ldata.curve || 0
+            curve: ldata.curve || 0, decals: []
           };
           dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
           dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
