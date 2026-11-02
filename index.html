@@ -102,6 +102,7 @@
     #recording-overlay.active{display:flex}
     #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;z-index:200;display:none}
     #toast.error{background:#dc2626}
+    .curve-active{background:rgba(124,58,237,.15);border-left:3px solid #7c3aed !important}
   </style>
 </head>
 <body>
@@ -244,6 +245,14 @@
       <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
       <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
       <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
+
+      <!-- NEW: Curve slider -->
+      <div class="prop-row" id="curveRow">
+        <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
+        <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
+        <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
+      </div>
+
       <div class="align-row">
         <button class="align-btn" id="btnAlignCenterX">Center X</button>
         <button class="align-btn" id="btnAlignCenterY">Center Y</button>
@@ -287,15 +296,12 @@ function openDB() {
     const r = indexedDB.open(DB_NAME, DB_VERSION);
     r.onupgradeneeded = e => {
       const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-      }
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
     };
     r.onsuccess = () => resolve(r.result);
     r.onerror = () => reject(r.error);
   });
 }
-
 async function dbSave(project) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -306,7 +312,6 @@ async function dbSave(project) {
     req.onerror = () => reject(req.error);
   });
 }
-
 async function dbGetAll() {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -315,7 +320,6 @@ async function dbGetAll() {
     req.onerror = () => reject(req.error);
   });
 }
-
 async function dbDelete(id) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -354,14 +358,11 @@ function showToast(msg, isError = false) {
   showToast._t = setTimeout(() => t.style.display = 'none', 2800);
 }
 
-// Pre-load fonts so canvas text is correct
 async function ensureFontLoaded(font) {
   try { await document.fonts.load(`bold 120px "${font}"`); } catch (e) {}
 }
-ensureFontLoaded('Inter');
-ensureFontLoaded('Roboto');
-ensureFontLoaded('Oswald');
-ensureFontLoaded('Playfair Display');
+ensureFontLoaded('Inter'); ensureFontLoaded('Roboto');
+ensureFontLoaded('Oswald'); ensureFontLoaded('Playfair Display');
 
 // ===== THREE SETUP =====
 const container = document.getElementById('viewer-container');
@@ -483,7 +484,6 @@ function setupShirt(model) {
   loadProjectList().then(loadLastProject);
   pushHistory();
 }
-
 new GLTFLoader().load('./T_shirt_gltf.gltf', g => setupShirt(g.scene), undefined, () => setupShirt(createFallbackShirt()));
 
 // ===== LAYERS =====
@@ -510,10 +510,11 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.opacity = dummy.userData.opacity ?? 1;
   dummy.userData.visible = true;
   dummy.userData.locked = false;
+  dummy.userData.curve = dummy.userData.curve || 0;
 
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
-  // XSS-safe: build with DOM, not innerHTML for user-controlled text
+  if (!isBg && dummy.userData.curve > 0.01) el.classList.add('curve-active');
   const info = document.createElement('div'); info.className = 'layer-info';
   const ic = document.createElement('span'); ic.textContent = icon;
   const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
@@ -549,6 +550,17 @@ function selectLayer(dummy, el) {
   document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
   document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
+
+  // Curve slider
+  const curveRow = document.getElementById('curveRow');
+  if (dummy.userData.isBg) {
+    curveRow.style.display = 'none';
+  } else {
+    curveRow.style.display = 'block';
+    const c = dummy.userData.curve || 0;
+    document.getElementById('propCurve').value = c;
+    document.getElementById('propCurveValue').textContent = c.toFixed(2);
+  }
 
   const textProps = document.getElementById('textProps');
   if (dummy.userData.isText) {
@@ -603,11 +615,14 @@ function deleteLayer(dummy, el) {
 
 function disposeDummyDecals(dummy) {
   if (dummy.userData.decals) {
-    dummy.userData.decals.forEach(d => { shirtGroup.remove(d); d.geometry.dispose(); d.material.dispose(); });
+    dummy.userData.decals.forEach(d => {
+      shirtGroup.remove(d);
+      d.geometry?.dispose?.();
+      d.material?.dispose?.();
+    });
     dummy.userData.decals = [];
   }
 }
-
 function disposeDummyTextures(dummy) {
   dummy.userData.texture?.dispose();
   dummy.userData._decalTexFront?.dispose?.();
@@ -648,6 +663,19 @@ document.getElementById('propOpacity').oninput = e => {
   if (activeDummy.userData.isBg) activeDummy.material.opacity = op;
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
+
+// Curve slider
+document.getElementById('propCurve').oninput = e => {
+  if (!activeDummy || activeDummy.userData.isBg) return;
+  const c = +e.target.value;
+  activeDummy.userData.curve = c;
+  document.getElementById('propCurveValue').textContent = c.toFixed(2);
+  const el = document.getElementById(activeDummy.userData.layerId);
+  if (el) el.classList.toggle('curve-active', c > 0.01);
+  scheduleDecal(activeDummy);
+};
+document.getElementById('propCurve').onchange = () => pushHistory();
+
 document.getElementById('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 document.getElementById('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
@@ -674,7 +702,8 @@ document.getElementById('btnDuplicate').onclick = () => {
     texture: tex, aspect: src.userData.aspect, isText: src.userData.isText,
     dataURL: src.userData.dataURL, textContent: src.userData.textContent,
     textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
-    opacity: src.userData.opacity, visible: true, locked: false
+    opacity: src.userData.opacity, visible: true, locked: false,
+    curve: src.userData.curve || 0
   };
   dummy.position.copy(src.position); dummy.position.x += 0.12;
   dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
@@ -714,7 +743,7 @@ async function updateTextLayer(dummy) {
   pushHistory();
 }
 
-// ===== DECAL (throttled + cached textures) =====
+// ===== DECAL SYSTEM (flat + curved) =====
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
@@ -755,6 +784,13 @@ function getDecalTexture(dummy, isBack) {
 function createDecalNow(dummy) {
   if (!shirtMeshes.length || dummy.userData.isBg || !dummy.userData.texture) return;
   disposeDummyDecals(dummy);
+  const curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
+  if (curve > 0.01) createCurvedDecal(dummy, curve);
+  else createFlatDecal(dummy);
+}
+
+// Flat decal — using DecalGeometry (original approach, for torso)
+function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   const depth = onSleeve ? 0.38 : 0.22;
@@ -783,6 +819,59 @@ function createDecalNow(dummy) {
   });
 }
 
+// ⭐ Curved decal — cylindrical arc that follows sleeve, keeps image shape intact
+// Adjustable "lekung" via curve amount: 0=rata, 1=lengkung kuat
+function createCurvedDecal(dummy, curve) {
+  const onSleeve = isOnSleeve(dummy);
+  const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
+  const w = base * dummy.scale.x;
+  const h = (base / (dummy.userData.aspect || 1)) * dummy.scale.y;
+
+  // Segment count: more segments = smoother arc (but heavier)
+  const segX = Math.max(16, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
+  const segY = 4;
+  const geo = new THREE.PlaneGeometry(w, h, segX, segY);
+  const pos = geo.attributes.position;
+
+  const halfW = w / 2;
+  // Max half-arc angle: 0.75 * 90° = ~67.5° at curve=1
+  const maxAngle = (Math.PI / 2) * curve * 0.75;
+  const sinA = Math.sin(maxAngle);
+  const arcRadius = halfW / Math.max(0.001, sinA);
+  // Offset so edges sit at Z=0 (surface) and center bulges outward slightly
+  const bulge = arcRadius * (1 - Math.cos(maxAngle));
+
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const u = x / halfW; // -1..1
+    const angle = u * maxAngle;
+    const newX = Math.sin(angle) * arcRadius;
+    const newZ = (Math.cos(angle) - 1) * arcRadius + bulge;
+    pos.setX(i, newX);
+    pos.setZ(i, newZ);
+  }
+  geo.computeVertexNormals();
+
+  const isBack = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
+  const tex = getDecalTexture(dummy, isBack);
+
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex, transparent: true, depthTest: true, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
+    roughness: 0.8, opacity: dummy.userData.opacity || 1,
+    side: THREE.DoubleSide
+  });
+
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(dummy.position);
+  mesh.quaternion.copy(dummy.quaternion);
+  mesh.renderOrder = 2;
+  mesh.visible = dummy.userData.visible !== false;
+  shirtGroup.add(mesh);
+  dummy.userData.decals.push(mesh);
+}
+
+// Update decal on transform drag
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   if (activeDummy.userData.isBg) {
@@ -940,7 +1029,7 @@ document.getElementById('addTextBtn').onclick = async () => {
 
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120) {
   const dummy = new THREE.Object3D();
-  dummy.userData = { texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, opacity: 1, visible: true, locked: false };
+  dummy.userData = { texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, opacity: 1, visible: true, locked: false, curve: 0 };
   shirtGroup.add(dummy);
   const ox = logoCount % 2 === 0 ? 0.12 : -0.12;
   const oy = Math.floor(logoCount / 2) * -0.18;
@@ -958,11 +1047,16 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
   } else dummy.position.set(0, 0.1, 0.4);
+
+  // ⭐ Auto-set curve untuk lengan
+  dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
+
   logoCount++;
   createDecalNow(dummy);
   layers.push(dummy);
   addDesignLayer(dummy, isText ? `Teks ${logoCount}` : `Logo ${logoCount}`, isText ? '📝' : '🖼️');
   pushHistory();
+  if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
 }
 
 // ===== BACKGROUND =====
@@ -1007,7 +1101,7 @@ function applyFillMode(mode) {
   if (mode === 'stretch') bgPlane.scale.set(16, 16 / a, 1);
   else if (mode === 'cover') bgPlane.scale.set(20, 20 / a, 1);
   else if (mode === 'contain') bgPlane.scale.set(10, 10 / a, 1);
-  else if (mode === 'free') { /* leave scale as-is, slider controls */ }
+  else if (mode === 'free') { /* leave as-is */ }
   bgPlane.position.set(0, 0, -6);
   document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
   document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
@@ -1045,7 +1139,7 @@ document.getElementById('bgScaleSlider').oninput = e => {
 document.getElementById('bgScaleSlider').onchange = () => pushHistory();
 document.querySelectorAll('.fill-btn').forEach(b => b.onclick = () => { applyFillMode(b.dataset.mode); pushHistory(); });
 
-// ===== LIGHT (added pushHistory) =====
+// ===== LIGHT =====
 document.getElementById('ambientSlider').oninput = e => { ambientLight.intensity = +e.target.value; document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2); };
 document.getElementById('ambientSlider').onchange = () => pushHistory();
 document.getElementById('dirSlider').oninput = e => { mainLight.intensity = +e.target.value; document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2); };
@@ -1068,7 +1162,8 @@ async function getStateForSave() {
       textContent: d.userData.textContent || '', textColor: d.userData.textColor || '#000000',
       font: d.userData.font || 'Inter', fontSize: d.userData.fontSize || 120,
       name: d.userData.name || 'Logo', icon: d.userData.icon || '🖼️',
-      opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked
+      opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked,
+      curve: d.userData.curve || 0
     });
   }
   return {
@@ -1225,7 +1320,8 @@ async function restoreState(state) {
             textColor: ldata.textColor || '#000', font: ldata.font || 'Inter',
             fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
             icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
-            visible: ldata.visible !== false, locked: !!ldata.locked
+            visible: ldata.visible !== false, locked: !!ldata.locked,
+            curve: ldata.curve || 0
           };
           dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
           dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
@@ -1373,7 +1469,6 @@ document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5,0
 function setActive(id) { document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
 window.addEventListener('keydown', e => {
-  // Ignore if user is typing in an input/select
   const tag = document.activeElement?.tagName;
   const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
   if (e.ctrlKey || e.metaKey) {
