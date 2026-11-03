@@ -527,7 +527,12 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
 camera.position.set(0, 0, 4.5);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({ 
+  antialias: true, 
+  preserveDrawingBuffer: true, 
+  alpha: true,
+  powerPreference: "high-performance"
+});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -535,6 +540,8 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x09090b, 1);
 container.appendChild(renderer.domElement);
+
+const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -721,6 +728,7 @@ function processBgImage(img) {
   if (!needFilter) {
     const tex = new THREE.Texture(img);
     tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = maxAnisotropy;
     tex.needsUpdate = true;
     return tex;
   }
@@ -732,6 +740,7 @@ function processBgImage(img) {
   ctx.drawImage(img, 0, 0);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = maxAnisotropy;
   tex.needsUpdate = true;
   return tex;
 }
@@ -953,13 +962,14 @@ function disposeDummyTextures(dummy) {
   dummy.userData._fxKey = null;
 }
 
-// ===== IMAGE EFFECTS PROCESSOR =====
+// ===== IMAGE EFFECTS PROCESSOR (HIGH RES) =====
 function applyLayerEffects(img, fx) {
   const W0 = img.width || img.naturalWidth || 512;
   const H0 = img.height || img.naturalHeight || 512;
   if (!W0 || !H0) return null;
 
-  const MAX_SIDE = 1024;
+  // UPGRADE: MAX_SIDE dinaikkan ke 4096 untuk kualiti HD+ (Mengelakkan pecah)
+  const MAX_SIDE = 4096;
   const sc = Math.min(1, MAX_SIDE / Math.max(W0, H0));
   const bw = Math.max(1, Math.round(W0 * sc));
   const bh = Math.max(1, Math.round(H0 * sc));
@@ -967,6 +977,8 @@ function applyLayerEffects(img, fx) {
   const base = document.createElement('canvas');
   base.width = bw; base.height = bh;
   const bctx = base.getContext('2d');
+  bctx.imageSmoothingEnabled = true;
+  bctx.imageSmoothingQuality = 'high';
   bctx.drawImage(img, 0, 0, bw, bh);
 
   const strokeW = Math.max(0, fx.strokeWidth || 0) * sc;
@@ -989,6 +1001,8 @@ function applyLayerEffects(img, fx) {
   const out = document.createElement('canvas');
   out.width = cw; out.height = ch;
   const ctx = out.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
   function makeSil(color) {
     const c = document.createElement('canvas');
@@ -1070,6 +1084,7 @@ function getDecalTexture(dummy, isBack) {
       dummy.userData._decalTexBack?.dispose?.();
       const t = new THREE.CanvasTexture(canvas);
       t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = maxAnisotropy; // UPGRADE: Ketajaman sudut
       t.wrapS = THREE.RepeatWrapping;
       t.repeat.x = -1;
       t.needsUpdate = true;
@@ -1083,6 +1098,7 @@ function getDecalTexture(dummy, isBack) {
     dummy.userData._decalTexFront?.dispose?.();
     const t = new THREE.CanvasTexture(canvas);
     t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = maxAnisotropy; // UPGRADE: Ketajaman sudut
     t.needsUpdate = true;
     dummy.userData._decalTexFront = t;
     dummy.userData._decalTexFrontKey = key;
@@ -1373,6 +1389,7 @@ async function updateTextLayer(dummy) {
     if (newTex) {
       const t = new THREE.CanvasTexture(newTex);
       t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = maxAnisotropy;
       dummy.material.map?.dispose();
       dummy.material.map = t;
       dummy.material.needsUpdate = true;
@@ -1407,6 +1424,7 @@ function createDecalNow(dummy) {
     if (canvas) {
       const tex = new THREE.CanvasTexture(canvas);
       tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = maxAnisotropy;
       dummy.material.map?.dispose();
       dummy.material.map = tex;
       dummy.material.needsUpdate = true;
@@ -2060,6 +2078,7 @@ async function restoreState(state) {
         try {
           const tex = new THREE.Texture(img);
           tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
+          tex.anisotropy = maxAnisotropy;
           
           if (ldata.isCanvasGraphic) {
             const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: ldata.opacity || 1 });
@@ -2134,36 +2153,64 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
-// ===== IMAGE SAVE (VIEW SELECTOR) =====
+// ===== IMAGE SAVE (VIEW SELECTOR + PROGRESSIVE 5 SUPERSAMPLING) =====
 function captureImage(view = 'current') {
   transformHelper.visible = false;
   hideFreeTransform();
+  controls.enabled = false;
 
   const origPos = camera.position.clone();
   const origTarget = controls.target.clone();
 
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
-  const tw = container.clientWidth, th = container.clientHeight;
 
-  renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
-  camera.aspect = tw / th; camera.updateProjectionMatrix();
-
-  const targetRes = 2000;
+  // UPGRADE: Naik taraf resolusi untuk HD (4K)
+  const targetRes = 3840; 
   const scale = targetRes / Math.max(cropRect.w, cropRect.h);
   const outW = Math.round(cropRect.w * scale);
   const outH = Math.round(cropRect.h * scale);
+
+  // Progressive Rendering (Supersampling) setup
+  const samples = 5; // 5 Peringkat untuk ketajaman max
+  const ssScale = 2; // 2x upscale semasa render
+  const ssW = outW * ssScale;
+  const ssH = outH * ssScale;
+
+  renderer.setPixelRatio(1);
+  renderer.setSize(ssW, ssH, false);
+  camera.aspect = ssW / ssH;
+  camera.updateProjectionMatrix();
 
   function renderAndExtract(posX, posY, posZ) {
     camera.position.set(posX, posY, posZ);
     controls.target.set(0, 0.05, 0);
     camera.lookAt(controls.target);
-    renderer.render(scene, camera);
-    const c = document.createElement('canvas');
-    c.width = outW;
-    c.height = outH;
-    c.getContext('2d').drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, outW, outH);
-    return c;
+
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = outW;
+    finalCanvas.height = outH;
+    const fctx = finalCanvas.getContext('2d');
+    
+    // Render berbilang sampel sedikit demi sedikit (Jittered Supersampling)
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = ssW;
+    tempCanvas.height = ssH;
+    const tctx = tempCanvas.getContext('2d');
+
+    for (let i = 0; i < samples; i++) {
+      renderer.render(scene, camera);
+      // Jitter posisi pixel sedikit untuk lancarkan tepi (anti-aliasing progressive)
+      const jitterX = (Math.random() - 0.5) * 1.5;
+      const jitterY = (Math.random() - 0.5) * 1.5;
+      tctx.clearRect(0, 0, ssW, ssH);
+      tctx.drawImage(renderer.domElement, jitterX, jitterY);
+      
+      // Turunkan resolusi ke outW/outH
+      fctx.globalAlpha = 1 / (i + 1);
+      fctx.drawImage(tempCanvas, cropRect.x * ssScale, cropRect.y * ssScale, cropRect.w * ssScale, cropRect.h * ssScale, 0, 0, outW, outH);
+    }
+    return finalCanvas;
   }
 
   if (view === 'all') {
@@ -2195,6 +2242,7 @@ function captureImage(view = 'current') {
     a.click();
   }
 
+  // Reset semula
   camera.position.copy(origPos);
   controls.target.copy(origTarget);
   camera.aspect = oldSize.x / oldSize.y;
@@ -2202,10 +2250,11 @@ function captureImage(view = 'current') {
   renderer.setPixelRatio(oldPR);
   renderer.setSize(oldSize.x, oldSize.y, false);
   transformHelper.visible = true;
+  controls.enabled = true;
   if (currentMode === 'free' && activeDummy) showFreeTransform();
   controls.update();
   renderer.render(scene, camera);
-  showToast('✅ Imej berjaya disimpan');
+  showToast('✅ Imej HD berjaya disimpan');
 }
 
 document.getElementById('saveBtn').onclick = () => {
@@ -2293,10 +2342,14 @@ async function startVideoRecord() {
   }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-  const stream = recordCanvas.captureStream(30);
+  const stream = recordCanvas.captureStream(60); // 60 FPS untuk kelancaran
   const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
   recordedChunks = [];
-  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: recordQuality === 0 ? 5e6 : 8e6 });
+  
+  // UPGRADE: Bitrate dinaikkan untuk kualiti tertinggi (15Mbps & 25Mbps)
+  const bitrate = recordQuality === 0 ? 15000000 : 25000000; 
+  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
+  
   mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
   mediaRecorder.onstop = () => {
     const a = document.createElement('a');
