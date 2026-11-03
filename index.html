@@ -16,7 +16,7 @@
     .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#71717a}
     .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
     .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
-    .accordion-item.open .accordion-body{max-height:900px;padding:10px 12px 14px}
+    .accordion-item.open .accordion-body{max-height:1200px;padding:10px 12px 14px}
     .color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
     .color-btn{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s}
     .color-btn:hover{transform:scale(1.1)}
@@ -69,6 +69,14 @@
     .align-btn:hover{background:#52525b}
     #viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden}
     #viewer-container canvas{display:block}
+
+    /* ===== LATAR BELAKANG PROFESIONAL — OVERLAY CSS ===== */
+    #bg-overlays{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+    #bg-overlays > div{position:absolute;inset:0;pointer-events:none;transition:opacity .18s ease}
+    #bg-vignette{mix-blend-mode:multiply;opacity:0}
+    #bg-studio-shadow{mix-blend-mode:multiply;opacity:0}
+    #bg-gradient-overlay{opacity:0}
+
     #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
     #free-transform.active{display:block}
     .ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:none}
@@ -190,6 +198,25 @@
       </div>
     </div>
 
+    <!-- ===== KESAN LATAR BELAKANG (BARU) ===== -->
+    <div class="accordion-item open">
+      <div class="accordion-header">Kesan Latar Belakang <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="slider-row"><label><span>Vignette</span><span id="vignetteValue">0</span></label><input type="range" id="vignetteSlider" min="0" max="100" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Shadow Studio</span><span id="shadowBgValue">0</span></label><input type="range" id="shadowBgSlider" min="0" max="100" step="1" value="0"></div>
+        <div class="custom-color-wrapper" style="margin-top:6px">
+          <input type="color" id="gradientColor" value="#000000">
+          <span>Gradient Overlay</span>
+        </div>
+        <div class="slider-row" style="margin-top:8px"><label><span>Gradient Opacity</span><span id="gradientOpacityValue">0</span></label><input type="range" id="gradientOpacitySlider" min="0" max="100" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Blur Latar</span><span id="bgBlurValue">0</span></label><input type="range" id="bgBlurSlider" min="0" max="20" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Brightness</span><span id="bgBrightnessValue">100</span></label><input type="range" id="bgBrightnessSlider" min="20" max="200" step="5" value="100"></div>
+        <div class="slider-row"><label><span>Contrast</span><span id="bgContrastValue">100</span></label><input type="range" id="bgContrastSlider" min="20" max="200" step="5" value="100"></div>
+        <div class="slider-row"><label><span>Saturation</span><span id="bgSaturationValue">100</span></label><input type="range" id="bgSaturationSlider" min="0" max="200" step="5" value="100"></div>
+        <button class="small-btn" id="bgResetBtn">↺ Reset Kesan Latar</button>
+      </div>
+    </div>
+
     <div class="accordion-item">
       <div class="accordion-header">Kawalan Cahaya <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -238,6 +265,14 @@
       <div class="ft-rotate-line" id="ftRotateLine"></div>
       <div class="ft-rotate-handle" id="ftRotateHandle"></div>
     </div>
+
+    <!-- OVERLAY LATAR BELAKANG PROFESIONAL -->
+    <div id="bg-overlays">
+      <div id="bg-gradient-overlay"></div>
+      <div id="bg-studio-shadow"></div>
+      <div id="bg-vignette"></div>
+    </div>
+
     <div id="view-toggles">
       <button id="viewFront" class="active">Hadapan</button>
       <button id="viewBack">Belakang</button>
@@ -482,6 +517,22 @@ let isRecording = false, isPreviewing = false, mediaRecorder = null, recordedChu
 let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null;
 let currentProjectId = null, currentProjectName = 'Design Baru';
 
+// ===== KESAN LATAR BELAKANG (BARU) =====
+function defaultBgEffects() {
+  return {
+    vignette: 0,
+    shadowBg: 0,
+    gradientColor: '#000000',
+    gradientOpacity: 0,
+    blur: 0,
+    brightness: 100,
+    contrast: 100,
+    saturation: 100
+  };
+}
+let bgEffects = defaultBgEffects();
+let bgImageSource = null;
+
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
 const gizmoControlsUI = document.getElementById('gizmoControls');
@@ -511,6 +562,74 @@ function defaultEffects() {
 function ensureEffects(dummy) {
   if (!dummy.userData.effects) dummy.userData.effects = defaultEffects();
   return dummy.userData.effects;
+}
+
+// ===== BACKGROUND FX HELPERS =====
+function updateBgOverlayStyles() {
+  const vig = document.getElementById('bg-vignette');
+  vig.style.background = `radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(0,0,0,${bgEffects.vignette / 100}) 100%)`;
+  vig.style.opacity = bgEffects.vignette > 0 ? '1' : '0';
+
+  const shadow = document.getElementById('bg-studio-shadow');
+  shadow.style.background = `radial-gradient(ellipse 42% 22% at 50% 82%, rgba(0,0,0,${(bgEffects.shadowBg / 100) * 0.75}) 0%, rgba(0,0,0,0) 72%)`;
+  shadow.style.opacity = bgEffects.shadowBg > 0 ? '1' : '0';
+
+  const grad = document.getElementById('bg-gradient-overlay');
+  grad.style.background = `linear-gradient(to bottom, rgba(0,0,0,0) 0%, ${bgEffects.gradientColor} 100%)`;
+  grad.style.opacity = (bgEffects.gradientOpacity / 100).toFixed(2);
+}
+
+function updateBgOverlaysVisibility() {
+  document.getElementById('bg-overlays').style.display = isTransparentBg ? 'none' : 'block';
+}
+
+function updateBgEffectsUI() {
+  document.getElementById('vignetteSlider').value = bgEffects.vignette;
+  document.getElementById('vignetteValue').textContent = bgEffects.vignette;
+  document.getElementById('shadowBgSlider').value = bgEffects.shadowBg;
+  document.getElementById('shadowBgValue').textContent = bgEffects.shadowBg;
+  document.getElementById('gradientColor').value = bgEffects.gradientColor;
+  document.getElementById('gradientOpacitySlider').value = bgEffects.gradientOpacity;
+  document.getElementById('gradientOpacityValue').textContent = bgEffects.gradientOpacity;
+  document.getElementById('bgBlurSlider').value = bgEffects.blur;
+  document.getElementById('bgBlurValue').textContent = bgEffects.blur;
+  document.getElementById('bgBrightnessSlider').value = bgEffects.brightness;
+  document.getElementById('bgBrightnessValue').textContent = bgEffects.brightness;
+  document.getElementById('bgContrastSlider').value = bgEffects.contrast;
+  document.getElementById('bgContrastValue').textContent = bgEffects.contrast;
+  document.getElementById('bgSaturationSlider').value = bgEffects.saturation;
+  document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
+}
+
+function processBgImage(img) {
+  if (!img) return null;
+  const needFilter = bgEffects.blur > 0 || bgEffects.brightness !== 100 || bgEffects.contrast !== 100 || bgEffects.saturation !== 100;
+  if (!needFilter) {
+    const tex = new THREE.Texture(img);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    return tex;
+  }
+  const c = document.createElement('canvas');
+  c.width = img.width || img.naturalWidth || 512;
+  c.height = img.height || img.naturalHeight || 512;
+  const ctx = c.getContext('2d');
+  ctx.filter = `blur(${bgEffects.blur}px) brightness(${bgEffects.brightness}%) contrast(${bgEffects.contrast}%) saturate(${bgEffects.saturation}%)`;
+  ctx.drawImage(img, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function refreshBgImage() {
+  if (!bgPlane || !bgImageSource) return;
+  const newTex = processBgImage(bgImageSource);
+  if (newTex) {
+    bgPlane.material.map?.dispose();
+    bgPlane.material.map = newTex;
+    bgPlane.material.needsUpdate = true;
+  }
 }
 
 // ===== MODEL =====
@@ -637,7 +756,6 @@ function selectLayer(dummy, el) {
     document.getElementById('propTextColor').value = dummy.userData.textColor || '#000000';
   } else textProps.style.display = 'none';
 
-  // Kesan Imej — papar hanya untuk layer bukan background
   const fxPanel = document.getElementById('fxPanel');
   if (dummy.userData.isBg) {
     fxPanel.style.display = 'none';
@@ -716,19 +834,16 @@ function disposeDummyTextures(dummy) {
 }
 
 // ===== IMAGE EFFECTS PROCESSOR =====
-// Gabungan: Drop Shadow → Stroke (32 arah dilation) → Imej asal (+ Overlay tint)
 function applyLayerEffects(img, fx) {
   const W0 = img.width || img.naturalWidth || 512;
   const H0 = img.height || img.naturalHeight || 512;
   if (!W0 || !H0) return null;
 
-  // Hadkan saiz proses untuk prestasi
   const MAX_SIDE = 1024;
   const sc = Math.min(1, MAX_SIDE / Math.max(W0, H0));
   const bw = Math.max(1, Math.round(W0 * sc));
   const bh = Math.max(1, Math.round(H0 * sc));
 
-  // Base image (skala)
   const base = document.createElement('canvas');
   base.width = bw; base.height = bh;
   const bctx = base.getContext('2d');
@@ -744,10 +859,8 @@ function applyLayerEffects(img, fx) {
   const hasShadow  = blur > 0.5 || Math.abs(offX) > 0.5 || Math.abs(offY) > 0.5;
   const hasOverlay = ovOp > 0.005;
 
-  // Tiada kesan → pulangkan base sahaja
   if (!hasStroke && !hasShadow && !hasOverlay) return base;
 
-  // Padding untuk stroke + blur + offset
   const padX = Math.ceil(strokeW + blur * 1.5 + Math.abs(offX)) + 2;
   const padY = Math.ceil(strokeW + blur * 1.5 + Math.abs(offY)) + 2;
   const cw = bw + padX * 2;
@@ -757,7 +870,6 @@ function applyLayerEffects(img, fx) {
   out.width = cw; out.height = ch;
   const ctx = out.getContext('2d');
 
-  // Silhouette (mask penuh sesuatu warna)
   function makeSil(color) {
     const c = document.createElement('canvas');
     c.width = bw; c.height = bh;
@@ -769,7 +881,6 @@ function applyLayerEffects(img, fx) {
     return c;
   }
 
-  // 1) DROP SHADOW (di belakang)
   if (hasShadow) {
     const sil = makeSil(fx.shadowColor || '#000000');
     ctx.save();
@@ -778,7 +889,6 @@ function applyLayerEffects(img, fx) {
     ctx.restore();
   }
 
-  // 2) STROKE — silhouette dilation 32 arah
   if (hasStroke) {
     const sil = makeSil(fx.strokeColor || '#000000');
     const DIRS = 32;
@@ -789,7 +899,6 @@ function applyLayerEffects(img, fx) {
     }
   }
 
-  // 3) IMEJ ASAL (+ overlay tint)
   if (hasOverlay) {
     const tinted = document.createElement('canvas');
     tinted.width = bw; tinted.height = bh;
@@ -807,7 +916,6 @@ function applyLayerEffects(img, fx) {
   return out;
 }
 
-// Proses + cache kanvas mengikut tetapan kesan semasa
 function getProcessedCanvas(dummy) {
   const img = dummy.userData.texture?.image;
   if (!img) return null;
@@ -822,7 +930,6 @@ function getProcessedCanvas(dummy) {
   dummy.userData._fxKey = key;
   dummy.userData._fxCanvas = canvas;
 
-  // Buang tekstur decal lama (kanvas berubah)
   dummy.userData._decalTexFront?.dispose?.();
   dummy.userData._decalTexBack?.dispose?.();
   dummy.userData._decalTexFront = null;
@@ -902,7 +1009,6 @@ document.getElementById('propOpacity').oninput = e => {
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
 
-// Curve slider
 document.getElementById('propCurve').oninput = e => {
   if (!activeDummy || activeDummy.userData.isBg) return;
   const c = +e.target.value;
@@ -941,7 +1047,6 @@ function updateFxUI(dummy) {
   g('fxShadowYValue').textContent = fx.shadowOffsetY;
 }
 
-// Setiap perubahan slider → kemas kini layer → auto render semula decal
 function fxOnInput(key, value) {
   if (!activeDummy || activeDummy.userData.isBg) return;
   const fx = ensureEffects(activeDummy);
@@ -952,37 +1057,30 @@ function fxOnInput(key, value) {
 
 document.getElementById('fxOverlayColor').oninput = e => fxOnInput('overlayColor', e.target.value);
 document.getElementById('fxOverlayColor').onchange = () => pushHistory();
-
 document.getElementById('fxOverlayOpacity').oninput = e => {
   document.getElementById('fxOverlayOpacityValue').textContent = e.target.value + '%';
   fxOnInput('overlayOpacity', (+e.target.value) / 100);
 };
 document.getElementById('fxOverlayOpacity').onchange = () => pushHistory();
-
 document.getElementById('fxStrokeColor').oninput = e => fxOnInput('strokeColor', e.target.value);
 document.getElementById('fxStrokeColor').onchange = () => pushHistory();
-
 document.getElementById('fxStrokeWidth').oninput = e => {
   document.getElementById('fxStrokeWidthValue').textContent = e.target.value + 'px';
   fxOnInput('strokeWidth', +e.target.value);
 };
 document.getElementById('fxStrokeWidth').onchange = () => pushHistory();
-
 document.getElementById('fxShadowColor').oninput = e => fxOnInput('shadowColor', e.target.value);
 document.getElementById('fxShadowColor').onchange = () => pushHistory();
-
 document.getElementById('fxShadowBlur').oninput = e => {
   document.getElementById('fxShadowBlurValue').textContent = e.target.value + 'px';
   fxOnInput('shadowBlur', +e.target.value);
 };
 document.getElementById('fxShadowBlur').onchange = () => pushHistory();
-
 document.getElementById('fxShadowX').oninput = e => {
   document.getElementById('fxShadowXValue').textContent = e.target.value;
   fxOnInput('shadowOffsetX', +e.target.value);
 };
 document.getElementById('fxShadowX').onchange = () => pushHistory();
-
 document.getElementById('fxShadowY').oninput = e => {
   document.getElementById('fxShadowYValue').textContent = e.target.value;
   fxOnInput('shadowOffsetY', +e.target.value);
@@ -997,6 +1095,71 @@ document.getElementById('fxReset').onclick = () => {
   if (currentMode === 'free') updateFreeTransformHandles();
   pushHistory();
   showToast('Kesan direset ke 0');
+};
+
+// ===== KESAN LATAR BELAKANG: UI HANDLERS =====
+document.getElementById('vignetteSlider').oninput = e => {
+  bgEffects.vignette = +e.target.value;
+  document.getElementById('vignetteValue').textContent = bgEffects.vignette;
+  updateBgOverlayStyles();
+};
+document.getElementById('vignetteSlider').onchange = () => pushHistory();
+
+document.getElementById('shadowBgSlider').oninput = e => {
+  bgEffects.shadowBg = +e.target.value;
+  document.getElementById('shadowBgValue').textContent = bgEffects.shadowBg;
+  updateBgOverlayStyles();
+};
+document.getElementById('shadowBgSlider').onchange = () => pushHistory();
+
+document.getElementById('gradientColor').oninput = e => {
+  bgEffects.gradientColor = e.target.value;
+  updateBgOverlayStyles();
+};
+document.getElementById('gradientColor').onchange = () => pushHistory();
+
+document.getElementById('gradientOpacitySlider').oninput = e => {
+  bgEffects.gradientOpacity = +e.target.value;
+  document.getElementById('gradientOpacityValue').textContent = bgEffects.gradientOpacity;
+  updateBgOverlayStyles();
+};
+document.getElementById('gradientOpacitySlider').onchange = () => pushHistory();
+
+document.getElementById('bgBlurSlider').oninput = e => {
+  bgEffects.blur = +e.target.value;
+  document.getElementById('bgBlurValue').textContent = bgEffects.blur;
+  if (bgPlane && bgImageSource) refreshBgImage();
+};
+document.getElementById('bgBlurSlider').onchange = () => pushHistory();
+
+document.getElementById('bgBrightnessSlider').oninput = e => {
+  bgEffects.brightness = +e.target.value;
+  document.getElementById('bgBrightnessValue').textContent = bgEffects.brightness;
+  if (bgPlane && bgImageSource) refreshBgImage();
+};
+document.getElementById('bgBrightnessSlider').onchange = () => pushHistory();
+
+document.getElementById('bgContrastSlider').oninput = e => {
+  bgEffects.contrast = +e.target.value;
+  document.getElementById('bgContrastValue').textContent = bgEffects.contrast;
+  if (bgPlane && bgImageSource) refreshBgImage();
+};
+document.getElementById('bgContrastSlider').onchange = () => pushHistory();
+
+document.getElementById('bgSaturationSlider').oninput = e => {
+  bgEffects.saturation = +e.target.value;
+  document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
+  if (bgPlane && bgImageSource) refreshBgImage();
+};
+document.getElementById('bgSaturationSlider').onchange = () => pushHistory();
+
+document.getElementById('bgResetBtn').onclick = () => {
+  bgEffects = defaultBgEffects();
+  updateBgEffectsUI();
+  updateBgOverlayStyles();
+  if (bgPlane && bgImageSource) refreshBgImage();
+  pushHistory();
+  showToast('Kesan latar direset');
 };
 
 // Alignment
@@ -1089,13 +1252,11 @@ function createDecalNow(dummy) {
   else createFlatDecal(dummy);
 }
 
-// Flat decal — menggunakan DecalGeometry (asal, untuk torso)
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   const depth = onSleeve ? 0.38 : 0.22;
 
-  // PENTING: Jangan flip texture jika di lengan
   const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
@@ -1124,7 +1285,6 @@ function createFlatDecal(dummy) {
   });
 }
 
-// Curved decal — arka silinder yang mengikut lengan
 function createCurvedDecal(dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -1132,7 +1292,6 @@ function createCurvedDecal(dummy, curve) {
   dummy.updateMatrixWorld(true);
   const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
 
-  // PENTING: Jangan flip texture jika di lengan (mengelakkan logo terbalik)
   const isBack = !onSleeve && dummyNormal.z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
@@ -1147,10 +1306,7 @@ function createCurvedDecal(dummy, curve) {
 
   const pos = geo.attributes.position;
   const halfW = w / 2;
-  // Slider 'curve' mengawal sudut lengkok (0 = rata, 1 = 90 darjah)
   const maxAngle = (Math.PI / 2) * curve;
-
-  // Formula radius silinder sempurna
   const R = halfW / Math.max(0.001, Math.sin(maxAngle));
 
   for (let i = 0; i < pos.count; i++) {
@@ -1181,7 +1337,6 @@ function createCurvedDecal(dummy, curve) {
   dummy.userData.decals.push(mesh);
 }
 
-// Update decal on transform drag
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   if (activeDummy.userData.isBg) {
@@ -1376,38 +1531,55 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
 
 // ===== BACKGROUND =====
 function applySolidBackground() {
-  if (isTransparentBg) { scene.background = null; renderer.setClearColor(0x000000, 0); container.style.background = 'transparent'; }
-  else { scene.background = new THREE.Color(currentBgColor); renderer.setClearColor(currentBgColor, 1); container.style.background = currentBgColor; }
+  if (isTransparentBg) {
+    scene.background = null;
+    renderer.setClearColor(0x000000, 0);
+    container.style.background = 'transparent';
+  } else {
+    scene.background = new THREE.Color(currentBgColor);
+    renderer.setClearColor(currentBgColor, 1);
+    container.style.background = currentBgColor;
+  }
+  updateBgOverlaysVisibility();
 }
-function createBgPlane(texture, aspect) {
+
+function createBgPlane(img, aspect) {
   if (bgPlane) {
-    scene.remove(bgPlane); bgPlane.material.map?.dispose(); bgPlane.material.dispose(); bgPlane.geometry.dispose();
+    scene.remove(bgPlane);
+    bgPlane.material.map?.dispose();
+    bgPlane.material.dispose();
+    bgPlane.geometry.dispose();
     document.getElementById(bgPlane.userData.layerId)?.remove();
     layers = layers.filter(l => l !== bgPlane);
   }
-  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: bgOpacity, depthWrite: false, side: THREE.DoubleSide });
+  bgImageSource = img;
+  const tex = processBgImage(img);
+  const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: bgOpacity, depthWrite: false, side: THREE.DoubleSide });
   bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
   bgPlane.position.set(0, 0, -6);
   bgPlane.scale.set(12, 12 / aspect, 1);
   bgPlane.renderOrder = -10;
-  bgPlane.userData = { isBg: true, aspect, texture, opacity: bgOpacity, visible: true, locked: false };
+  bgPlane.userData = { isBg: true, aspect, opacity: bgOpacity, visible: true, locked: false };
   scene.add(bgPlane);
   layers.push(bgPlane);
   addDesignLayer(bgPlane, 'Latar Imej', '🖼️', true);
   bgImagePanel.style.display = 'block';
   applyFillMode(bgFillMode);
 }
+
 function clearBgImage() {
   if (!bgPlane) return;
   scene.remove(bgPlane); bgPlane.material.map?.dispose(); bgPlane.material.dispose(); bgPlane.geometry.dispose();
   document.getElementById(bgPlane.userData.layerId)?.remove();
   layers = layers.filter(l => l !== bgPlane);
   bgPlane = null;
+  bgImageSource = null;
   bgImagePanel.style.display = 'none';
   transformControls.detach(); activeDummy = null;
   gizmoControlsUI.classList.remove('active'); propertiesPanel.classList.remove('active');
   applySolidBackground(); pushHistory();
 }
+
 function applyFillMode(mode) {
   if (!bgPlane) return;
   bgFillMode = mode;
@@ -1421,6 +1593,7 @@ function applyFillMode(mode) {
   document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
   document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
 }
+
 document.getElementById('bgColor').oninput = e => { currentBgColor = e.target.value; if (!bgPlane) applySolidBackground(); };
 document.getElementById('bgColor').onchange = () => pushHistory();
 document.getElementById('bgImageUpload').onchange = e => {
@@ -1429,9 +1602,8 @@ document.getElementById('bgImageUpload').onchange = e => {
   r.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      const tex = new THREE.Texture(img); tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
       isTransparentBg = false; document.getElementById('toggleTransparent').classList.remove('active');
-      applySolidBackground(); createBgPlane(tex, img.width / img.height); pushHistory();
+      applySolidBackground(); createBgPlane(img, img.width / img.height); pushHistory();
     };
     img.src = ev.target.result;
   };
@@ -1485,7 +1657,9 @@ async function getStateForSave() {
   return {
     color: currentShirtColor, bgColor: currentBgColor, isTransparentBg,
     ambient: ambientLight.intensity, directional: mainLight.intensity, shadow: mainLight.shadow.intensity,
-    bgOpacity, bgFillMode, layers: processed
+    bgOpacity, bgFillMode,
+    bgEffects: { ...bgEffects },
+    layers: processed
   };
 }
 
@@ -1564,6 +1738,9 @@ document.getElementById('btnNewProject').onclick = () => {
   currentShirtColor = '#ffffff';
   shirtMaterials.forEach(m => m.color.set(0xffffff));
   document.getElementById('customColor').value = '#ffffff';
+  bgEffects = defaultBgEffects();
+  updateBgEffectsUI();
+  updateBgOverlayStyles();
   applySolidBackground();
   history = []; historyIndex = -1;
   pushHistory();
@@ -1605,6 +1782,11 @@ async function restoreState(state) {
   document.getElementById('bgColor').value = currentBgColor;
   isTransparentBg = !!state.isTransparentBg;
   document.getElementById('toggleTransparent').classList.toggle('active', isTransparentBg);
+
+  // Restore bg effects
+  bgEffects = { ...defaultBgEffects(), ...(state.bgEffects || {}) };
+  updateBgEffectsUI();
+  updateBgOverlayStyles();
 
   ambientLight.intensity = state.ambient ?? 0.5;
   mainLight.intensity = state.directional ?? 2;
@@ -1842,6 +2024,10 @@ window.addEventListener('resize', () => {
   const w = container.clientWidth, h = container.clientHeight;
   camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
 });
+
+// Initial
+updateBgOverlayStyles();
+updateBgEffectsUI();
 applySolidBackground();
 </script>
 </body>
