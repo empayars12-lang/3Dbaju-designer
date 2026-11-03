@@ -108,10 +108,20 @@
     #sidebar-right{width:300px;background:#18181b;border-left:1px solid #27272a;display:flex;flex-direction:column}
     #layers-header{padding:16px 16px 10px;border-bottom:1px solid #27272a}
     #layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
-    #layers-list{flex:1;overflow-y:auto;max-height:45%}
-    .layer-item{padding:10px 14px;border-bottom:1px solid #27272a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px}
+    #layers-list{flex:1;overflow-y:auto;max-height:45%; padding:10px}
+    
+    /* ==== LAYER GROUPING STYLES ==== */
+    .layer-group { margin-bottom: 8px; border: 1px solid #3f3f46; border-radius: 6px; overflow: hidden; }
+    .group-header { background: #27272a; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; cursor: pointer; color: #e4e4e7; }
+    .group-header:hover { background: #3f3f46; }
+    .group-header .arrow { transition: transform 0.2s; font-size: 10px; }
+    .layer-group.collapsed .group-header .arrow { transform: rotate(-90deg); }
+    .group-items { padding: 4px; border-left: 2px solid #38bdf8; margin-left: 12px; display: flex; flex-direction: column; gap: 2px; }
+    .layer-group.collapsed .group-items { display: none; }
+    
+    .layer-item{padding:8px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px;background:#1f1f23;margin-bottom:2px}
     .layer-item:hover{background:#27272a}
-    .layer-item.active{background:rgba(56,189,248,.1);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
+    .layer-item.active{background:rgba(56,189,248,.15);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
     .layer-item.locked{opacity:.65}
     .layer-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
     .layer-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -119,6 +129,7 @@
     .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7}
     .layer-actions button:hover{opacity:1}
     .layer-actions .vis.hidden{opacity:.35}
+    
     #properties-panel{border-top:1px solid #27272a;padding:14px 16px;overflow-y:auto;flex:1;display:none}
     #properties-panel.active{display:block}
     #properties-panel h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:12px}
@@ -318,6 +329,7 @@
         <div class="slider-row"><label><span>Kelajuan</span><span id="speedValue">1.0x</span></label><input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1"></div>
         <div class="slider-row"><label><span>Tempoh</span><span id="durationValue">6s</span></label><input type="range" id="durationSlider" min="4" max="12" step="1" value="6"></div>
         <div class="slider-row"><label><span>Kualiti</span><span id="qualityValue">720p Portrait</span></label><input type="range" id="qualitySlider" min="0" max="1" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Zoom Out Frame</span><span id="renderZoomValue">1.2x</span></label><input type="range" id="renderZoomSlider" min="1" max="3" step="0.1" value="1.2"></div>
         <button class="preview-btn" id="btnPreview">▶ Mainkan Preview</button>
         <button class="video-btn" id="btnRenderVideo">🎥 Render Video</button>
       </div>
@@ -370,7 +382,7 @@
   </div>
 
   <div id="sidebar-right">
-    <div id="layers-header"><h2>Senarai Layer</h2></div>
+    <div id="layers-header"><h2>Senarai Layer & Kumpulan</h2></div>
     <div id="layers-list"></div>
     <div id="properties-panel">
       <h3>Properties</h3>
@@ -391,8 +403,25 @@
         <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
         <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
       </div>
+      
+      <!-- ===== KESAN IMEJ ===== -->
       <div id="fxPanel" style="display:none">
         <h3 style="margin-top:14px">Kesan Imej</h3>
+        
+        <div class="fx-group">
+          <div class="fx-title">Brightness & Contrast</div>
+          <div class="fx-row">
+            <span class="fx-val" style="color:#a1a1aa;text-align:left">B</span>
+            <input type="range" id="fxBrightness" min="20" max="200" step="5" value="100">
+            <span class="fx-val" id="fxBrightnessValue">100%</span>
+          </div>
+          <div class="fx-row">
+            <span class="fx-val" style="color:#a1a1aa;text-align:left">C</span>
+            <input type="range" id="fxContrast" min="20" max="200" step="5" value="100">
+            <span class="fx-val" id="fxContrastValue">100%</span>
+          </div>
+        </div>
+
         <div class="fx-group">
           <div class="fx-title">Overlay Warna</div>
           <div class="fx-row">
@@ -401,14 +430,16 @@
             <span class="fx-val" id="fxOverlayOpacityValue">0%</span>
           </div>
         </div>
+        
         <div class="fx-group">
-          <div class="fx-title">Stroke (Silhouette Dilation)</div>
+          <div class="fx-title">Stroke</div>
           <div class="fx-row">
             <input type="color" id="fxStrokeColor" value="#000000">
             <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
             <span class="fx-val" id="fxStrokeWidthValue">0px</span>
           </div>
         </div>
+        
         <div class="fx-group">
           <div class="fx-title">Drop Shadow</div>
           <div class="fx-row">
@@ -454,7 +485,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 });
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v6';
+const DB_NAME = 'ProDesigner3D_v7';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -589,13 +620,14 @@ const canvasGroup = new THREE.Group();
 scene.add(shirtGroup);
 scene.add(canvasGroup);
 
-let loadedModelContainers = []; // Array untuk simpan semua model
+let loadedModelContainers = [];
+let layerGroups = new Map(); // Maps containerId -> { headerEl, itemsEl }
 let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, logoCount = 0;
 let currentShirtColor = '#ffffff', currentMode = 'translate';
 let history = [], historyIndex = -1;
 let currentBgColor = '#09090b', isTransparentBg = false, bgPlane = null, bgFillMode = 'stretch', bgOpacity = 1;
 let isRecording = false, isPreviewing = false, isPaused = false, mediaRecorder = null, recordedChunks = [];
-let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null;
+let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null, renderZoom = 1.2;
 let currentProjectId = null, currentProjectName = 'Design Baru';
 let outputRatio = 'auto';
 let cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
@@ -632,7 +664,7 @@ const btnSnap = document.getElementById('btnSnap');
 
 // ===== KESAN IMEJ =====
 function defaultEffects() {
-  return { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
+  return { brightness: 100, contrast: 100, overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
 }
 function ensureEffects(dummy) {
   if (!dummy.userData.effects) dummy.userData.effects = defaultEffects();
@@ -822,7 +854,7 @@ function loadShirtModel(url) {
       
       shirtGroup.add(container);
       loadedModelContainers.push(container);
-      addModelLayer(container, url);
+      addModelGroup(container, url);
 
       const newBox = new THREE.Box3().setFromObject(container);
       ground.position.y = newBox.min.y - 0.1;
@@ -837,10 +869,83 @@ function loadShirtModel(url) {
       container.position.set(loadedModelContainers.length * 2.2, 0, 0);
       shirtGroup.add(container);
       loadedModelContainers.push(container);
-      addModelLayer(container, url);
+      addModelGroup(container, url);
       resolve();
     });
   });
+}
+
+function addModelGroup(container, url) {
+  const id = 'group-' + Date.now() + Math.random().toString(36).slice(2, 7);
+  container.userData.layerId = id;
+  
+  let name = 'Model 3D';
+  if (url.includes('long_sleeve')) name = 'Lengan Panjang';
+  else if (url.includes('polo')) name = 'Polo Shirt';
+  else if (url.includes('baju_baru')) name = 'Baju Baru';
+  else if (url.includes('T_shirt')) name = 'Baju Asal';
+
+  const groupEl = document.createElement('div');
+  groupEl.className = 'layer-group';
+  groupEl.id = id;
+  
+  const headerEl = document.createElement('div');
+  headerEl.className = 'group-header';
+  headerEl.innerHTML = `<span>👕 ${name}</span><span class="arrow">▼</span>`;
+  headerEl.onclick = () => groupEl.classList.toggle('collapsed');
+  
+  const actionsEl = document.createElement('div');
+  actionsEl.style.display = 'flex';
+  actionsEl.style.gap = '4px';
+  const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.textContent = '👁️'; bVis.style.background='none'; bVis.style.border='none'; bVis.style.cursor='pointer'; bVis.style.fontSize='13px';
+  const bDel = document.createElement('button'); bDel.className = 'del'; bDel.textContent = '✕'; bDel.style.background='none'; bDel.style.border='none'; bDel.style.cursor='pointer'; bDel.style.color='#ef4444'; bDel.style.fontSize='13px';
+  actionsEl.appendChild(bVis);
+  actionsEl.appendChild(bDel);
+  headerEl.appendChild(actionsEl);
+
+  const itemsEl = document.createElement('div');
+  itemsEl.className = 'group-items';
+  itemsEl.id = 'items-' + id;
+
+  groupEl.appendChild(headerEl);
+  groupEl.appendChild(itemsEl);
+  layerListUI.prepend(groupEl);
+  
+  layerGroups.set(id, { el: groupEl, items: itemsEl });
+
+  bDel.onclick = (e) => {
+    e.stopPropagation();
+    if (confirm(`Padam kumpulan model ${name} ini?`)) {
+      shirtGroup.remove(container);
+      container.traverse?.(n => { n.geometry?.dispose?.(); });
+      loadedModelContainers = loadedModelContainers.filter(c => c !== container);
+      groupEl.remove();
+      layerGroups.delete(id);
+      
+      // Padam decal yang terlekat pada model ini
+      layers.forEach(d => {
+        if (d.userData.targetContainer === container) {
+          const lEl = document.getElementById(d.userData.layerId);
+          if (lEl) deleteLayer(d, lEl);
+        }
+      });
+      fitCameraToModels();
+      pushHistory();
+    }
+  };
+  
+  bVis.onclick = (e) => {
+    e.stopPropagation();
+    container.visible = !container.visible;
+    bVis.textContent = container.visible ? '👁️' : '👁️‍🗨️';
+    // Sembunyikan/tunjuk decal dalam kumpulan ini
+    layers.forEach(d => {
+        if (d.userData.targetContainer === container) {
+            if (d.userData.decals) d.userData.decals.forEach(m => m.visible = container.visible && d.userData.visible);
+            d.visible = container.visible && d.userData.visible;
+        }
+    });
+  };
 }
 
 function fitCameraToModels() {
@@ -865,6 +970,22 @@ function fitCameraToModels() {
   controls.update();
 }
 
+function fitCameraForRender(zoomMult) {
+  if (loadedModelContainers.length === 0) return;
+  const box = new THREE.Box3().setFromObject(shirtGroup);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  
+  const maxDim = Math.max(size.x, size.y);
+  const fov = camera.fov * (Math.PI / 180);
+  let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+  cameraZ *= 1.2 * zoomMult;
+  
+  camera.position.set(center.x, center.y, center.z + cameraZ);
+  controls.target.copy(center);
+  camera.updateProjectionMatrix();
+}
+
 function clearAllModels() {
   loadedModelContainers.forEach(c => {
     shirtGroup.remove(c);
@@ -874,68 +995,8 @@ function clearAllModels() {
   loadedModelContainers = [];
   shirtMeshes = [];
   shirtMaterials = [];
+  layerGroups.clear();
   ground.position.y = -1.2;
-}
-
-function addModelLayer(container, url) {
-  const id = 'model-' + Date.now() + Math.random().toString(36).slice(2, 7);
-  container.userData.layerId = id;
-  
-  let name = 'Model 3D';
-  if (url.includes('long_sleeve')) name = 'Lengan Panjang';
-  else if (url.includes('polo')) name = 'Polo';
-  else if (url.includes('baju_baru')) name = 'Baju Baru';
-  else if (url.includes('T_shirt')) name = 'Baju Asal';
-
-  const el = document.createElement('div');
-  el.className = 'layer-item'; el.id = id;
-  
-  const info = document.createElement('div'); info.className = 'layer-info';
-  const ic = document.createElement('span'); ic.textContent = '👕';
-  const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
-  info.appendChild(ic); info.appendChild(nm);
-  
-  const actions = document.createElement('div'); actions.className = 'layer-actions';
-  const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.textContent = '👁️';
-  const bDel = document.createElement('button'); bDel.className = 'del'; bDel.textContent = '✕';
-  actions.appendChild(bVis); actions.appendChild(bDel);
-  el.appendChild(info); el.appendChild(actions);
-
-  bDel.onclick = (e) => {
-    e.stopPropagation();
-    if (confirm('Padam model ini?')) {
-      shirtGroup.remove(container);
-      container.traverse?.(n => { n.geometry?.dispose?.(); });
-      loadedModelContainers = loadedModelContainers.filter(c => c !== container);
-      el.remove();
-      // Delete decals attached to this model
-      layers.forEach(d => {
-        if (d.userData.targetContainer === container) {
-          const lEl = document.getElementById(d.userData.layerId);
-          if (lEl) deleteLayer(d, lEl);
-        }
-      });
-      fitCameraToModels();
-      pushHistory();
-    }
-  };
-  
-  bVis.onclick = (e) => {
-    e.stopPropagation();
-    container.visible = !container.visible;
-    bVis.classList.toggle('hidden', !container.visible);
-    bVis.textContent = container.visible ? '👁️' : '👁️‍🗨️';
-  };
-
-  el.onclick = () => {
-    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-    transformControls.detach();
-    gizmoControlsUI.classList.remove('active');
-    propertiesPanel.classList.remove('active');
-  };
-
-  layerListUI.prepend(el);
 }
 
 document.getElementById('btnAddModel').onclick = async () => {
@@ -979,6 +1040,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.locked = false;
   dummy.userData.curve = dummy.userData.curve || 0;
   ensureEffects(dummy);
+  
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
   if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
@@ -996,9 +1058,20 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
-  layerListUI.prepend(el);
+  
+  // Append ke group yang betul
+  if (dummy.userData.isCanvasGraphic) {
+    layerListUI.prepend(el); // Canvas grafik bebas
+  } else if (dummy.userData.targetContainer && layerGroups.has(dummy.userData.targetContainer.userData.layerId)) {
+    const groupItems = layerGroups.get(dummy.userData.targetContainer.userData.layerId).items;
+    groupItems.prepend(el);
+  } else {
+    layerListUI.prepend(el); // Fallback
+  }
+  
   selectLayer(dummy, el);
 }
+
 function selectLayer(dummy, el) {
   if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
@@ -1038,6 +1111,7 @@ function selectLayer(dummy, el) {
   if (currentMode === 'free') { transformControls.detach(); showFreeTransform(); }
   else { hideFreeTransform(); transformControls.attach(dummy); transformControls.setMode(currentMode === 'scale' ? 'scale' : 'translate'); }
 }
+
 function toggleVisibility(dummy, el) {
   dummy.userData.visible = !dummy.userData.visible;
   const visBtn = el.querySelector('.vis');
@@ -1051,6 +1125,7 @@ function toggleVisibility(dummy, el) {
     if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) dummy.visible = false;
   }
 }
+
 function toggleLock(dummy, el) {
   dummy.userData.locked = !dummy.userData.locked;
   const lockBtn = el.querySelector('.lock');
@@ -1063,6 +1138,7 @@ function toggleLock(dummy, el) {
     }
   } else { lockBtn.textContent = '🔓'; el.classList.remove('locked'); }
 }
+
 function deleteLayer(dummy, el) {
   transformControls.detach(); hideFreeTransform(); propertiesPanel.classList.remove('active');
   if (dummy.userData.isCanvasGraphic) {
@@ -1072,7 +1148,7 @@ function deleteLayer(dummy, el) {
   } else {
     disposeDummyDecals(dummy);
     disposeDummyTextures(dummy);
-    shirtGroup.remove(dummy);
+    if (dummy.parent) dummy.parent.remove(dummy);
   }
   el.remove();
   layers = layers.filter(l => l !== dummy);
@@ -1083,7 +1159,7 @@ function deleteLayer(dummy, el) {
 function disposeDummyDecals(dummy) {
   if (!dummy.userData.decals) { dummy.userData.decals = []; return; }
   dummy.userData.decals.forEach(d => {
-    shirtGroup.remove(d);
+    if (d.parent) d.parent.remove(d);
     d.geometry?.dispose?.();
     d.material?.dispose?.();
   });
@@ -1115,7 +1191,10 @@ function applyLayerEffects(img, fx) {
   const bctx = base.getContext('2d');
   bctx.imageSmoothingEnabled = true;
   bctx.imageSmoothingQuality = 'high';
+  
+  bctx.filter = `brightness(${fx.brightness}%) contrast(${fx.contrast}%)`;
   bctx.drawImage(img, 0, 0, bw, bh);
+  
   const strokeW = Math.max(0, fx.strokeWidth || 0) * sc;
   const blur    = Math.max(0, fx.shadowBlur || 0) * sc;
   const offX    = (fx.shadowOffsetX || 0) * sc;
@@ -1282,6 +1361,12 @@ function updateFxUI(dummy) {
   if (!dummy) return;
   const fx = ensureEffects(dummy);
   const g = id => document.getElementById(id);
+  
+  g('fxBrightness').value = fx.brightness;
+  g('fxBrightnessValue').textContent = fx.brightness + '%';
+  g('fxContrast').value = fx.contrast;
+  g('fxContrastValue').textContent = fx.contrast + '%';
+  
   g('fxOverlayColor').value = fx.overlayColor;
   g('fxOverlayOpacity').value = Math.round(fx.overlayOpacity * 100);
   g('fxOverlayOpacityValue').textContent = Math.round(fx.overlayOpacity * 100) + '%';
@@ -1303,6 +1388,17 @@ function fxOnInput(key, value) {
   scheduleDecal(activeDummy);
   if (currentMode === 'free') updateFreeTransformHandles();
 }
+document.getElementById('fxBrightness').oninput = e => {
+  document.getElementById('fxBrightnessValue').textContent = e.target.value + '%';
+  fxOnInput('brightness', +e.target.value);
+};
+document.getElementById('fxBrightness').onchange = () => pushHistory();
+document.getElementById('fxContrast').oninput = e => {
+  document.getElementById('fxContrastValue').textContent = e.target.value + '%';
+  fxOnInput('contrast', +e.target.value);
+};
+document.getElementById('fxContrast').onchange = () => pushHistory();
+
 document.getElementById('fxOverlayColor').oninput = e => fxOnInput('overlayColor', e.target.value);
 document.getElementById('fxOverlayColor').onchange = () => pushHistory();
 document.getElementById('fxOverlayOpacity').oninput = e => {
@@ -1405,7 +1501,7 @@ document.getElementById('bgResetBtn').onclick = () => {
 document.getElementById('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
   if (activeDummy.userData.targetContainer) {
-    activeDummy.position.x = activeDummy.userData.targetContainer.position.x;
+    activeDummy.position.x = 0;
   } else {
     activeDummy.position.x = 0;
   }
@@ -1450,9 +1546,17 @@ document.getElementById('btnDuplicate').onclick = () => {
       curve: src.userData.curve || 0, targetContainer: src.userData.targetContainer,
       effects: { ...ensureEffects(src) }, decals: []
     };
-    dummy.position.copy(src.position); dummy.position.x += 0.12;
-    dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
-    shirtGroup.add(dummy);
+    
+    if (dummy.userData.targetContainer) {
+        dummy.userData.targetContainer.add(dummy);
+        dummy.position.copy(src.position); dummy.position.x += 0.12;
+        dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
+    } else {
+        shirtGroup.add(dummy);
+        dummy.position.copy(src.position); dummy.position.x += 0.12;
+        dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
+    }
+    
     createDecalNow(dummy);
     layers.push(dummy);
     logoCount++;
@@ -1504,11 +1608,7 @@ const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 
 function isOnSleeve(d) {
-  let localX = d.position.x;
-  if (d.userData.targetContainer) {
-    localX -= d.userData.targetContainer.position.x;
-  }
-  return Math.abs(localX) > 0.34;
+  return Math.abs(d.position.x) > 0.34;
 }
 
 let decalQueuedDummy = null;
@@ -1562,11 +1662,9 @@ function createFlatDecal(dummy) {
   const size = new THREE.Vector3(w, h, depth);
 
   let meshesToProject = [];
-  if (dummy.userData.targetContainer) {
-    dummy.userData.targetContainer.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
-  } else if (loadedModelContainers.length > 0) {
-    dummy.userData.targetContainer = loadedModelContainers[0];
-    loadedModelContainers[0].traverse(c => { if (c.isMesh) meshesToProject.push(c); });
+  const target = dummy.userData.targetContainer;
+  if (target) {
+    target.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
   }
 
   meshesToProject.forEach(mesh => {
@@ -1581,7 +1679,10 @@ function createFlatDecal(dummy) {
         const m = new THREE.Mesh(geo, mat);
         m.renderOrder = 2;
         m.visible = dummy.userData.visible !== false;
-        shirtGroup.add(m);
+        
+        if (target) target.add(m);
+        else shirtGroup.add(m);
+        
         dummy.userData.decals.push(m);
       } else geo.dispose();
     } catch (e) {}
@@ -1628,7 +1729,10 @@ function createCurvedDecal(dummy, curve) {
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
-  shirtGroup.add(mesh);
+  
+  if (dummy.userData.targetContainer) dummy.userData.targetContainer.add(mesh);
+  else shirtGroup.add(mesh);
+  
   dummy.userData.decals.push(mesh);
 }
 
@@ -1659,12 +1763,22 @@ transformControls.addEventListener('objectChange', () => {
         while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
           hitContainer = hitContainer.parent;
         }
-        activeDummy.userData.targetContainer = hitContainer;
-        activeDummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+        
+        if (activeDummy.userData.targetContainer !== hitContainer) {
+          activeDummy.userData.targetContainer = hitContainer;
+          
+          // Move ke group DOM baru
+          const el = document.getElementById(activeDummy.userData.layerId);
+          if (el && layerGroups.has(hitContainer.userData.layerId)) {
+             layerGroups.get(hitContainer.userData.layerId).items.appendChild(el);
+          }
+        }
+        
+        activeDummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
         
         if (isDragging) {
           const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-          const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+          const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
           const up = new THREE.Vector3(0, 1, 0);
           let right = new THREE.Vector3().crossVectors(up, ln);
           if (right.lengthSq() < 0.001) right.set(1, 0, 0);
@@ -1856,13 +1970,13 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     opacity: 1, visible: true, locked: false, curve: 0,
     effects: defaultEffects(), decals: []
   };
-  shirtGroup.add(dummy);
   
   let hits = raycaster.intersectObjects(loadedModelContainers, true);
   
   if (hits.length === 0 && loadedModelContainers.length > 0) {
     dummy.userData.targetContainer = loadedModelContainers[0];
-    dummy.position.set(loadedModelContainers[0].position.x, 0.1, 0.4);
+    dummy.userData.targetContainer.add(dummy);
+    dummy.position.set(0, 0.1, 0.4);
   } else if (hits.length > 0) {
     const hit = hits[0];
     let hitContainer = hit.object;
@@ -1870,10 +1984,11 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
       hitContainer = hitContainer.parent;
     }
     dummy.userData.targetContainer = hitContainer;
-    dummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+    hitContainer.add(dummy);
+    dummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
     
     const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
     const up = new THREE.Vector3(0, 1, 0);
     let right = new THREE.Vector3().crossVectors(up, ln);
     if (right.lengthSq() < 0.001) right.set(1, 0, 0);
@@ -1881,6 +1996,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
   } else {
+    shirtGroup.add(dummy);
     dummy.position.set(0, 0.1, 0.4);
   }
   
@@ -2182,13 +2298,13 @@ function clearAllLayers() {
     } else {
       disposeDummyDecals(d);
       disposeDummyTextures(d);
-      shirtGroup.remove(d);
+      if (d.parent) d.parent.remove(d);
     }
   });
   layers = layers.filter(l => l.userData.isBg);
   logoCount = 0;
   [...layerListUI.children].forEach(el => {
-    if (!el.querySelector('.layer-name')?.textContent.includes('Latar') && !el.id.startsWith('model-')) el.remove();
+    if (!el.querySelector('.layer-name')?.textContent.includes('Latar') && !el.classList.contains('layer-group')) el.remove();
   });
 }
 async function restoreState(state) {
@@ -2281,15 +2397,18 @@ async function restoreState(state) {
             
             if (ldata.containerIndex !== undefined && loadedModelContainers[ldata.containerIndex]) {
               dummy.userData.targetContainer = loadedModelContainers[ldata.containerIndex];
+              dummy.userData.targetContainer.add(dummy);
             } else if (loadedModelContainers.length > 0) {
               dummy.userData.targetContainer = loadedModelContainers[0];
+              dummy.userData.targetContainer.add(dummy);
+            } else {
+              shirtGroup.add(dummy);
             }
             
             dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
             dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
             const s = Math.max(...(ldata.scale || [1, 1, 1]));
             dummy.scale.setScalar(Math.max(0.12, s));
-            shirtGroup.add(dummy);
             createDecalNow(dummy);
             layers.push(dummy);
             logoCount++;
@@ -2403,6 +2522,7 @@ document.getElementById('saveBtn').onclick = () => {
 document.getElementById('speedSlider').oninput = e => { rotationSpeed = +e.target.value; document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 document.getElementById('durationSlider').oninput = e => { recordDuration = +e.target.value; document.getElementById('durationValue').textContent = recordDuration + 's'; };
 document.getElementById('qualitySlider').oninput = e => { recordQuality = +e.target.value; document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait'; };
+document.getElementById('renderZoomSlider').oninput = e => { renderZoom = +e.target.value; document.getElementById('renderZoomValue').textContent = renderZoom.toFixed(1) + 'x'; };
 btnPreview.onclick = () => { if (isRecording) return; isPreviewing ? stopPreview() : startPreview(); };
 
 function startPreview() {
@@ -2414,8 +2534,10 @@ function startPreview() {
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
-  camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
-  shirtGroup.rotation.y = 0;
+  
+  fitCameraForRender(renderZoom);
+  loadedModelContainers.forEach(c => c.rotation.y = 0);
+  
   animStartTime = performance.now();
   currentP = 0;
   recordingOverlay.classList.add('active');
@@ -2423,7 +2545,7 @@ function startPreview() {
     if (!isPreviewing) return;
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
-      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
+      loadedModelContainers.forEach(c => c.rotation.y = currentP * Math.PI * 2 * rotationSpeed);
       recordingText.textContent = `Preview... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
       if (currentP >= 1) { stopPreview(); return; }
     }
@@ -2439,7 +2561,9 @@ function stopPreview() {
   btnPreview.classList.remove('playing'); btnPreview.textContent = '▶ Mainkan Preview';
   btnRenderVideo.disabled = false; recordingOverlay.classList.remove('active');
   floatingControls.style.display = 'none';
-  shirtGroup.rotation.y = 0; transformHelper.visible = true; controls.enabled = true;
+  loadedModelContainers.forEach(c => c.rotation.y = 0);
+  transformHelper.visible = true; controls.enabled = true;
+  fitCameraToModels();
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
 
@@ -2462,7 +2586,10 @@ async function startVideoRecord() {
   const tw = container.clientWidth, th = container.clientHeight;
   renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   camera.aspect = tw / th; camera.updateProjectionMatrix();
-  camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
+  
+  fitCameraForRender(renderZoom);
+  loadedModelContainers.forEach(c => c.rotation.y = 0);
+  
   for (let i = 0; i < 8; i++) {
     renderer.clear(); renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
@@ -2487,8 +2614,10 @@ async function startVideoRecord() {
     transformHelper.visible = true; controls.enabled = true;
     isRecording = false; btnRenderVideo.disabled = false; btnPreview.disabled = false;
     btnRenderVideo.classList.remove('recording'); btnRenderVideo.textContent = '🎥 Render Video';
-    recordingOverlay.classList.remove('active'); shirtGroup.rotation.y = 0;
+    recordingOverlay.classList.remove('active'); 
+    loadedModelContainers.forEach(c => c.rotation.y = 0);
     floatingControls.style.display = 'none';
+    fitCameraToModels();
   };
   isRecording = true; isPaused = false;
   btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
@@ -2496,14 +2625,14 @@ async function startVideoRecord() {
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
-  mediaRecorder.start(100); shirtGroup.rotation.y = 0;
+  mediaRecorder.start(100);
   animStartTime = performance.now();
   currentP = 0;
   function loop(now) {
     if (!isRecording) return;
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
-      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
+      loadedModelContainers.forEach(c => c.rotation.y = currentP * Math.PI * 2 * rotationSpeed);
       recordingText.textContent = `Sedang merakam... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
     }
     renderer.render(scene, camera);
