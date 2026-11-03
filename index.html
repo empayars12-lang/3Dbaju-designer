@@ -82,6 +82,13 @@
     #crop-overlay.active{display:block;}
     #crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);border:1.5px dashed #38bdf8;}
 
+    /* ===== FLOATING PREVIEW CONTROLS ===== */
+    #floating-controls{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:60;display:none;gap:10px;background:rgba(0,0,0,0.75);padding:8px 12px;border-radius:12px;backdrop-filter:blur(4px);border:1px solid #3f3f46;}
+    #floating-controls button{padding:8px 16px;font-size:13px;border-radius:6px;border:none;font-weight:600;cursor:pointer;}
+    #btnPausePlay{background:#f59e0b;color:#000;}
+    #btnSnap{background:#10b981;color:#fff;}
+    #btnSnap:disabled{opacity:0.5;cursor:not-allowed;}
+
     #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
     #free-transform.active{display:block}
     .ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:none}
@@ -251,7 +258,7 @@
       </div>
     </div>
 
-    <!-- ===== FORMAT OUTPUT (BARU) ===== -->
+    <!-- ===== FORMAT OUTPUT ===== -->
     <div class="accordion-item open">
       <div class="accordion-header">Format Output <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -261,6 +268,17 @@
           <button class="fill-btn ratio-btn" data-ratio="4:5">4:5</button>
           <button class="fill-btn ratio-btn" data-ratio="9:16">9:16</button>
           <button class="fill-btn ratio-btn" data-ratio="16:9">16:9</button>
+        </div>
+        <div class="slider-row" style="margin-top:12px">
+          <label><span>Pandangan Simpan</span></label>
+          <select id="saveViewSelect" class="prop-input">
+            <option value="current">Pandangan Semasa</option>
+            <option value="front">Hadapan Sahaja</option>
+            <option value="back">Belakang Sahaja</option>
+            <option value="left">Kiri Sahaja</option>
+            <option value="right">Kanan Sahaja</option>
+            <option value="all">Semua (Grid 2x2)</option>
+          </select>
         </div>
       </div>
     </div>
@@ -295,6 +313,13 @@
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
     <div id="recording-overlay"><span>●</span> <span id="recordingText">Sedang merakam...</span></div>
+    
+    <!-- FLOATING CONTROLS FOR PREVIEW / RECORDING -->
+    <div id="floating-controls">
+      <button id="btnPausePlay">⏸ Jeda</button>
+      <button id="btnSnap" disabled>📸 Tangkap Gambar</button>
+    </div>
+
     <div id="free-transform">
       <div class="ft-box" id="ftBox"></div>
       <div class="ft-handle nw" data-corner="nw"></div>
@@ -559,11 +584,12 @@ let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, logo
 let currentShirtColor = '#ffffff', currentMode = 'translate';
 let history = [], historyIndex = -1;
 let currentBgColor = '#09090b', isTransparentBg = false, bgPlane = null, bgFillMode = 'stretch', bgOpacity = 1;
-let isRecording = false, isPreviewing = false, mediaRecorder = null, recordedChunks = [];
+let isRecording = false, isPreviewing = false, isPaused = false, mediaRecorder = null, recordedChunks = [];
 let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null;
 let currentProjectId = null, currentProjectName = 'Design Baru';
 let outputRatio = 'auto';
 let cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
+let animStartTime = 0, currentP = 0;
 
 // ===== KESAN LATAR BELAKANG =====
 function defaultBgEffects() {
@@ -597,6 +623,10 @@ const ftBox = document.getElementById('ftBox');
 const ftRotateHandle = document.getElementById('ftRotateHandle');
 const ftRotateLine = document.getElementById('ftRotateLine');
 let ftDragging = null, ftStartMouse = new THREE.Vector2(), ftStartScale = 1, ftStartAngle = 0, ftCenterScreen = new THREE.Vector2();
+
+const floatingControls = document.getElementById('floating-controls');
+const btnPausePlay = document.getElementById('btnPausePlay');
+const btnSnap = document.getElementById('btnSnap');
 
 // ===== KESAN IMEJ: DEFAULT =====
 function defaultEffects() {
@@ -1923,7 +1953,6 @@ document.getElementById('btnSaveProject').onclick = async () => {
     transformHelper.visible = false;
     renderer.render(scene, camera);
     
-    // Thumbnail from crop area
     const thumbCanvas = document.createElement('canvas');
     thumbCanvas.width = 320;
     thumbCanvas.height = Math.round(320 * (cropRect.h / cropRect.w));
@@ -2105,44 +2134,139 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
+// ===== IMAGE SAVE (VIEW SELECTOR) =====
+function captureImage(view = 'current') {
+  transformHelper.visible = false;
+  hideFreeTransform();
+
+  const origPos = camera.position.clone();
+  const origTarget = controls.target.clone();
+
+  const oldSize = renderer.getSize(new THREE.Vector2());
+  const oldPR = renderer.getPixelRatio();
+  const tw = container.clientWidth, th = container.clientHeight;
+
+  renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
+  camera.aspect = tw / th; camera.updateProjectionMatrix();
+
+  const targetRes = 2000;
+  const scale = targetRes / Math.max(cropRect.w, cropRect.h);
+  const outW = Math.round(cropRect.w * scale);
+  const outH = Math.round(cropRect.h * scale);
+
+  function renderAndExtract(posX, posY, posZ) {
+    camera.position.set(posX, posY, posZ);
+    controls.target.set(0, 0.05, 0);
+    camera.lookAt(controls.target);
+    renderer.render(scene, camera);
+    const c = document.createElement('canvas');
+    c.width = outW;
+    c.height = outH;
+    c.getContext('2d').drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, outW, outH);
+    return c;
+  }
+
+  if (view === 'all') {
+    const gridCanvas = document.createElement('canvas');
+    gridCanvas.width = outW * 2;
+    gridCanvas.height = outH * 2;
+    const ctx = gridCanvas.getContext('2d');
+
+    ctx.drawImage(renderAndExtract(0, 0.15, 5.2), 0, 0); // Front
+    ctx.drawImage(renderAndExtract(5.2, 0.15, 0), outW, 0); // Right
+    ctx.drawImage(renderAndExtract(-5.2, 0.15, 0), 0, outH); // Left
+    ctx.drawImage(renderAndExtract(0, 0.15, -5.2), outW, outH); // Back
+
+    const a = document.createElement('a');
+    a.download = 'design-all-views.png';
+    a.href = gridCanvas.toDataURL('image/png');
+    a.click();
+  } else {
+    let px = origPos.x, py = origPos.y, pz = origPos.z;
+    if (view === 'front') { px = 0; py = 0.15; pz = 5.2; }
+    else if (view === 'back') { px = 0; py = 0.15; pz = -5.2; }
+    else if (view === 'left') { px = -5.2; py = 0.15; pz = 0; }
+    else if (view === 'right') { px = 5.2; py = 0.15; pz = 0; }
+
+    const c = renderAndExtract(px, py, pz);
+    const a = document.createElement('a');
+    a.download = `design-${view}.png`;
+    a.href = c.toDataURL('image/png');
+    a.click();
+  }
+
+  camera.position.copy(origPos);
+  controls.target.copy(origTarget);
+  camera.aspect = oldSize.x / oldSize.y;
+  camera.updateProjectionMatrix();
+  renderer.setPixelRatio(oldPR);
+  renderer.setSize(oldSize.x, oldSize.y, false);
+  transformHelper.visible = true;
+  if (currentMode === 'free' && activeDummy) showFreeTransform();
+  controls.update();
+  renderer.render(scene, camera);
+  showToast('✅ Imej berjaya disimpan');
+}
+
+document.getElementById('saveBtn').onclick = () => {
+  const view = document.getElementById('saveViewSelect').value;
+  captureImage(view);
+};
+
 // ===== VIDEO =====
 document.getElementById('speedSlider').oninput = e => { rotationSpeed = +e.target.value; document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 document.getElementById('durationSlider').oninput = e => { recordDuration = +e.target.value; document.getElementById('durationValue').textContent = recordDuration + 's'; };
 document.getElementById('qualitySlider').oninput = e => { recordQuality = +e.target.value; document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait'; };
 
 btnPreview.onclick = () => { if (isRecording) return; isPreviewing ? stopPreview() : startPreview(); };
+
 function startPreview() {
   if (isPreviewing || isRecording) return;
   isPreviewing = true;
+  isPaused = false;
   btnPreview.classList.add('playing'); btnPreview.textContent = '⏹ Stop Preview';
   btnRenderVideo.disabled = true; transformHelper.visible = false; hideFreeTransform(); controls.enabled = false;
+  floatingControls.style.display = 'flex';
+  btnPausePlay.textContent = '⏸ Jeda';
+  btnSnap.disabled = true;
+  
   camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
   shirtGroup.rotation.y = 0;
-  const start = performance.now(), dur = recordDuration * 1000;
+  animStartTime = performance.now();
+  currentP = 0;
+  
   recordingOverlay.classList.add('active');
+  
   function loop(now) {
     if (!isPreviewing) return;
-    const p = Math.min((now - start) / dur, 1);
-    shirtGroup.rotation.y = p * Math.PI * 2 * rotationSpeed;
-    recordingText.textContent = `Preview... ${Math.ceil((dur - (now - start)) / 1000)}s`;
-    if (p < 1) previewAnimationId = requestAnimationFrame(loop); else stopPreview();
+    
+    if (!isPaused) {
+      currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
+      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
+      recordingText.textContent = `Preview... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
+      if (currentP >= 1) { stopPreview(); return; }
+    }
+    previewAnimationId = requestAnimationFrame(loop);
   }
   previewAnimationId = requestAnimationFrame(loop);
 }
+
 function stopPreview() {
   isPreviewing = false;
+  isPaused = false;
   if (previewAnimationId) cancelAnimationFrame(previewAnimationId);
   btnPreview.classList.remove('playing'); btnPreview.textContent = '▶ Mainkan Preview';
   btnRenderVideo.disabled = false; recordingOverlay.classList.remove('active');
+  floatingControls.style.display = 'none';
   shirtGroup.rotation.y = 0; transformHelper.visible = true; controls.enabled = true;
 }
 
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
+
 async function startVideoRecord() {
   if (isRecording) return;
   transformHelper.visible = false; hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
   
-  // Calculate target record size
   let targetRes = recordQuality === 0 ? 1080 : 1920;
   let scale = targetRes / Math.max(cropRect.w, cropRect.h);
   let recW = Math.round(cropRect.w * scale);
@@ -2184,24 +2308,67 @@ async function startVideoRecord() {
     isRecording = false; btnRenderVideo.disabled = false; btnPreview.disabled = false;
     btnRenderVideo.classList.remove('recording'); btnRenderVideo.textContent = '🎥 Render Video';
     recordingOverlay.classList.remove('active'); shirtGroup.rotation.y = 0;
+    floatingControls.style.display = 'none';
   };
-  isRecording = true; btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
+  
+  isRecording = true; isPaused = false;
+  btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
   btnRenderVideo.textContent = '⏹ Sedang Merakam...'; recordingOverlay.classList.add('active');
+  floatingControls.style.display = 'flex';
+  btnPausePlay.textContent = '⏸ Jeda';
+  btnSnap.disabled = true;
+  
   mediaRecorder.start(100); shirtGroup.rotation.y = 0;
-  const start = performance.now(), dur = recordDuration * 1000;
+  animStartTime = performance.now();
+  currentP = 0;
+  
   function loop(now) {
     if (!isRecording) return;
-    const p = Math.min((now - start) / dur, 1);
-    shirtGroup.rotation.y = p * Math.PI * 2 * rotationSpeed;
-    recordingText.textContent = `Sedang merakam... ${Math.ceil((dur - (now - start)) / 1000)}s`;
+    
+    if (!isPaused) {
+      currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
+      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
+      recordingText.textContent = `Sedang merakam... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
+    }
+    
     renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
     rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
-    if (p < 1) requestAnimationFrame(loop);
-    else setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
+    
+    if (currentP >= 1) {
+      setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
+    } else {
+      requestAnimationFrame(loop);
+    }
   }
   requestAnimationFrame(loop);
 }
+
+// Pause / Resume logic
+btnPausePlay.onclick = () => {
+  if (!isPreviewing && !isRecording) return;
+  isPaused = !isPaused;
+  if (isPaused) {
+    btnPausePlay.textContent = '▶ Sambung';
+    btnSnap.disabled = false;
+    if (isPreviewing) recordingText.textContent = `Preview Dijeda`;
+    if (isRecording) recordingText.textContent = `Rakaman Dijeda`;
+  } else {
+    btnPausePlay.textContent = '⏸ Jeda';
+    btnSnap.disabled = true;
+    animStartTime = performance.now() - (currentP * recordDuration * 1000);
+  }
+};
+
+// Capture Frame during pause
+btnSnap.onclick = () => {
+  const view = document.getElementById('saveViewSelect').value;
+  if (view === 'current') {
+    captureImage('current');
+  } else {
+    showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
+  }
+};
 
 // ===== UI =====
 function setMode(m) {
@@ -2262,40 +2429,9 @@ window.addEventListener('keydown', e => {
   }
 });
 
-document.getElementById('saveBtn').onclick = () => {
-  transformHelper.visible = false; hideFreeTransform();
-  const oldSize = renderer.getSize(new THREE.Vector2());
-  const oldPR = renderer.getPixelRatio();
-  
-  const tw = container.clientWidth, th = container.clientHeight;
-  renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
-  renderer.render(scene, camera);
-
-  const targetRes = 2000;
-  const scale = targetRes / Math.max(cropRect.w, cropRect.h);
-  const outW = Math.round(cropRect.w * scale);
-  const outH = Math.round(cropRect.h * scale);
-
-  const outCanvas = document.createElement('canvas');
-  outCanvas.width = outW;
-  outCanvas.height = outH;
-  outCanvas.getContext('2d').drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, outW, outH);
-
-  const a = document.createElement('a');
-  a.download = 'design-baju-hd.png';
-  a.href = outCanvas.toDataURL('image/png');
-  a.click();
-
-  renderer.setPixelRatio(oldPR);
-  renderer.setSize(oldSize.x, oldSize.y, false);
-  transformHelper.visible = true;
-  if (currentMode === 'free' && activeDummy) showFreeTransform();
-  renderer.render(scene, camera);
-};
-
 function animate() {
   requestAnimationFrame(animate);
-  if (!isRecording) {
+  if (!isRecording && !isPreviewing) {
     controls.update();
     renderer.render(scene, camera);
     if (currentMode === 'free' && activeDummy && !ftDragging) updateFreeTransformHandles();
