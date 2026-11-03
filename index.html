@@ -152,17 +152,29 @@
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
 
     /* ==== CROP MODAL ==== */
-    #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    #crop-container { position: relative; background: #000; display: flex; align-items: center; justify-content: center; max-width: 90vw; max-height: 90vh; }
-    #crop-image { max-width: 100%; max-height: 90vh; display: block; }
-    #crop-box { position: absolute; border: 2px dashed #38bdf8; background: rgba(56,189,248,0.2); cursor: move; box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); top: 10%; left: 10%; width: 80%; height: 80%; }
-    .crop-handle { position: absolute; width: 16px; height: 16px; background: #fff; border: 2px solid #38bdf8; border-radius: 50%; }
-    .crop-handle.tl { top: -8px; left: -8px; cursor: nwse-resize; }
-    .crop-handle.tr { top: -8px; right: -8px; cursor: nesw-resize; }
-    .crop-handle.bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
-    .crop-handle.br { bottom: -8px; right: -8px; cursor: nwse-resize; }
+    #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    #crop-container { position: relative; display: inline-block; background: #000; }
+    #crop-image { display: block; max-width: 90vw; max-height: 80vh; }
+    
+    /* Kotak Crop */
+    #crop-box { position: absolute; border: 2px dashed #38bdf8; background: rgba(56,189,248,0.1); cursor: move; box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); box-sizing: border-box; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    /* Bucu (Corners) */
+    .crop-handle { position: absolute; width: 14px; height: 14px; background: #fff; border: 2px solid #38bdf8; border-radius: 50%; z-index: 10; }
+    .crop-handle.tl { top: -7px; left: -7px; cursor: nwse-resize; }
+    .crop-handle.tr { top: -7px; right: -7px; cursor: nesw-resize; }
+    .crop-handle.bl { bottom: -7px; left: -7px; cursor: nesw-resize; }
+    .crop-handle.br { bottom: -7px; right: -7px; cursor: nwse-resize; }
+    
+    /* Tepi (Edges) */
+    .crop-edge { position: absolute; z-index: 9; }
+    .crop-edge.top { top: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
+    .crop-edge.bottom { bottom: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
+    .crop-edge.left { top: 14px; bottom: 14px; left: -4px; width: 8px; cursor: ew-resize; }
+    .crop-edge.right { top: 14px; bottom: 14px; right: -4px; width: 8px; cursor: ew-resize; }
+
     #crop-controls { margin-top: 20px; display: flex; gap: 10px; }
-    #crop-controls button { padding: 10px 20px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+    #crop-controls button { padding: 12px 24px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
     #crop-save { background: #10b981; color: white; }
     #crop-cancel { background: #dc2626; color: white; }
   </style>
@@ -187,7 +199,6 @@
       </div>
     </div>
 
-    <!-- ===== MODEL BAJU 3D (GABUNG BERBILANG) ===== -->
     <div class="accordion-item open">
       <div class="accordion-header">Tambah Model 3D <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -200,9 +211,6 @@
         <div style="display:flex;gap:6px;margin-top:8px">
           <button class="project-btn" id="btnAddModel" style="margin:0; background:#10b981">+ Tambah ke Canvas</button>
           <button class="project-btn secondary" id="btnClearModels" style="margin:0; background:#dc2626; color:white">🗑️ Reset</button>
-        </div>
-        <div style="font-size:11px;color:#71717a;margin-top:8px;line-height:1.5">
-          Pilih model dan klik Tambah. Anda boleh gabungkan berbilang model dalam satu skrin.
         </div>
       </div>
     </div>
@@ -483,7 +491,6 @@
         <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
         <div class="prop-row"><label>Contrast <span id="modelContrastValue">100</span>%</label><input type="range" id="modelContrast" min="20" max="200" step="5" value="100"></div>
         
-        <!-- Butang Gerak Model -->
         <button class="small-btn" id="btnMoveModel" style="background:#0ea5e9; color:white; margin-top:10px;">✥ Gerakkan Baju (Mouse)</button>
       </div>
 
@@ -497,10 +504,16 @@
   <div id="crop-container">
     <canvas id="crop-image"></canvas>
     <div id="crop-box">
+      <!-- Bucu -->
       <div class="crop-handle tl" data-corner="tl"></div>
       <div class="crop-handle tr" data-corner="tr"></div>
       <div class="crop-handle bl" data-corner="bl"></div>
       <div class="crop-handle br" data-corner="br"></div>
+      <!-- Tepi -->
+      <div class="crop-edge top" data-edge="top"></div>
+      <div class="crop-edge bottom" data-edge="bottom"></div>
+      <div class="crop-edge left" data-edge="left"></div>
+      <div class="crop-edge right" data-edge="right"></div>
     </div>
   </div>
   <div id="crop-controls">
@@ -1075,7 +1088,6 @@ function selectModelGroup(container, groupEl) {
   activeModelContainer = container;
   propertiesPanel.classList.add('active');
   
-  // Auto focus camera to the clicked model
   focusCameraOn(container);
   
   document.getElementById('decalProps').style.display = 'none';
@@ -1089,7 +1101,6 @@ function selectModelGroup(container, groupEl) {
   document.getElementById('modelContrastValue').textContent = container.userData.contrast ?? 100;
 }
 
-// Butang untuk gerakkan model baju
 document.getElementById('btnMoveModel').onclick = () => {
   if (!activeModelContainer) return;
   transformControls.attach(activeModelContainer);
@@ -1202,7 +1213,6 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.title = 'Visibility'; bVis.textContent = '👁️';
   const bLock = document.createElement('button'); bLock.className = 'lock'; bLock.title = 'Lock'; bLock.textContent = '🔓';
   
-  // Butang Susun Atur (Up/Down)
   const bUp = document.createElement('button'); bUp.title = 'Naikkan'; bUp.textContent = '▲';
   const bDown = document.createElement('button'); bDown.title = 'Turunkan'; bDown.textContent = '▼';
   
@@ -1251,7 +1261,6 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
 }
 
 function updateLayerZIndex() {
-  // Kemas kini renderOrder berdasarkan susunan DOM
   const domItems = document.querySelectorAll('#layers-list .layer-item');
   let order = 100;
   domItems.forEach(el => {
@@ -2018,7 +2027,7 @@ transformControls.addEventListener('objectChange', () => {
   if (!activeDummy && !activeModelContainer) return;
   
   if (activeModelContainer) {
-    return; // Biarkan model bergerak, tiada decal yang perlu dikemas kini
+    return; 
   }
 
   if (activeDummy.userData.locked) return;
@@ -2769,13 +2778,16 @@ document.getElementById('saveBtn').onclick = () => {
   cropImage.height = outH;
   cropImage.getContext('2d').drawImage(fullCanvas, 0, 0);
   
-  // Reset crop box to 80% center
-  cropBox.style.left = '10%';
-  cropBox.style.top = '10%';
-  cropBox.style.width = '80%';
-  cropBox.style.height = '80%';
-  
   cropModal.style.display = 'flex';
+  
+  // Tunggu DOM selesai render, kemudian set saiz crop box
+  setTimeout(() => {
+    const imgRect = cropImage.getBoundingClientRect();
+    cropBox.style.left = '0px';
+    cropBox.style.top = '0px';
+    cropBox.style.width = imgRect.width + 'px';
+    cropBox.style.height = imgRect.height + 'px';
+  }, 50);
   
   // Revert size temporarily
   camera.aspect = oldSize.x / oldSize.y;
@@ -2789,17 +2801,16 @@ document.getElementById('saveBtn').onclick = () => {
 
   // Simpan function for Crop
   document.getElementById('crop-save').onclick = () => {
-    const rect = cropBox.getBoundingClientRect();
     const imgRect = cropImage.getBoundingClientRect();
+    const boxRect = cropBox.getBoundingClientRect();
     
-    // Kira koordinat sebenar pada canvas resolusi tinggi
     const scaleX = outW / imgRect.width;
     const scaleY = outH / imgRect.height;
-    
-    const cropX = (rect.left - imgRect.left) * scaleX;
-    const cropY = (rect.top - imgRect.top) * scaleY;
-    const cropW = rect.width * scaleX;
-    const cropH = rect.height * scaleY;
+
+    const cropX = (boxRect.left - imgRect.left) * scaleX;
+    const cropY = (boxRect.top - imgRect.top) * scaleY;
+    const cropW = boxRect.width * scaleX;
+    const cropH = boxRect.height * scaleY;
     
     const finalCanvas = document.createElement('canvas');
     finalCanvas.width = cropW;
@@ -2826,79 +2837,99 @@ document.getElementById('saveBtn').onclick = () => {
 };
 
 // Logik Drag Crop Box
-let isDraggingCrop = false;
+let cropMode = '';
 let cropStartX = 0, cropStartY = 0;
+let cropStartL = 0, cropStartT = 0;
 let cropStartW = 0, cropStartH = 0;
-let cropMode = 'move';
+let cropMaxW = 0, cropMaxH = 0;
 
 const cropBoxEl = document.getElementById('crop-box');
+const cropImageEl = document.getElementById('crop-image');
 
-cropBoxEl.addEventListener('mousedown', (e) => {
-  if (e.target.classList.contains('crop-handle')) return;
-  isDraggingCrop = true;
-  cropMode = 'move';
-  cropStartX = e.clientX;
-  cropStartY = e.clientY;
-  const imgRect = document.getElementById('crop-container').getBoundingClientRect();
-  const rect = cropBoxEl.getBoundingClientRect();
-  cropStartW = rect.left - imgRect.left;
-  cropStartH = rect.top - imgRect.top;
-  e.preventDefault();
-});
-
-document.querySelectorAll('.crop-handle').forEach(handle => {
-  handle.addEventListener('mousedown', (e) => {
-    isDraggingCrop = true;
-    cropMode = handle.dataset.corner;
+function startCropDrag(e, mode) {
+    cropMode = mode;
     cropStartX = e.clientX;
     cropStartY = e.clientY;
-    const imgRect = document.getElementById('crop-container').getBoundingClientRect();
-    const rect = cropBoxEl.getBoundingClientRect();
-    cropStartW = rect.width;
-    cropStartH = rect.height;
+    
+    const imgRect = cropImageEl.getBoundingClientRect();
+    const boxRect = cropBoxEl.getBoundingClientRect();
+    
+    cropStartL = boxRect.left - imgRect.left;
+    cropStartT = boxRect.top - imgRect.top;
+    cropStartW = boxRect.width;
+    cropStartH = boxRect.height;
+    cropMaxW = imgRect.width;
+    cropMaxH = imgRect.height;
+    
     e.preventDefault();
-    e.stopPropagation();
-  });
+}
+
+cropBoxEl.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('crop-handle') || e.target.classList.contains('crop-edge')) return;
+    startCropDrag(e, 'move');
+});
+
+document.querySelectorAll('.crop-handle').forEach(h => {
+    h.addEventListener('mousedown', (e) => {
+        startCropDrag(e, h.dataset.corner);
+        e.stopPropagation();
+    });
+});
+
+document.querySelectorAll('.crop-edge').forEach(h => {
+    h.addEventListener('mousedown', (e) => {
+        startCropDrag(e, h.dataset.edge);
+        e.stopPropagation();
+    });
 });
 
 window.addEventListener('mousemove', (e) => {
-  if (!isDraggingCrop) return;
-  const deltaX = e.clientX - cropStartX;
-  const deltaY = e.clientY - cropStartY;
-  
-  if (cropMode === 'move') {
-    const newLeft = cropStartW + deltaX;
-    const newTop = cropStartH + deltaY;
-    const container = document.getElementById('crop-container');
-    if (newLeft >= 0 && newLeft + cropBoxEl.offsetWidth <= container.clientWidth) {
-      cropBoxEl.style.left = (newLeft / container.clientWidth * 100) + '%';
-    }
-    if (newTop >= 0 && newTop + cropBoxEl.offsetHeight <= container.clientHeight) {
-      cropBoxEl.style.top = (newTop / container.clientHeight * 100) + '%';
-    }
-  } else {
-    // Resize logic (simplified)
-    let newW = cropBoxEl.offsetWidth;
-    let newH = cropBoxEl.offsetHeight;
-    let newL = cropBoxEl.offsetLeft;
-    let newT = cropBoxEl.offsetTop;
+    if (!cropMode) return;
     
-    if (cropMode.includes('r')) newW = cropStartW + deltaX;
-    if (cropMode.includes('l')) { newW = cropStartW - deltaX; newL += deltaX; }
-    if (cropMode.includes('b')) newH = cropStartH + deltaY;
-    if (cropMode.includes('t')) { newH = cropStartH - deltaY; newT += deltaY; }
+    const dx = e.clientX - cropStartX;
+    const dy = e.clientY - cropStartY;
+    const MIN = 50;
     
-    if (newW > 50 && newH > 50) {
-      const container = document.getElementById('crop-container');
-      cropBoxEl.style.width = (newW / container.clientWidth * 100) + '%';
-      cropBoxEl.style.height = (newH / container.clientHeight * 100) + '%';
-      cropBoxEl.style.left = (newL / container.clientWidth * 100) + '%';
-      cropBoxEl.style.top = (newT / container.clientHeight * 100) + '%';
+    let newL = cropStartL;
+    let newT = cropStartT;
+    let newW = cropStartW;
+    let newH = cropStartH;
+    
+    if (cropMode === 'move') {
+        newL = Math.max(0, Math.min(cropStartL + dx, cropMaxW - cropStartW));
+        newT = Math.max(0, Math.min(cropStartT + dy, cropMaxH - cropStartH));
+    } else {
+        if (cropMode === 'tl' || cropMode === 'left' || cropMode === 'bl') {
+            newW = cropStartW - dx;
+            if (newW < MIN) { newW = MIN; dx = cropStartW - MIN; }
+            newL = cropStartL + dx;
+            if (newL < 0) { newL = 0; newW = cropStartL + cropStartW; }
+        }
+        if (cropMode === 'tr' || cropMode === 'right' || cropMode === 'br') {
+            newW = cropStartW + dx;
+            if (newW < MIN) newW = MIN;
+            if (cropStartL + newW > cropMaxW) newW = cropMaxW - cropStartL;
+        }
+        if (cropMode === 'tl' || cropMode === 'top' || cropMode === 'tr') {
+            newH = cropStartH - dy;
+            if (newH < MIN) { newH = MIN; dy = cropStartH - MIN; }
+            newT = cropStartT + dy;
+            if (newT < 0) { newT = 0; newH = cropStartT + cropStartH; }
+        }
+        if (cropMode === 'bl' || cropMode === 'bottom' || cropMode === 'br') {
+            newH = cropStartH + dy;
+            if (newH < MIN) newH = MIN;
+            if (cropStartT + newH > cropMaxH) newH = cropMaxH - cropStartT;
+        }
     }
-  }
+    
+    cropBoxEl.style.left = newL + 'px';
+    cropBoxEl.style.top = newT + 'px';
+    cropBoxEl.style.width = newW + 'px';
+    cropBoxEl.style.height = newH + 'px';
 });
 
-window.addEventListener('mouseup', () => { isDraggingCrop = false; });
+window.addEventListener('mouseup', () => { cropMode = ''; });
 
 // ===== VIDEO =====
 document.getElementById('speedSlider').oninput = e => { rotationSpeed = +e.target.value; document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
@@ -3046,7 +3077,6 @@ btnPausePlay.onclick = () => {
 btnSnap.onclick = () => {
   const view = document.getElementById('saveViewSelect').value;
   if (view === 'current') {
-    // Panggil fungsi crop modal
     document.getElementById('saveBtn').click();
   } else {
     showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
