@@ -736,6 +736,55 @@ function updateBgEffectsUI() {
   document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
 }
 
+// FUNGSI BARU: Melukis kesan latar belakang ke atas Kanvas (untuk Video & Gambar)
+function drawBgEffectsOnCanvas(ctx, w, h) {
+  if (isTransparentBg) return;
+
+  // 1. Vignette
+  if (bgEffects.vignette > 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.translate(w / 2, h / 2);
+    ctx.scale(w / 2, h / 2);
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.sqrt(2));
+    grad.addColorStop(0.3, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, `rgba(0,0,0,${bgEffects.vignette / 100})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(-1, -1, 2, 2);
+    ctx.restore();
+  }
+
+  // 2. Shadow Studio
+  if (bgEffects.shadowBg > 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    const cx = w / 2;
+    const cy = h * 0.82;
+    const rx = w * 0.42;
+    const ry = h * 0.22;
+    ctx.translate(cx, cy);
+    ctx.scale(rx, ry);
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+    grad.addColorStop(0, `rgba(0,0,0,${(bgEffects.shadowBg / 100) * 0.75})`);
+    grad.addColorStop(0.72, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(-1, -1, 2, 2);
+    ctx.restore();
+  }
+
+  // 3. Gradient Overlay
+  if (bgEffects.gradientOpacity > 0) {
+    ctx.save();
+    ctx.globalAlpha = bgEffects.gradientOpacity / 100;
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, bgEffects.gradientColor);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    ctx.restore();
+  }
+}
+
 function processBgImage(img) {
   if (!img) return null;
   const needFilter = bgEffects.blur > 0 || bgEffects.brightness !== 100 || bgEffects.contrast !== 100 || bgEffects.saturation !== 100;
@@ -1988,7 +2037,9 @@ document.getElementById('btnSaveProject').onclick = async () => {
     const thumbCanvas = document.createElement('canvas');
     thumbCanvas.width = 320;
     thumbCanvas.height = Math.round(320 * (cropRect.h / cropRect.w));
-    thumbCanvas.getContext('2d').drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, thumbCanvas.width, thumbCanvas.height);
+    const tctx = thumbCanvas.getContext('2d');
+    tctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, thumbCanvas.width, thumbCanvas.height);
+    drawBgEffectsOnCanvas(tctx, thumbCanvas.width, thumbCanvas.height);
     const thumb = thumbCanvas.toDataURL('image/jpeg', 0.4);
     
     transformHelper.visible = true;
@@ -2207,7 +2258,9 @@ function captureImage(view = 'current') {
     const c = document.createElement('canvas');
     c.width = outW;
     c.height = outH;
-    c.getContext('2d').drawImage(renderer.domElement, 0, 0);
+    const ctx = c.getContext('2d');
+    ctx.drawImage(renderer.domElement, 0, 0);
+    drawBgEffectsOnCanvas(ctx, outW, outH);
     return c;
   }
 
@@ -2341,7 +2394,9 @@ async function startVideoRecord() {
   
   for (let i = 0; i < 8; i++) { 
     renderer.clear(); renderer.render(scene, camera);
+    rctx.clearRect(0, 0, recW, recH);
     rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
+    drawBgEffectsOnCanvas(rctx, recW, recH);
   }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
@@ -2389,6 +2444,7 @@ async function startVideoRecord() {
     renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
     rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
+    drawBgEffectsOnCanvas(rctx, recW, recH); // FIX: Lukis kesan latar pada video
     
     if (currentP >= 1) {
       setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
