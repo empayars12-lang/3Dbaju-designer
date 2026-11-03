@@ -128,7 +128,7 @@
     .layer-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
     .layer-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .layer-actions{display:flex;gap:4px;align-items:center}
-    .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7}
+    .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7; color: white}
     .layer-actions button:hover{opacity:1}
     .layer-actions .vis.hidden{opacity:.35}
     
@@ -150,6 +150,21 @@
     .fx-row input[type=color]{width:34px;height:30px;border:none;background:#1f1f23;border-radius:6px;cursor:pointer;padding:0;flex-shrink:0}
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
+
+    /* ==== CROP MODAL ==== */
+    #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    #crop-container { position: relative; background: #000; display: flex; align-items: center; justify-content: center; max-width: 90vw; max-height: 90vh; }
+    #crop-image { max-width: 100%; max-height: 90vh; display: block; }
+    #crop-box { position: absolute; border: 2px dashed #38bdf8; background: rgba(56,189,248,0.2); cursor: move; box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); top: 10%; left: 10%; width: 80%; height: 80%; }
+    .crop-handle { position: absolute; width: 16px; height: 16px; background: #fff; border: 2px solid #38bdf8; border-radius: 50%; }
+    .crop-handle.tl { top: -8px; left: -8px; cursor: nwse-resize; }
+    .crop-handle.tr { top: -8px; right: -8px; cursor: nesw-resize; }
+    .crop-handle.bl { bottom: -8px; left: -8px; cursor: nesw-resize; }
+    .crop-handle.br { bottom: -8px; right: -8px; cursor: nwse-resize; }
+    #crop-controls { margin-top: 20px; display: flex; gap: 10px; }
+    #crop-controls button { padding: 10px 20px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+    #crop-save { background: #10b981; color: white; }
+    #crop-cancel { background: #dc2626; color: white; }
   </style>
 </head>
 <body>
@@ -467,12 +482,32 @@
         <div class="prop-row"><label>Warna Baju</label><input type="color" id="modelColor" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
         <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
         <div class="prop-row"><label>Contrast <span id="modelContrastValue">100</span>%</label><input type="range" id="modelContrast" min="20" max="200" step="5" value="100"></div>
+        
+        <!-- Butang Gerak Model -->
+        <button class="small-btn" id="btnMoveModel" style="background:#0ea5e9; color:white; margin-top:10px;">✥ Gerakkan Baju (Mouse)</button>
       </div>
 
     </div>
   </div>
 </div>
 <div id="toast"></div>
+
+<!-- CROP MODAL -->
+<div id="crop-modal">
+  <div id="crop-container">
+    <canvas id="crop-image"></canvas>
+    <div id="crop-box">
+      <div class="crop-handle tl" data-corner="tl"></div>
+      <div class="crop-handle tr" data-corner="tr"></div>
+      <div class="crop-handle bl" data-corner="bl"></div>
+      <div class="crop-handle br" data-corner="br"></div>
+    </div>
+  </div>
+  <div id="crop-controls">
+    <button id="crop-save">✂️ Simpan Bahagian Ini</button>
+    <button id="crop-cancel">Batal</button>
+  </div>
+</div>
 
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.169.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.169.0/examples/jsm/"}}
@@ -494,7 +529,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 });
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v8';
+const DB_NAME = 'ProDesigner3D_v9';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -605,7 +640,6 @@ scene.add(ground);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-// PENTING: Benarkan pan supaya boleh gerak ke kiri/kanan
 controls.enablePan = true; 
 controls.minDistance = 1.5;
 controls.maxDistance = 20;
@@ -621,7 +655,7 @@ let isDragging = false;
 transformControls.addEventListener('dragging-changed', e => {
   controls.enabled = !e.value;
   isDragging = e.value;
-  if (!e.value && activeDummy) pushHistory();
+  if (!e.value && (activeDummy || activeModelContainer)) pushHistory();
 });
 
 // ===== STATE =====
@@ -832,18 +866,15 @@ function applyModelColorAndEffects(container) {
   const b = (container.userData.brightness ?? 100) / 100;
   const c = (container.userData.contrast ?? 100) / 100;
   
-  // Brightness
   base.r *= b;
   base.g *= b;
   base.b *= b;
   
-  // Contrast
   base.r = Math.max(0, Math.min(1, (base.r - 0.5) * c + 0.5));
   base.g = Math.max(0, Math.min(1, (base.g - 0.5) * c + 0.5));
   base.b = Math.max(0, Math.min(1, (base.b - 0.5) * c + 0.5));
   
   container.traverse(child => {
-    // PENTING: Jangan ubah warna jika ia adalah decal/logo!
     if (child.isMesh && child.material && !child.userData.isDecal) {
       if (Array.isArray(child.material)) {
         child.material.forEach(m => m.color.copy(base));
@@ -873,6 +904,7 @@ function loadShirtModel(url, config = {}) {
       container.userData.baseColor = config.baseColor || currentShirtColor;
       container.userData.brightness = config.brightness ?? 100;
       container.userData.contrast = config.contrast ?? 100;
+      if (config.position) container.position.fromArray(config.position);
       container.add(model);
 
       model.traverse(c => {
@@ -890,8 +922,10 @@ function loadShirtModel(url, config = {}) {
       
       applyModelColorAndEffects(container);
 
-      const xOffset = loadedModelContainers.length * 2.2;
-      container.position.set(xOffset, 0, 0);
+      if (!config.position) {
+        const xOffset = loadedModelContainers.length * 2.2;
+        container.position.set(xOffset, 0, 0);
+      }
       
       shirtGroup.add(container);
       loadedModelContainers.push(container);
@@ -908,11 +942,12 @@ function loadShirtModel(url, config = {}) {
       container.userData.baseColor = config.baseColor || currentShirtColor;
       container.userData.brightness = config.brightness ?? 100;
       container.userData.contrast = config.contrast ?? 100;
+      if (config.position) container.position.fromArray(config.position);
       container.add(fallback);
       fallback.traverse(c => { if(c.isMesh) shirtMaterials.push(c.material); });
       applyModelColorAndEffects(container);
       
-      container.position.set(loadedModelContainers.length * 2.2, 0, 0);
+      if (!config.position) container.position.set(loadedModelContainers.length * 2.2, 0, 0);
       shirtGroup.add(container);
       loadedModelContainers.push(container);
       addModelGroup(container, url);
@@ -1015,35 +1050,24 @@ function addModelGroup(container, url) {
   };
 }
 
-// ===== FUNGSI KAMERA FOKUS =====
 function focusCameraOn(container) {
   if (!container) return;
-  
-  // 1. Dapatkan kotak sempadan (bounding box) model
   const box = new THREE.Box3().setFromObject(container);
   const center = box.getCenter(new THREE.Vector3());
-  
-  // 2. Tukar sasaran putaran (target) ke tengah-tengah model tersebut
   controls.target.copy(center);
-  
-  // 3. Gerakkan kamera secara relatif pada paksi Z dari sasaran baru
-  // Jangan ubah X/Y supaya sudut pandangan asal dikekalkan
-  const distance = 4.5; // Jarak zoom yang selesa
+  const distance = 4.5;
   camera.position.set(center.x, center.y, center.z + distance);
-  
   camera.updateProjectionMatrix();
   controls.update();
 }
 
 function selectModelGroup(container, groupEl) {
-  // Clear decal selection
   transformControls.detach();
   hideFreeTransform();
   activeDummy = null;
   gizmoControlsUI.classList.remove('active');
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   
-  // Highlight group
   document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
   const header = groupEl.querySelector('.group-header');
   if (header) header.classList.add('active');
@@ -1051,21 +1075,27 @@ function selectModelGroup(container, groupEl) {
   activeModelContainer = container;
   propertiesPanel.classList.add('active');
   
-  // FOKUS KAMERA KE MODEL INI
+  // Auto focus camera to the clicked model
   focusCameraOn(container);
   
-  // Toggle UI
   document.getElementById('decalProps').style.display = 'none';
   document.getElementById('modelProps').style.display = 'block';
   document.getElementById('propTitle').textContent = 'Model 3D Properties';
 
-  // Populate values
   document.getElementById('modelColor').value = container.userData.baseColor || '#ffffff';
   document.getElementById('modelBrightness').value = container.userData.brightness ?? 100;
   document.getElementById('modelBrightnessValue').textContent = container.userData.brightness ?? 100;
   document.getElementById('modelContrast').value = container.userData.contrast ?? 100;
   document.getElementById('modelContrastValue').textContent = container.userData.contrast ?? 100;
 }
+
+// Butang untuk gerakkan model baju
+document.getElementById('btnMoveModel').onclick = () => {
+  if (!activeModelContainer) return;
+  transformControls.attach(activeModelContainer);
+  transformControls.setMode('translate');
+  showToast('Gunakan anak panah untuk gerakkan baju');
+};
 
 function fitCameraToModels() {
   if (loadedModelContainers.length === 0) {
@@ -1137,7 +1167,6 @@ document.getElementById('btnClearModels').onclick = () => {
   showToast('Semua model dibuang');
 };
 
-// Initial Load
 async function setupInitialModel() {
   await loadShirtModel('./T_shirt_gltf.gltf');
   const loadingEl = document.getElementById('loading');
@@ -1168,16 +1197,46 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   const ic = document.createElement('span'); ic.textContent = icon;
   const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
   info.appendChild(ic); info.appendChild(nm);
+  
   const actions = document.createElement('div'); actions.className = 'layer-actions';
   const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.title = 'Visibility'; bVis.textContent = '👁️';
   const bLock = document.createElement('button'); bLock.className = 'lock'; bLock.title = 'Lock'; bLock.textContent = '🔓';
+  
+  // Butang Susun Atur (Up/Down)
+  const bUp = document.createElement('button'); bUp.title = 'Naikkan'; bUp.textContent = '▲';
+  const bDown = document.createElement('button'); bDown.title = 'Turunkan'; bDown.textContent = '▼';
+  
   const bDel = document.createElement('button'); bDel.className = 'del'; bDel.title = 'Padam'; bDel.textContent = '✕';
+  
+  actions.appendChild(bUp); actions.appendChild(bDown);
   actions.appendChild(bVis); actions.appendChild(bLock); actions.appendChild(bDel);
+  
   el.appendChild(info); el.appendChild(actions);
   el.onclick = e => { if (e.target.closest('.layer-actions')) return; selectLayer(dummy, el); };
+  
   bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
+  
+  bUp.onclick = e => {
+    e.stopPropagation();
+    const prev = el.previousElementSibling;
+    if (prev) {
+      el.parentNode.insertBefore(el, prev);
+      updateLayerZIndex();
+      pushHistory();
+    }
+  };
+  
+  bDown.onclick = e => {
+    e.stopPropagation();
+    const next = el.nextElementSibling;
+    if (next) {
+      el.parentNode.insertBefore(next, el);
+      updateLayerZIndex();
+      pushHistory();
+    }
+  };
   
   if (dummy.userData.isCanvasGraphic) {
     layerListUI.prepend(el); 
@@ -1191,11 +1250,24 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   selectLayer(dummy, el);
 }
 
+function updateLayerZIndex() {
+  // Kemas kini renderOrder berdasarkan susunan DOM
+  const domItems = document.querySelectorAll('#layers-list .layer-item');
+  let order = 100;
+  domItems.forEach(el => {
+    const dummy = layers.find(l => l.userData.layerId === el.id);
+    if (dummy) {
+      dummy.renderOrder = order--;
+      dummy.userData.decals?.forEach(d => d.renderOrder = order);
+    }
+  });
+}
+
 function selectLayer(dummy, el) {
   if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
   
-  // Clear model selection
   activeModelContainer = null;
+  transformControls.detach();
   document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
 
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
@@ -1237,7 +1309,6 @@ function selectLayer(dummy, el) {
     updateFxUI(dummy);
   }
   
-  // FOKUS KAMERA JIKA PILIH DECAL
   if (dummy.userData.targetContainer) {
     focusCameraOn(dummy.userData.targetContainer);
   }
@@ -1944,7 +2015,13 @@ function createCurvedDecal(dummy, curve) {
 }
 
 transformControls.addEventListener('objectChange', () => {
-  if (!activeDummy || activeDummy.userData.locked) return;
+  if (!activeDummy && !activeModelContainer) return;
+  
+  if (activeModelContainer) {
+    return; // Biarkan model bergerak, tiada decal yang perlu dikemas kini
+  }
+
+  if (activeDummy.userData.locked) return;
   if (activeDummy.userData.isBg) {
     document.getElementById('bgScaleSlider').value = activeDummy.scale.x;
     document.getElementById('bgScaleValue').textContent = activeDummy.scale.x.toFixed(2);
@@ -2354,7 +2431,8 @@ async function getStateForSave() {
       url: c.userData.modelUrl,
       baseColor: c.userData.baseColor || '#ffffff',
       brightness: c.userData.brightness ?? 100,
-      contrast: c.userData.contrast ?? 100
+      contrast: c.userData.contrast ?? 100,
+      position: c.position.toArray()
     })),
     layers: processed
   };
@@ -2650,86 +2728,177 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
-// ===== IMAGE SAVE =====
-function captureImage(view = 'current') {
+// ===== IMAGE SAVE WITH CROP MODAL =====
+document.getElementById('saveBtn').onclick = () => {
   isExporting = true;
   transformHelper.visible = false;
   hideFreeTransform();
   controls.enabled = false;
-  const origPos = camera.position.clone();
-  const origTarget = controls.target.clone();
+  
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
+  
   const targetRes = 3840;
-  const scale = targetRes / Math.max(cropRect.w, cropRect.h);
-  const outW = Math.round(cropRect.w * scale);
-  const outH = Math.round(cropRect.h * scale);
+  const scale = targetRes / Math.max(container.clientWidth, container.clientHeight);
+  const outW = Math.round(container.clientWidth * scale);
+  const outH = Math.round(container.clientHeight * scale);
+  
   renderer.setPixelRatio(1);
   renderer.setSize(outW, outH, false);
-  camera.setViewOffset(container.clientWidth, container.clientHeight, cropRect.x, cropRect.y, cropRect.w, cropRect.h);
   camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
+  
   layers.forEach(d => {
     if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
     else if (d.userData.isCanvasGraphic) createDecalNow(d);
   });
-  function renderAndExtract(posX, posY, posZ) {
-    camera.position.set(posX, posY, posZ);
-    controls.target.set(0, 0.05, 0);
-    camera.lookAt(controls.target);
-    renderer.render(scene, camera);
-    const c = document.createElement('canvas');
-    c.width = outW; c.height = outH;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(renderer.domElement, 0, 0);
-    drawBgEffectsOnCanvas(ctx, outW, outH);
-    return c;
-  }
-  if (view === 'all') {
-    const gridCanvas = document.createElement('canvas');
-    gridCanvas.width = outW * 2;
-    gridCanvas.height = outH * 2;
-    const ctx = gridCanvas.getContext('2d');
-    ctx.drawImage(renderAndExtract(0, 0.15, 5.2), 0, 0);
-    ctx.drawImage(renderAndExtract(5.2, 0.15, 0), outW, 0);
-    ctx.drawImage(renderAndExtract(-5.2, 0.15, 0), 0, outH);
-    ctx.drawImage(renderAndExtract(0, 0.15, -5.2), outW, outH);
-    const a = document.createElement('a');
-    a.download = 'design-all-views.png';
-    a.href = gridCanvas.toDataURL('image/png');
-    a.click();
-  } else {
-    let px = origPos.x, py = origPos.y, pz = origPos.z;
-    if (view === 'front') { px = 0; py = 0.15; pz = 5.2; }
-    else if (view === 'back') { px = 0; py = 0.15; pz = -5.2; }
-    else if (view === 'left') { px = -5.2; py = 0.15; pz = 0; }
-    else if (view === 'right') { px = 5.2; py = 0.15; pz = 0; }
-    const c = renderAndExtract(px, py, pz);
-    const a = document.createElement('a');
-    a.download = `design-${view}.png`;
-    a.href = c.toDataURL('image/png');
-    a.click();
-  }
-  isExporting = false;
-  camera.clearViewOffset();
-  camera.position.copy(origPos);
-  controls.target.copy(origTarget);
+  
+  renderer.render(scene, camera);
+  const fullCanvas = document.createElement('canvas');
+  fullCanvas.width = outW; fullCanvas.height = outH;
+  const ctx = fullCanvas.getContext('2d');
+  ctx.drawImage(renderer.domElement, 0, 0);
+  drawBgEffectsOnCanvas(ctx, outW, outH);
+  
+  // Buka Crop Modal
+  const cropModal = document.getElementById('crop-modal');
+  const cropImage = document.getElementById('crop-image');
+  const cropBox = document.getElementById('crop-box');
+  
+  cropImage.width = outW;
+  cropImage.height = outH;
+  cropImage.getContext('2d').drawImage(fullCanvas, 0, 0);
+  
+  // Reset crop box to 80% center
+  cropBox.style.left = '10%';
+  cropBox.style.top = '10%';
+  cropBox.style.width = '80%';
+  cropBox.style.height = '80%';
+  
+  cropModal.style.display = 'flex';
+  
+  // Revert size temporarily
   camera.aspect = oldSize.x / oldSize.y;
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(oldPR);
   renderer.setSize(oldSize.x, oldSize.y, false);
   transformHelper.visible = true;
   controls.enabled = true;
-  layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
-  if (currentMode === 'free' && activeDummy) showFreeTransform();
   controls.update();
   renderer.render(scene, camera);
-  showToast('✅ Imej HD berjaya disimpan');
-}
-document.getElementById('saveBtn').onclick = () => {
-  const view = document.getElementById('saveViewSelect').value;
-  captureImage(view);
+
+  // Simpan function for Crop
+  document.getElementById('crop-save').onclick = () => {
+    const rect = cropBox.getBoundingClientRect();
+    const imgRect = cropImage.getBoundingClientRect();
+    
+    // Kira koordinat sebenar pada canvas resolusi tinggi
+    const scaleX = outW / imgRect.width;
+    const scaleY = outH / imgRect.height;
+    
+    const cropX = (rect.left - imgRect.left) * scaleX;
+    const cropY = (rect.top - imgRect.top) * scaleY;
+    const cropW = rect.width * scaleX;
+    const cropH = rect.height * scaleY;
+    
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = cropW;
+    finalCanvas.height = cropH;
+    const finalCtx = finalCanvas.getContext('2d');
+    finalCtx.drawImage(fullCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    
+    const a = document.createElement('a');
+    a.download = `design-crop-${Date.now()}.png`;
+    a.href = finalCanvas.toDataURL('image/png');
+    a.click();
+    
+    cropModal.style.display = 'none';
+    isExporting = false;
+    layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
+    showToast('✅ Imej berjaya disimpan');
+  };
+  
+  document.getElementById('crop-cancel').onclick = () => {
+    cropModal.style.display = 'none';
+    isExporting = false;
+    layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
+  };
 };
+
+// Logik Drag Crop Box
+let isDraggingCrop = false;
+let cropStartX = 0, cropStartY = 0;
+let cropStartW = 0, cropStartH = 0;
+let cropMode = 'move';
+
+const cropBoxEl = document.getElementById('crop-box');
+
+cropBoxEl.addEventListener('mousedown', (e) => {
+  if (e.target.classList.contains('crop-handle')) return;
+  isDraggingCrop = true;
+  cropMode = 'move';
+  cropStartX = e.clientX;
+  cropStartY = e.clientY;
+  const imgRect = document.getElementById('crop-container').getBoundingClientRect();
+  const rect = cropBoxEl.getBoundingClientRect();
+  cropStartW = rect.left - imgRect.left;
+  cropStartH = rect.top - imgRect.top;
+  e.preventDefault();
+});
+
+document.querySelectorAll('.crop-handle').forEach(handle => {
+  handle.addEventListener('mousedown', (e) => {
+    isDraggingCrop = true;
+    cropMode = handle.dataset.corner;
+    cropStartX = e.clientX;
+    cropStartY = e.clientY;
+    const imgRect = document.getElementById('crop-container').getBoundingClientRect();
+    const rect = cropBoxEl.getBoundingClientRect();
+    cropStartW = rect.width;
+    cropStartH = rect.height;
+    e.preventDefault();
+    e.stopPropagation();
+  });
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!isDraggingCrop) return;
+  const deltaX = e.clientX - cropStartX;
+  const deltaY = e.clientY - cropStartY;
+  
+  if (cropMode === 'move') {
+    const newLeft = cropStartW + deltaX;
+    const newTop = cropStartH + deltaY;
+    const container = document.getElementById('crop-container');
+    if (newLeft >= 0 && newLeft + cropBoxEl.offsetWidth <= container.clientWidth) {
+      cropBoxEl.style.left = (newLeft / container.clientWidth * 100) + '%';
+    }
+    if (newTop >= 0 && newTop + cropBoxEl.offsetHeight <= container.clientHeight) {
+      cropBoxEl.style.top = (newTop / container.clientHeight * 100) + '%';
+    }
+  } else {
+    // Resize logic (simplified)
+    let newW = cropBoxEl.offsetWidth;
+    let newH = cropBoxEl.offsetHeight;
+    let newL = cropBoxEl.offsetLeft;
+    let newT = cropBoxEl.offsetTop;
+    
+    if (cropMode.includes('r')) newW = cropStartW + deltaX;
+    if (cropMode.includes('l')) { newW = cropStartW - deltaX; newL += deltaX; }
+    if (cropMode.includes('b')) newH = cropStartH + deltaY;
+    if (cropMode.includes('t')) { newH = cropStartH - deltaY; newT += deltaY; }
+    
+    if (newW > 50 && newH > 50) {
+      const container = document.getElementById('crop-container');
+      cropBoxEl.style.width = (newW / container.clientWidth * 100) + '%';
+      cropBoxEl.style.height = (newH / container.clientHeight * 100) + '%';
+      cropBoxEl.style.left = (newL / container.clientWidth * 100) + '%';
+      cropBoxEl.style.top = (newT / container.clientHeight * 100) + '%';
+    }
+  }
+});
+
+window.addEventListener('mouseup', () => { isDraggingCrop = false; });
 
 // ===== VIDEO =====
 document.getElementById('speedSlider').oninput = e => { rotationSpeed = +e.target.value; document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
@@ -2876,8 +3045,12 @@ btnPausePlay.onclick = () => {
 };
 btnSnap.onclick = () => {
   const view = document.getElementById('saveViewSelect').value;
-  if (view === 'current') captureImage('current');
-  else showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
+  if (view === 'current') {
+    // Panggil fungsi crop modal
+    document.getElementById('saveBtn').click();
+  } else {
+    showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
+  }
 };
 
 // ===== UI =====
@@ -2892,7 +3065,6 @@ document.getElementById('btnTranslate').onclick = () => setMode('translate');
 document.getElementById('btnScale').onclick = () => setMode('scale');
 document.getElementById('btnFree').onclick = () => setMode('free');
 
-// View Toggles (Kini menggunakan controls.target supaya kekal fokus pada model semasa)
 document.getElementById('viewFront').onclick = () => { camera.position.set(controls.target.x, controls.target.y, controls.target.z + 4.5); setActive('viewFront'); };
 document.getElementById('viewBack').onclick = () => { camera.position.set(controls.target.x, controls.target.y, controls.target.z - 4.5); setActive('viewBack'); };
 document.getElementById('viewRight').onclick = () => { camera.position.set(controls.target.x + 4.5, controls.target.y, controls.target.z); setActive('viewRight'); };
