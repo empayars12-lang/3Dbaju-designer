@@ -605,7 +605,8 @@ scene.add(ground);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.enablePan = false;
+// PENTING: Benarkan pan supaya boleh gerak ke kiri/kanan
+controls.enablePan = true; 
 controls.minDistance = 1.5;
 controls.maxDistance = 20;
 
@@ -1014,6 +1015,26 @@ function addModelGroup(container, url) {
   };
 }
 
+// ===== FUNGSI KAMERA FOKUS =====
+function focusCameraOn(container) {
+  if (!container) return;
+  
+  // 1. Dapatkan kotak sempadan (bounding box) model
+  const box = new THREE.Box3().setFromObject(container);
+  const center = box.getCenter(new THREE.Vector3());
+  
+  // 2. Tukar sasaran putaran (target) ke tengah-tengah model tersebut
+  controls.target.copy(center);
+  
+  // 3. Gerakkan kamera secara relatif pada paksi Z dari sasaran baru
+  // Jangan ubah X/Y supaya sudut pandangan asal dikekalkan
+  const distance = 4.5; // Jarak zoom yang selesa
+  camera.position.set(center.x, center.y, center.z + distance);
+  
+  camera.updateProjectionMatrix();
+  controls.update();
+}
+
 function selectModelGroup(container, groupEl) {
   // Clear decal selection
   transformControls.detach();
@@ -1029,6 +1050,9 @@ function selectModelGroup(container, groupEl) {
 
   activeModelContainer = container;
   propertiesPanel.classList.add('active');
+  
+  // FOKUS KAMERA KE MODEL INI
+  focusCameraOn(container);
   
   // Toggle UI
   document.getElementById('decalProps').style.display = 'none';
@@ -1212,6 +1236,12 @@ function selectLayer(dummy, el) {
     fxPanel.style.display = 'block';
     updateFxUI(dummy);
   }
+  
+  // FOKUS KAMERA JIKA PILIH DECAL
+  if (dummy.userData.targetContainer) {
+    focusCameraOn(dummy.userData.targetContainer);
+  }
+
   transformControls.setSpace(dummy.userData.isBg ? 'world' : 'local');
   if (currentMode === 'free') { transformControls.detach(); showFreeTransform(); }
   else { hideFreeTransform(); transformControls.attach(dummy); transformControls.setMode(currentMode === 'scale' ? 'scale' : 'translate'); }
@@ -2862,10 +2892,11 @@ document.getElementById('btnTranslate').onclick = () => setMode('translate');
 document.getElementById('btnScale').onclick = () => setMode('scale');
 document.getElementById('btnFree').onclick = () => setMode('free');
 
-document.getElementById('viewFront').onclick = () => { camera.position.set(0,0,4.5); controls.target.set(0,0,0); setActive('viewFront'); };
-document.getElementById('viewBack').onclick = () => { camera.position.set(0,0,-4.5); controls.target.set(0,0,0); setActive('viewBack'); };
-document.getElementById('viewRight').onclick = () => { camera.position.set(4.5,0,0); controls.target.set(0,0,0); setActive('viewRight'); };
-document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5,0,0); controls.target.set(0,0,0); setActive('viewLeft'); };
+// View Toggles (Kini menggunakan controls.target supaya kekal fokus pada model semasa)
+document.getElementById('viewFront').onclick = () => { camera.position.set(controls.target.x, controls.target.y, controls.target.z + 4.5); setActive('viewFront'); };
+document.getElementById('viewBack').onclick = () => { camera.position.set(controls.target.x, controls.target.y, controls.target.z - 4.5); setActive('viewBack'); };
+document.getElementById('viewRight').onclick = () => { camera.position.set(controls.target.x + 4.5, controls.target.y, controls.target.z); setActive('viewRight'); };
+document.getElementById('viewLeft').onclick = () => { camera.position.set(controls.target.x - 4.5, controls.target.y, controls.target.z); setActive('viewLeft'); };
 function setActive(id) { document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 window.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
