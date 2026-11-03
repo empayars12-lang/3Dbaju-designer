@@ -166,6 +166,7 @@
         <select id="modelSelect" class="prop-input">
           <option value="./T_shirt_gltf.gltf">👕 Baju Asal (GLTF)</option>
           <option value="./baju_baru.glb">👕 Baju Baru (GLB)</option>
+          <option value="./long_sleeve_t-_shirt.glb">🧥 Lengan Panjang (GLB)</option> <!-- PILIHAN BAHARU -->
         </select>
         <div style="font-size:11px;color:#71717a;margin-top:8px;line-height:1.5">
           Tukar model 3D. Design sedia ada akan dikekalkan automatik.
@@ -777,8 +778,6 @@ function createFallbackShirt() {
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.25, 16), m); neck.position.y = 1.05; neck.castShadow = true; g.add(neck);
   return g;
 }
-
-// Normalisasi & masukkan model ke shirtGroup
 function applyModelToScene(model) {
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
@@ -805,8 +804,6 @@ function applyModelToScene(model) {
   shirtGroup.add(model);
   ground.position.y = box.min.y - 0.1;
 }
-
-// Loader generic — Promise
 function loadShirtModel(url) {
   return new Promise(resolve => {
     new GLTFLoader().load(
@@ -817,8 +814,6 @@ function loadShirtModel(url) {
     );
   });
 }
-
-// Init kali pertama
 function setupShirt(model) {
   applyModelToScene(model);
   const loadingEl = document.getElementById('loading');
@@ -827,15 +822,11 @@ function setupShirt(model) {
   loadProjectList().then(loadLastProject);
   pushHistory();
 }
-
-// Tukar model secara live (dropdown)
 async function switchShirtModelLive(url) {
   if (url === currentModelUrl && shirtMeshes.length > 0) return;
-  // Dispose decal lama
   layers.forEach(d => {
     if (!d.userData.isBg && !d.userData.isCanvasGraphic) disposeDummyDecals(d);
   });
-  // Buang model lama (semua child shirtGroup yg bukan dalam layers)
   const toRemove = shirtGroup.children.filter(c => !layers.includes(c));
   toRemove.forEach(c => {
     shirtGroup.remove(c);
@@ -844,11 +835,9 @@ async function switchShirtModelLive(url) {
   shirtMaterials.forEach(m => m.dispose?.());
   shirtMeshes = [];
   shirtMaterials = [];
-  // Load baru
   currentModelUrl = url;
   showToast('Memuat model baru...');
   await loadShirtModel(url);
-  // Recreate decal
   layers.forEach(d => {
     if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
   });
@@ -856,8 +845,6 @@ async function switchShirtModelLive(url) {
   pushHistory();
   showToast('✅ Model baju ditukar');
 }
-
-// Wire dropdown
 document.getElementById('modelSelect').onchange = async e => {
   const url = e.target.value;
   if (url === currentModelUrl) return;
@@ -2061,7 +2048,6 @@ async function restoreState(state) {
   hideFreeTransform();
   propertiesPanel.classList.remove('active');
 
-  // ⬇️ TUKAR MODEL jika berbeza
   const targetModelUrl = state.modelUrl || './T_shirt_gltf.gltf';
   if (targetModelUrl !== currentModelUrl || shirtMeshes.length === 0) {
     const toRemove = [...shirtGroup.children];
@@ -2076,7 +2062,6 @@ async function restoreState(state) {
     await loadShirtModel(targetModelUrl);
   }
   document.getElementById('modelSelect').value = currentModelUrl;
-  // ⬆️ TAMAT
 
   currentShirtColor = state.color || '#ffffff';
   shirtMaterials.forEach(m => m.color.set(currentShirtColor));
