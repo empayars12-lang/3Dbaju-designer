@@ -77,6 +77,11 @@
     #bg-studio-shadow{mix-blend-mode:multiply;opacity:0}
     #bg-gradient-overlay{opacity:0}
 
+    /* ===== CROP FRAME (FORMAT OUTPUT) ===== */
+    #crop-overlay{position:absolute;inset:0;pointer-events:none;z-index:12;display:none;}
+    #crop-overlay.active{display:block;}
+    #crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);border:1.5px dashed #38bdf8;}
+
     #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
     #free-transform.active{display:block}
     .ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:none}
@@ -149,7 +154,7 @@
     <div class="accordion-item open">
       <div class="accordion-header">Design Anda <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="upload-btn">+ Tambah Logo<input type="file" id="logoUpload" accept="image/*" multiple></div>
+        <div class="upload-btn">+ Tambah Logo Baju<input type="file" id="logoUpload" accept="image/*" multiple></div>
       </div>
     </div>
 
@@ -171,7 +176,27 @@
           <label><span>Saiz Teks</span><span id="textSizeValue">120</span></label>
           <input type="range" id="textSize" min="40" max="220" value="120">
         </div>
-        <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
+        <button class="add-text-btn" id="addTextBtn">Tambah Teks Baju</button>
+      </div>
+    </div>
+
+    <!-- ===== GRAFIK CANVAS (BEBAS) ===== -->
+    <div class="accordion-item">
+      <div class="accordion-header">Grafik Canvas (Bebas) <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="upload-btn" style="margin-bottom:8px">+ Tambah Logo Canvas<input type="file" id="canvasLogoUpload" accept="image/*" multiple></div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="color" id="canvasTextColor" value="#ffffff" style="width:42px;height:38px;border:none;background:#1f1f23;border-radius:6px">
+          <select id="canvasTextFont" class="prop-input" style="flex:1">
+            <option value="Inter">Inter</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Oswald">Oswald</option>
+            <option value="Playfair Display">Playfair</option>
+            <option value="Arial">Arial</option>
+          </select>
+        </div>
+        <input type="text" id="canvasTextInput" class="prop-input" placeholder="Taip teks canvas..." style="margin-bottom:8px">
+        <button class="add-text-btn" id="addCanvasTextBtn">Tambah Teks Canvas</button>
       </div>
     </div>
 
@@ -198,7 +223,7 @@
       </div>
     </div>
 
-    <!-- ===== KESAN LATAR BELAKANG (BARU) ===== -->
+    <!-- ===== KESAN LATAR BELAKANG ===== -->
     <div class="accordion-item open">
       <div class="accordion-header">Kesan Latar Belakang <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -223,6 +248,20 @@
         <div class="slider-row"><label><span>Ambient</span><span id="ambientValue">0.50</span></label><input type="range" id="ambientSlider" min="0" max="2" step="0.05" value="0.5"></div>
         <div class="slider-row"><label><span>Directional</span><span id="dirValue">2.00</span></label><input type="range" id="dirSlider" min="0" max="5" step="0.1" value="2"></div>
         <div class="slider-row"><label><span>Bayang</span><span id="shadowValue">1.00</span></label><input type="range" id="shadowSlider" min="0" max="1" step="0.05" value="1"></div>
+      </div>
+    </div>
+
+    <!-- ===== FORMAT OUTPUT (BARU) ===== -->
+    <div class="accordion-item open">
+      <div class="accordion-header">Format Output <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="fill-modes">
+          <button class="fill-btn ratio-btn active" data-ratio="auto">Auto</button>
+          <button class="fill-btn ratio-btn" data-ratio="1:1">1:1</button>
+          <button class="fill-btn ratio-btn" data-ratio="4:5">4:5</button>
+          <button class="fill-btn ratio-btn" data-ratio="9:16">9:16</button>
+          <button class="fill-btn ratio-btn" data-ratio="16:9">16:9</button>
+        </div>
       </div>
     </div>
 
@@ -271,6 +310,11 @@
       <div id="bg-gradient-overlay"></div>
       <div id="bg-studio-shadow"></div>
       <div id="bg-vignette"></div>
+    </div>
+
+    <!-- CROP FRAME OVERLAY -->
+    <div id="crop-overlay">
+      <div id="crop-frame"></div>
     </div>
 
     <div id="view-toggles">
@@ -508,7 +552,9 @@ transformControls.addEventListener('dragging-changed', e => {
 
 // ===== STATE =====
 const shirtGroup = new THREE.Group();
+const canvasGroup = new THREE.Group();
 scene.add(shirtGroup);
+scene.add(canvasGroup);
 let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, logoCount = 0;
 let currentShirtColor = '#ffffff', currentMode = 'translate';
 let history = [], historyIndex = -1;
@@ -516,8 +562,10 @@ let currentBgColor = '#09090b', isTransparentBg = false, bgPlane = null, bgFillM
 let isRecording = false, isPreviewing = false, mediaRecorder = null, recordedChunks = [];
 let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null;
 let currentProjectId = null, currentProjectName = 'Design Baru';
+let outputRatio = 'auto';
+let cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
 
-// ===== KESAN LATAR BELAKANG (BARU) =====
+// ===== KESAN LATAR BELAKANG =====
 function defaultBgEffects() {
   return {
     vignette: 0,
@@ -563,6 +611,42 @@ function ensureEffects(dummy) {
   if (!dummy.userData.effects) dummy.userData.effects = defaultEffects();
   return dummy.userData.effects;
 }
+
+// ===== CROP / RATIO LOGIC =====
+function updateCropFrame() {
+  const overlay = document.getElementById('crop-overlay');
+  const frame = document.getElementById('crop-frame');
+  if (outputRatio === 'auto') {
+    overlay.classList.remove('active');
+    cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
+    return;
+  }
+  overlay.classList.add('active');
+  const cw = container.clientWidth;
+  const ch = container.clientHeight;
+  let w, h;
+  if (outputRatio === '1:1') { w = Math.min(cw, ch); h = w; }
+  else if (outputRatio === '4:5') { w = Math.min(cw, ch * 4 / 5); h = w * 5 / 4; }
+  else if (outputRatio === '9:16') { w = Math.min(cw, ch * 9 / 16); h = w * 16 / 9; }
+  else if (outputRatio === '16:9') { w = Math.min(cw, ch * 16 / 9); h = w * 9 / 16; }
+  const x = Math.round((cw - w) / 2);
+  const y = Math.round((ch - h) / 2);
+  frame.style.left = x + 'px';
+  frame.style.top = y + 'px';
+  frame.style.width = w + 'px';
+  frame.style.height = h + 'px';
+  cropRect = { x, y, w, h };
+}
+
+document.querySelectorAll('.ratio-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    outputRatio = btn.dataset.ratio;
+    updateCropFrame();
+    pushHistory();
+  };
+});
 
 // ===== BACKGROUND FX HELPERS =====
 function updateBgOverlayStyles() {
@@ -701,7 +785,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
 
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
-  if (!isBg && dummy.userData.curve > 0.01) el.classList.add('curve-active');
+  if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
   const info = document.createElement('div'); info.className = 'layer-info';
   const ic = document.createElement('span'); ic.textContent = icon;
   const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
@@ -740,7 +824,7 @@ function selectLayer(dummy, el) {
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
 
   const curveRow = document.getElementById('curveRow');
-  if (dummy.userData.isBg) {
+  if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) {
     curveRow.style.display = 'none';
   } else {
     curveRow.style.display = 'block';
@@ -775,11 +859,11 @@ function toggleVisibility(dummy, el) {
   if (dummy.userData.visible) {
     visBtn.classList.remove('hidden'); visBtn.textContent = '👁️';
     if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = true);
-    if (dummy.userData.isBg) dummy.visible = true;
+    if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) dummy.visible = true;
   } else {
     visBtn.classList.add('hidden'); visBtn.textContent = '👁️‍🗨️';
     if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = false);
-    if (dummy.userData.isBg) dummy.visible = false;
+    if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) dummy.visible = false;
   }
 }
 
@@ -798,9 +882,15 @@ function toggleLock(dummy, el) {
 
 function deleteLayer(dummy, el) {
   transformControls.detach(); hideFreeTransform(); propertiesPanel.classList.remove('active');
-  disposeDummyDecals(dummy);
-  disposeDummyTextures(dummy);
-  shirtGroup.remove(dummy);
+  if (dummy.userData.isCanvasGraphic) {
+    canvasGroup.remove(dummy);
+    dummy.geometry?.dispose?.();
+    dummy.material?.dispose?.();
+  } else {
+    disposeDummyDecals(dummy);
+    disposeDummyTextures(dummy);
+    shirtGroup.remove(dummy);
+  }
   el.remove();
   layers = layers.filter(l => l !== dummy);
   gizmoControlsUI.classList.remove('active');
@@ -1004,13 +1094,17 @@ document.getElementById('propOpacity').oninput = e => {
   const op = +e.target.value;
   activeDummy.userData.opacity = op;
   document.getElementById('propOpacityValue').textContent = op.toFixed(2);
-  if (activeDummy.userData.decals) activeDummy.userData.decals.forEach(d => d.material.opacity = op);
-  if (activeDummy.userData.isBg) activeDummy.material.opacity = op;
+  if (activeDummy.userData.isCanvasGraphic) {
+    activeDummy.material.opacity = op;
+  } else {
+    if (activeDummy.userData.decals) activeDummy.userData.decals.forEach(d => d.material.opacity = op);
+    if (activeDummy.userData.isBg) activeDummy.material.opacity = op;
+  }
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
 
 document.getElementById('propCurve').oninput = e => {
-  if (!activeDummy || activeDummy.userData.isBg) return;
+  if (!activeDummy || activeDummy.userData.isBg || activeDummy.userData.isCanvasGraphic) return;
   const c = +e.target.value;
   activeDummy.userData.curve = c;
   document.getElementById('propCurveValue').textContent = c.toFixed(2);
@@ -1180,23 +1274,44 @@ document.getElementById('btnDuplicate').onclick = () => {
   const src = activeDummy;
   const tex = src.userData.texture.clone();
   tex.needsUpdate = true;
-  const dummy = new THREE.Object3D();
-  dummy.userData = {
-    texture: tex, aspect: src.userData.aspect, isText: src.userData.isText,
-    dataURL: src.userData.dataURL, textContent: src.userData.textContent,
-    textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
-    opacity: src.userData.opacity, visible: true, locked: false,
-    curve: src.userData.curve || 0,
-    effects: { ...ensureEffects(src) },
-    decals: []
-  };
-  dummy.position.copy(src.position); dummy.position.x += 0.12;
-  dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
-  shirtGroup.add(dummy);
-  createDecalNow(dummy);
-  layers.push(dummy);
-  logoCount++;
-  addDesignLayer(dummy, (src.userData.name || 'Logo') + ' Copy', src.userData.icon || '🖼️');
+  
+  if (src.userData.isCanvasGraphic) {
+    const geo = new THREE.PlaneGeometry(1, 1 / (src.userData.aspect || 1));
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: src.userData.opacity || 1 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(src.position); mesh.position.x += 0.2;
+    mesh.quaternion.copy(src.quaternion); mesh.scale.copy(src.scale);
+    mesh.userData = {
+      texture: tex, aspect: src.userData.aspect, isText: src.userData.isText,
+      dataURL: src.userData.dataURL, textContent: src.userData.textContent,
+      textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
+      opacity: src.userData.opacity, visible: true, locked: false, isCanvasGraphic: true,
+      effects: { ...ensureEffects(src) },
+      decals: []
+    };
+    canvasGroup.add(mesh);
+    layers.push(mesh);
+    logoCount++;
+    addDesignLayer(mesh, (src.userData.name || 'Canvas') + ' Copy', src.userData.icon || '🖼️');
+  } else {
+    const dummy = new THREE.Object3D();
+    dummy.userData = {
+      texture: tex, aspect: src.userData.aspect, isText: src.userData.isText,
+      dataURL: src.userData.dataURL, textContent: src.userData.textContent,
+      textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
+      opacity: src.userData.opacity, visible: true, locked: false,
+      curve: src.userData.curve || 0,
+      effects: { ...ensureEffects(src) },
+      decals: []
+    };
+    dummy.position.copy(src.position); dummy.position.x += 0.12;
+    dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
+    shirtGroup.add(dummy);
+    createDecalNow(dummy);
+    layers.push(dummy);
+    logoCount++;
+    addDesignLayer(dummy, (src.userData.name || 'Logo') + ' Copy', src.userData.icon || '🖼️');
+  }
   pushHistory(); showToast('Layer diduplicate');
 };
 
@@ -1222,7 +1337,19 @@ async function updateTextLayer(dummy) {
   dummy.userData.textColor = color;
   dummy.userData.dataURL = canvas.toDataURL('image/png');
   dummy.userData.aspect = 4;
-  createDecalNow(dummy);
+  
+  if (dummy.userData.isCanvasGraphic) {
+    const newTex = getProcessedCanvas(dummy);
+    if (newTex) {
+      const t = new THREE.CanvasTexture(newTex);
+      t.colorSpace = THREE.SRGBColorSpace;
+      dummy.material.map?.dispose();
+      dummy.material.map = t;
+      dummy.material.needsUpdate = true;
+    }
+  } else {
+    createDecalNow(dummy);
+  }
   pushHistory();
 }
 
@@ -1245,6 +1372,20 @@ function scheduleDecal(dummy) {
 }
 
 function createDecalNow(dummy) {
+  if (dummy.userData.isCanvasGraphic) {
+    const canvas = getProcessedCanvas(dummy);
+    if (canvas) {
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      dummy.material.map?.dispose();
+      dummy.material.map = tex;
+      dummy.material.needsUpdate = true;
+      dummy.userData.aspect = canvas.width / canvas.height;
+      dummy.geometry.dispose();
+      dummy.geometry = new THREE.PlaneGeometry(1, 1 / dummy.userData.aspect);
+    }
+    return;
+  }
   if (!shirtMeshes.length || dummy.userData.isBg || !dummy.userData.texture) return;
   disposeDummyDecals(dummy);
   const curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
@@ -1353,22 +1494,24 @@ transformControls.addEventListener('objectChange', () => {
     document.getElementById('propScaleValue').textContent = activeDummy.scale.x.toFixed(2);
   }
   if (transformControls.getMode() === 'translate') {
-    activeDummy.updateMatrixWorld();
-    const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
-    raycaster.set(camera.position, worldPos.clone().sub(camera.position).normalize());
-    const hits = raycaster.intersectObjects(shirtMeshes, true);
-    if (hits.length) {
-      const hit = hits[0];
-      activeDummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
-      if (isDragging) {
-        const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-        const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
-        const up = new THREE.Vector3(0, 1, 0);
-        let right = new THREE.Vector3().crossVectors(up, ln);
-        if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-        right.normalize();
-        const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
-        activeDummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+    if (!activeDummy.userData.isCanvasGraphic) {
+      activeDummy.updateMatrixWorld();
+      const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
+      raycaster.set(camera.position, worldPos.clone().sub(camera.position).normalize());
+      const hits = raycaster.intersectObjects(shirtMeshes, true);
+      if (hits.length) {
+        const hit = hits[0];
+        activeDummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+        if (isDragging) {
+          const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+          const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+          const up = new THREE.Vector3(0, 1, 0);
+          let right = new THREE.Vector3().crossVectors(up, ln);
+          if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+          right.normalize();
+          const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+          activeDummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+        }
       }
     }
   }
@@ -1380,7 +1523,7 @@ transformControls.addEventListener('objectChange', () => {
 function showFreeTransform() { if (activeDummy && !activeDummy.userData.locked) { ftEl.classList.add('active'); updateFreeTransformHandles(); } }
 function hideFreeTransform() { ftEl.classList.remove('active'); ftDragging = null; }
 function getLogoCorners(d) {
-  if (d.userData.isBg) {
+  if (d.userData.isBg || d.userData.isCanvasGraphic) {
     const b = new THREE.Box3().setFromObject(d);
     return [new THREE.Vector3(b.min.x, b.max.y, b.min.z), new THREE.Vector3(b.max.x, b.max.y, b.min.z), new THREE.Vector3(b.max.x, b.min.y, b.min.z), new THREE.Vector3(b.min.x, b.min.y, b.min.z)];
   }
@@ -1463,7 +1606,7 @@ document.getElementById('logoUpload').onchange = e => {
       img.onload = () => {
         const tex = new THREE.Texture(img);
         tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
-        addLogoToScene(tex, img.width / img.height, false, ev.target.result);
+        addLogoToScene(tex, img.width / img.height, false, ev.target.result, '', '#000', 'Inter', 120, false);
       };
       img.src = ev.target.result;
     };
@@ -1471,6 +1614,24 @@ document.getElementById('logoUpload').onchange = e => {
   });
   e.target.value = '';
 };
+
+document.getElementById('canvasLogoUpload').onchange = e => {
+  [...e.target.files].forEach(file => {
+    const r = new FileReader();
+    r.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const tex = new THREE.Texture(img);
+        tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
+        addLogoToScene(tex, img.width / img.height, false, ev.target.result, '', '#000', 'Inter', 120, true);
+      };
+      img.src = ev.target.result;
+    };
+    r.readAsDataURL(file);
+  });
+  e.target.value = '';
+};
+
 document.getElementById('textSize').oninput = e => document.getElementById('textSizeValue').textContent = e.target.value;
 document.getElementById('addTextBtn').onclick = async () => {
   const text = document.getElementById('textInput').value.trim();
@@ -1489,11 +1650,52 @@ document.getElementById('addTextBtn').onclick = async () => {
   ctx.fillText(text, 512, 128);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, size);
+  addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, size, false);
   document.getElementById('textInput').value = '';
 };
 
-function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120) {
+document.getElementById('addCanvasTextBtn').onclick = async () => {
+  const text = document.getElementById('canvasTextInput').value.trim();
+  if (!text) return;
+  const color = document.getElementById('canvasTextColor').value;
+  const font = document.getElementById('canvasTextFont').value;
+  const size = 120;
+  await ensureFontLoaded(font);
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024; canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 1024, 256);
+  ctx.fillStyle = color;
+  ctx.font = `bold ${size}px "${font}",sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, 512, 128);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, size, true);
+  document.getElementById('canvasTextInput').value = '';
+};
+
+function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
+  if (isCanvas) {
+    const geo = new THREE.PlaneGeometry(1, 1 / aspect);
+    const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(-1.2, 0, 0.8);
+    mesh.userData = {
+      texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
+      opacity: 1, visible: true, locked: false, isCanvasGraphic: true,
+      effects: defaultEffects(),
+      decals: []
+    };
+    canvasGroup.add(mesh);
+    layers.push(mesh);
+    logoCount++;
+    addDesignLayer(mesh, isText ? `Teks Canvas ${logoCount}` : `Logo Canvas ${logoCount}`, isText ? '📝' : '🖼️');
+    pushHistory();
+    showToast('Grafik Canvas ditambah');
+    return;
+  }
+
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
@@ -1583,7 +1785,7 @@ function clearBgImage() {
 function applyFillMode(mode) {
   if (!bgPlane) return;
   bgFillMode = mode;
-  document.querySelectorAll('.fill-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
   const a = bgPlane.userData.aspect || 1;
   if (mode === 'stretch') bgPlane.scale.set(16, 16 / a, 1);
   else if (mode === 'cover') bgPlane.scale.set(20, 20 / a, 1);
@@ -1624,7 +1826,7 @@ document.getElementById('bgScaleSlider').oninput = e => {
   if (bgPlane) { const a = bgPlane.userData.aspect || 1; bgPlane.scale.set(s, s / a, 1); }
 };
 document.getElementById('bgScaleSlider').onchange = () => pushHistory();
-document.querySelectorAll('.fill-btn').forEach(b => b.onclick = () => { applyFillMode(b.dataset.mode); pushHistory(); });
+document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.onclick = () => { applyFillMode(b.dataset.mode); pushHistory(); });
 
 // ===== LIGHT =====
 document.getElementById('ambientSlider').oninput = e => { ambientLight.intensity = +e.target.value; document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2); };
@@ -1651,6 +1853,7 @@ async function getStateForSave() {
       name: d.userData.name || 'Logo', icon: d.userData.icon || '🖼️',
       opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked,
       curve: d.userData.curve || 0,
+      isCanvasGraphic: !!d.userData.isCanvasGraphic,
       effects: { ...ensureEffects(d) }
     });
   }
@@ -1659,6 +1862,7 @@ async function getStateForSave() {
     ambient: ambientLight.intensity, directional: mainLight.intensity, shadow: mainLight.shadow.intensity,
     bgOpacity, bgFillMode,
     bgEffects: { ...bgEffects },
+    outputRatio,
     layers: processed
   };
 }
@@ -1718,7 +1922,14 @@ document.getElementById('btnSaveProject').onclick = async () => {
     const state = await getStateForSave();
     transformHelper.visible = false;
     renderer.render(scene, camera);
-    const thumb = renderer.domElement.toDataURL('image/jpeg', 0.4);
+    
+    // Thumbnail from crop area
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 320;
+    thumbCanvas.height = Math.round(320 * (cropRect.h / cropRect.w));
+    thumbCanvas.getContext('2d').drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, thumbCanvas.width, thumbCanvas.height);
+    const thumb = thumbCanvas.toDataURL('image/jpeg', 0.4);
+    
     transformHelper.visible = true;
     let project = currentProjectId != null
       ? { id: currentProjectId, name, state, thumb, updated: Date.now() }
@@ -1759,9 +1970,15 @@ async function pushHistory() {
 function clearAllLayers() {
   [...layers].forEach(d => {
     if (d.userData.isBg) return;
-    disposeDummyDecals(d);
-    disposeDummyTextures(d);
-    shirtGroup.remove(d);
+    if (d.userData.isCanvasGraphic) {
+      canvasGroup.remove(d);
+      d.geometry?.dispose?.();
+      d.material?.dispose?.();
+    } else {
+      disposeDummyDecals(d);
+      disposeDummyTextures(d);
+      shirtGroup.remove(d);
+    }
   });
   layers = layers.filter(l => l.userData.isBg);
   logoCount = 0;
@@ -1783,7 +2000,10 @@ async function restoreState(state) {
   isTransparentBg = !!state.isTransparentBg;
   document.getElementById('toggleTransparent').classList.toggle('active', isTransparentBg);
 
-  // Restore bg effects
+  outputRatio = state.outputRatio || 'auto';
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === outputRatio));
+  updateCropFrame();
+
   bgEffects = { ...defaultBgEffects(), ...(state.bgEffects || {}) };
   updateBgEffectsUI();
   updateBgOverlayStyles();
@@ -1811,31 +2031,60 @@ async function restoreState(state) {
         try {
           const tex = new THREE.Texture(img);
           tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
-          const dummy = new THREE.Object3D();
-          dummy.userData = {
-            texture: tex, aspect: ldata.aspect || 1, isText: !!ldata.isText,
-            dataURL: ldata.dataURL, textContent: ldata.textContent || '',
-            textColor: ldata.textColor || '#000', font: ldata.font || 'Inter',
-            fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
-            icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
-            visible: ldata.visible !== false, locked: !!ldata.locked,
-            curve: ldata.curve || 0,
-            effects: { ...defaultEffects(), ...(ldata.effects || {}) },
-            decals: []
-          };
-          dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
-          dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
-          const s = Math.max(...(ldata.scale || [1, 1, 1]));
-          dummy.scale.setScalar(Math.max(0.12, s));
-          shirtGroup.add(dummy);
-          createDecalNow(dummy);
-          layers.push(dummy);
-          logoCount++;
-          addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
-          const el = document.getElementById(dummy.userData.layerId);
-          if (el) {
-            if (!dummy.userData.visible) { el.querySelector('.vis').classList.add('hidden'); el.querySelector('.vis').textContent = '👁️‍🗨️'; }
-            if (dummy.userData.locked) { el.querySelector('.lock').textContent = '🔒'; el.classList.add('locked'); }
+          
+          if (ldata.isCanvasGraphic) {
+            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: ldata.opacity || 1 });
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1 / (ldata.aspect || 1)), mat);
+            mesh.userData = {
+              texture: tex, aspect: ldata.aspect || 1, isText: !!ldata.isText,
+              dataURL: ldata.dataURL, textContent: ldata.textContent || '',
+              textColor: ldata.textColor || '#000', font: ldata.font || 'Inter',
+              fontSize: ldata.fontSize || 120, name: ldata.name || 'Canvas',
+              icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
+              visible: ldata.visible !== false, locked: !!ldata.locked, isCanvasGraphic: true,
+              effects: { ...defaultEffects(), ...(ldata.effects || {}) },
+              decals: []
+            };
+            mesh.position.fromArray(ldata.position || [0, 0, 0]);
+            mesh.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
+            mesh.scale.fromArray(ldata.scale || [1, 1, 1]);
+            canvasGroup.add(mesh);
+            layers.push(mesh);
+            logoCount++;
+            addDesignLayer(mesh, mesh.userData.name, mesh.userData.icon);
+            const el = document.getElementById(mesh.userData.layerId);
+            if (el) {
+              if (!mesh.userData.visible) { el.querySelector('.vis').classList.add('hidden'); el.querySelector('.vis').textContent = '👁️‍🗨️'; }
+              if (mesh.userData.locked) { el.querySelector('.lock').textContent = '🔒'; el.classList.add('locked'); }
+            }
+            createDecalNow(mesh); // updates texture and aspect
+          } else {
+            const dummy = new THREE.Object3D();
+            dummy.userData = {
+              texture: tex, aspect: ldata.aspect || 1, isText: !!ldata.isText,
+              dataURL: ldata.dataURL, textContent: ldata.textContent || '',
+              textColor: ldata.textColor || '#000', font: ldata.font || 'Inter',
+              fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
+              icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
+              visible: ldata.visible !== false, locked: !!ldata.locked,
+              curve: ldata.curve || 0,
+              effects: { ...defaultEffects(), ...(ldata.effects || {}) },
+              decals: []
+            };
+            dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
+            dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
+            const s = Math.max(...(ldata.scale || [1, 1, 1]));
+            dummy.scale.setScalar(Math.max(0.12, s));
+            shirtGroup.add(dummy);
+            createDecalNow(dummy);
+            layers.push(dummy);
+            logoCount++;
+            addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
+            const el = document.getElementById(dummy.userData.layerId);
+            if (el) {
+              if (!dummy.userData.visible) { el.querySelector('.vis').classList.add('hidden'); el.querySelector('.vis').textContent = '👁️‍🗨️'; }
+              if (dummy.userData.locked) { el.querySelector('.lock').textContent = '🔒'; el.classList.add('locked'); }
+            }
           }
         } catch (e) { console.warn(e); }
         resolve();
@@ -1892,16 +2141,35 @@ btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRe
 async function startVideoRecord() {
   if (isRecording) return;
   transformHelper.visible = false; hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
+  
+  // Calculate target record size
+  let targetRes = recordQuality === 0 ? 1080 : 1920;
+  let scale = targetRes / Math.max(cropRect.w, cropRect.h);
+  let recW = Math.round(cropRect.w * scale);
+  let recH = Math.round(cropRect.h * scale);
+  recW = recW % 2 === 0 ? recW : recW + 1;
+  recH = recH % 2 === 0 ? recH : recH + 1;
+
+  const recordCanvas = document.createElement('canvas');
+  recordCanvas.width = recW;
+  recordCanvas.height = recH;
+  const rctx = recordCanvas.getContext('2d');
+
   const oldSize = new THREE.Vector2(); renderer.getSize(oldSize);
   const oldPR = renderer.getPixelRatio();
-  const tw = recordQuality === 0 ? 720 : 1080, th = recordQuality === 0 ? 1280 : 1920;
+  const tw = container.clientWidth, th = container.clientHeight;
+  
   renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   camera.aspect = tw / th; camera.updateProjectionMatrix();
   camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
-  for (let i = 0; i < 8; i++) { renderer.clear(); renderer.render(scene, camera); }
+  
+  for (let i = 0; i < 8; i++) { 
+    renderer.clear(); renderer.render(scene, camera);
+    rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
+  }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-  const stream = renderer.domElement.captureStream(30);
+  const stream = recordCanvas.captureStream(30);
   const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
   recordedChunks = [];
   mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: recordQuality === 0 ? 5e6 : 8e6 });
@@ -1927,6 +2195,8 @@ async function startVideoRecord() {
     shirtGroup.rotation.y = p * Math.PI * 2 * rotationSpeed;
     recordingText.textContent = `Sedang merakam... ${Math.ceil((dur - (now - start)) / 1000)}s`;
     renderer.render(scene, camera);
+    rctx.clearRect(0, 0, recW, recH);
+    rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
     if (p < 1) requestAnimationFrame(loop);
     else setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
   }
@@ -1996,13 +2266,26 @@ document.getElementById('saveBtn').onclick = () => {
   transformHelper.visible = false; hideFreeTransform();
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
-  renderer.setPixelRatio(1);
-  renderer.setSize(2000, 2000, false);
+  
+  const tw = container.clientWidth, th = container.clientHeight;
+  renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   renderer.render(scene, camera);
+
+  const targetRes = 2000;
+  const scale = targetRes / Math.max(cropRect.w, cropRect.h);
+  const outW = Math.round(cropRect.w * scale);
+  const outH = Math.round(cropRect.h * scale);
+
+  const outCanvas = document.createElement('canvas');
+  outCanvas.width = outW;
+  outCanvas.height = outH;
+  outCanvas.getContext('2d').drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, outW, outH);
+
   const a = document.createElement('a');
   a.download = 'design-baju-hd.png';
-  a.href = renderer.domElement.toDataURL('image/png');
+  a.href = outCanvas.toDataURL('image/png');
   a.click();
+
   renderer.setPixelRatio(oldPR);
   renderer.setSize(oldSize.x, oldSize.y, false);
   transformHelper.visible = true;
@@ -2023,12 +2306,14 @@ window.addEventListener('resize', () => {
   if (isRecording) return;
   const w = container.clientWidth, h = container.clientHeight;
   camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
+  updateCropFrame();
 });
 
 // Initial
 updateBgOverlayStyles();
 updateBgEffectsUI();
 applySolidBackground();
+updateCropFrame();
 </script>
 </body>
 </html>
