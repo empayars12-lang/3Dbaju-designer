@@ -9,8 +9,6 @@
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
     #app{display:flex;height:100vh}
-    
-    /* Custom scrollbar & padding supaya tak terlindung */
     #sidebar-left{
       width:300px;background:#18181b;padding:14px 14px 60px 14px;
       display:flex;flex-direction:column;gap:8px;
@@ -20,26 +18,19 @@
     #sidebar-left::-webkit-scrollbar-track { background: #18181b; }
     #sidebar-left::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
     #sidebar-left::-webkit-scrollbar-thumb:hover { background: #52525b; }
-
     .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden;flex-shrink:0}
-    
-    /* UPGRADE: Warna tajuk ditukar ke Biru Gelap */
     .accordion-header{
       padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
       cursor:pointer;user-select:none;font-size:12px;font-weight:600;
       text-transform:uppercase;letter-spacing:0.8px;
-      background:#1e40af; /* Warna Biru */
-      color:#ffffff;
-      transition: background 0.2s;
+      background:#1e40af;color:#ffffff;transition: background 0.2s;
     }
     .accordion-header:hover{background:#1d4ed8}
     .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#93c5fd}
     .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
-    .accordion-item.open .accordion-header{background:#1e40af} /* Kekal biru bila dibuka */
-    
+    .accordion-item.open .accordion-header{background:#1e40af}
     .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
     .accordion-item.open .accordion-body{max-height:3000px;padding:10px 12px 14px}
-
     .color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
     .color-btn{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s}
     .color-btn:hover{transform:scale(1.1)}
@@ -92,26 +83,19 @@
     .align-btn:hover{background:#52525b}
     #viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden}
     #viewer-container canvas{display:block}
-
-    /* ===== LATAR BELAKANG PROFESIONAL — OVERLAY CSS ===== */
     #bg-overlays{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
     #bg-overlays > div{position:absolute;inset:0;pointer-events:none;transition:opacity .18s ease}
     #bg-vignette{mix-blend-mode:multiply;opacity:0}
     #bg-studio-shadow{mix-blend-mode:multiply;opacity:0}
     #bg-gradient-overlay{opacity:0}
-
-    /* ===== CROP FRAME (FORMAT OUTPUT) ===== */
     #crop-overlay{position:absolute;inset:0;pointer-events:none;z-index:12;display:none;}
     #crop-overlay.active{display:block;}
     #crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);border:1.5px dashed #38bdf8;}
-
-    /* ===== FLOATING PREVIEW CONTROLS ===== */
     #floating-controls{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:60;display:none;gap:10px;background:rgba(0,0,0,0.75);padding:8px 12px;border-radius:12px;backdrop-filter:blur(4px);border:1px solid #3f3f46;}
     #floating-controls button{padding:8px 16px;font-size:13px;border-radius:6px;border:none;font-weight:600;cursor:pointer;}
     #btnPausePlay{background:#f59e0b;color:#000;}
     #btnSnap{background:#10b981;color:#fff;}
     #btnSnap:disabled{opacity:0.5;cursor:not-allowed;}
-
     #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
     #free-transform.active{display:block}
     .ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:none}
@@ -146,8 +130,6 @@
     #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;z-index:200;display:none}
     #toast.error{background:#dc2626}
     .curve-active{background:rgba(124,58,237,.15);border-left:3px solid #7c3aed !important}
-
-    /* ==== KESAN IMEJ (FX) ==== */
     #fxPanel{border-top:1px solid #27272a;margin-top:14px;padding-top:12px}
     .fx-group{margin-bottom:12px}
     .fx-title{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -166,8 +148,6 @@
         <input type="text" id="projectNameInput" class="prop-input" placeholder="Nama project..." value="Design Baru" style="margin-bottom:8px">
         <button class="project-btn" id="btnSaveProject">💾 Simpan Project</button>
         <button class="project-btn secondary" id="btnNewProject">+ Project Baru</button>
-        
-        <!-- UPGRADE: Butang Export & Import Fail -->
         <div style="display:flex;gap:6px;margin-top:6px">
           <button class="small-btn" id="btnExportProject" style="margin-top:0">📤 Eksport Fail</button>
           <button class="small-btn" id="btnImportProject" style="margin-top:0;position:relative">
@@ -175,8 +155,21 @@
             <input type="file" id="importProjectFile" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer">
           </button>
         </div>
-        
         <div id="projectList"></div>
+      </div>
+    </div>
+
+    <!-- ===== MODEL BAJU 3D DROPDOWN ===== -->
+    <div class="accordion-item open">
+      <div class="accordion-header">Model Baju 3D <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <select id="modelSelect" class="prop-input">
+          <option value="./T_shirt_gltf.gltf">👕 Baju Asal (GLTF)</option>
+          <option value="./baju_baru.glb">👕 Baju Baru (GLB)</option>
+        </select>
+        <div style="font-size:11px;color:#71717a;margin-top:8px;line-height:1.5">
+          Tukar model 3D. Design sedia ada akan dikekalkan automatik.
+        </div>
       </div>
     </div>
 
@@ -220,7 +213,6 @@
       </div>
     </div>
 
-    <!-- ===== GRAFIK CANVAS (BEBAS) ===== -->
     <div class="accordion-item">
       <div class="accordion-header">Grafik Canvas (Bebas) <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -263,7 +255,6 @@
       </div>
     </div>
 
-    <!-- ===== KESAN LATAR BELAKANG ===== -->
     <div class="accordion-item open">
       <div class="accordion-header">Kesan Latar Belakang <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -291,7 +282,6 @@
       </div>
     </div>
 
-    <!-- ===== FORMAT OUTPUT ===== -->
     <div class="accordion-item open">
       <div class="accordion-header">Format Output <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -346,13 +336,10 @@
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
     <div id="recording-overlay"><span>●</span> <span id="recordingText">Sedang merakam...</span></div>
-    
-    <!-- FLOATING CONTROLS FOR PREVIEW / RECORDING -->
     <div id="floating-controls">
       <button id="btnPausePlay">⏸ Jeda</button>
       <button id="btnSnap" disabled>📸 Tangkap Gambar</button>
     </div>
-
     <div id="free-transform">
       <div class="ft-box" id="ftBox"></div>
       <div class="ft-handle nw" data-corner="nw"></div>
@@ -362,19 +349,12 @@
       <div class="ft-rotate-line" id="ftRotateLine"></div>
       <div class="ft-rotate-handle" id="ftRotateHandle"></div>
     </div>
-
-    <!-- OVERLAY LATAR BELAKANG PROFESIONAL -->
     <div id="bg-overlays">
       <div id="bg-gradient-overlay"></div>
       <div id="bg-studio-shadow"></div>
       <div id="bg-vignette"></div>
     </div>
-
-    <!-- CROP FRAME OVERLAY -->
-    <div id="crop-overlay">
-      <div id="crop-frame"></div>
-    </div>
-
+    <div id="crop-overlay"><div id="crop-frame"></div></div>
     <div id="view-toggles">
       <button id="viewFront" class="active">Hadapan</button>
       <button id="viewBack">Belakang</button>
@@ -391,13 +371,11 @@
       <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
       <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
       <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
-
       <div class="prop-row" id="curveRow">
         <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
         <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
         <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
       </div>
-
       <div class="align-row">
         <button class="align-btn" id="btnAlignCenterX">Center X</button>
         <button class="align-btn" id="btnAlignCenterY">Center Y</button>
@@ -407,11 +385,8 @@
         <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
         <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
       </div>
-
-      <!-- ===== KESAN IMEJ (per-layer) ===== -->
       <div id="fxPanel" style="display:none">
         <h3 style="margin-top:14px">Kesan Imej</h3>
-
         <div class="fx-group">
           <div class="fx-title">Overlay Warna</div>
           <div class="fx-row">
@@ -420,7 +395,6 @@
             <span class="fx-val" id="fxOverlayOpacityValue">0%</span>
           </div>
         </div>
-
         <div class="fx-group">
           <div class="fx-title">Stroke (Silhouette Dilation)</div>
           <div class="fx-row">
@@ -429,7 +403,6 @@
             <span class="fx-val" id="fxStrokeWidthValue">0px</span>
           </div>
         </div>
-
         <div class="fx-group">
           <div class="fx-title">Drop Shadow</div>
           <div class="fx-row">
@@ -448,10 +421,8 @@
             <span class="fx-val" id="fxShadowYValue">0</span>
           </div>
         </div>
-
         <button class="small-btn" id="fxReset">↺ Reset Kesan (0)</button>
       </div>
-      <!-- ===== /KESAN IMEJ ===== -->
     </div>
   </div>
 </div>
@@ -480,7 +451,6 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 const DB_NAME = 'ProDesigner3D_v5';
 const DB_VERSION = 1;
 const STORE = 'projects';
-
 function openDB() {
   return new Promise((resolve, reject) => {
     const r = indexedDB.open(DB_NAME, DB_VERSION);
@@ -519,7 +489,6 @@ async function dbDelete(id) {
     tx.onerror = () => reject(tx.error);
   });
 }
-
 function resizeDataURL(dataURL, max = 900) {
   return new Promise(resolve => {
     if (!dataURL || dataURL.length < 150000) return resolve(dataURL);
@@ -538,7 +507,6 @@ function resizeDataURL(dataURL, max = 900) {
     img.src = dataURL;
   });
 }
-
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -547,7 +515,6 @@ function showToast(msg, isError = false) {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => t.style.display = 'none', 2800);
 }
-
 async function ensureFontLoaded(font) {
   try { await document.fonts.load(`bold 120px "${font}"`); } catch (e) {}
 }
@@ -559,11 +526,8 @@ const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
 camera.position.set(0, 0, 4.5);
-
-const renderer = new THREE.WebGLRenderer({ 
-  antialias: true, 
-  preserveDrawingBuffer: true, 
-  alpha: true,
+const renderer = new THREE.WebGLRenderer({
+  antialias: true, preserveDrawingBuffer: true, alpha: true,
   powerPreference: "high-performance"
 });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -573,9 +537,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x09090b, 1);
 container.appendChild(renderer.domElement);
-
 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
-
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
@@ -622,6 +584,7 @@ scene.add(shirtGroup);
 scene.add(canvasGroup);
 let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, logoCount = 0;
 let currentShirtColor = '#ffffff', currentMode = 'translate';
+let currentModelUrl = './T_shirt_gltf.gltf';
 let history = [], historyIndex = -1;
 let currentBgColor = '#09090b', isTransparentBg = false, bgPlane = null, bgFillMode = 'stretch', bgOpacity = 1;
 let isRecording = false, isPreviewing = false, isPaused = false, mediaRecorder = null, recordedChunks = [];
@@ -630,23 +593,12 @@ let currentProjectId = null, currentProjectName = 'Design Baru';
 let outputRatio = 'auto';
 let cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
 let animStartTime = 0, currentP = 0;
-
-// OPTIMASI: Flag kualiti (Preview vs Export) dan lock history
 let isExporting = false;
 let isHistoryProcessing = false;
 
 // ===== KESAN LATAR BELAKANG =====
 function defaultBgEffects() {
-  return {
-    vignette: 0,
-    shadowBg: 0,
-    gradientColor: '#000000',
-    gradientOpacity: 0,
-    blur: 0,
-    brightness: 100,
-    contrast: 100,
-    saturation: 100
-  };
+  return { vignette: 0, shadowBg: 0, gradientColor: '#000000', gradientOpacity: 0, blur: 0, brightness: 100, contrast: 100, saturation: 100 };
 }
 let bgEffects = defaultBgEffects();
 let bgImageSource = null;
@@ -667,26 +619,20 @@ const ftBox = document.getElementById('ftBox');
 const ftRotateHandle = document.getElementById('ftRotateHandle');
 const ftRotateLine = document.getElementById('ftRotateLine');
 let ftDragging = null, ftStartMouse = new THREE.Vector2(), ftStartScale = 1, ftStartAngle = 0, ftCenterScreen = new THREE.Vector2();
-
 const floatingControls = document.getElementById('floating-controls');
 const btnPausePlay = document.getElementById('btnPausePlay');
 const btnSnap = document.getElementById('btnSnap');
 
-// ===== KESAN IMEJ: DEFAULT =====
+// ===== KESAN IMEJ =====
 function defaultEffects() {
-  return {
-    overlayColor: '#ff0000', overlayOpacity: 0,
-    strokeColor: '#000000', strokeWidth: 0,
-    shadowColor: '#000000', shadowBlur: 0,
-    shadowOffsetX: 0, shadowOffsetY: 0
-  };
+  return { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
 }
 function ensureEffects(dummy) {
   if (!dummy.userData.effects) dummy.userData.effects = defaultEffects();
   return dummy.userData.effects;
 }
 
-// ===== CROP / RATIO LOGIC =====
+// ===== CROP / RATIO =====
 function updateCropFrame() {
   const overlay = document.getElementById('crop-overlay');
   const frame = document.getElementById('crop-frame');
@@ -705,13 +651,10 @@ function updateCropFrame() {
   else if (outputRatio === '16:9') { w = Math.min(cw, ch * 16 / 9); h = w * 9 / 16; }
   const x = Math.round((cw - w) / 2);
   const y = Math.round((ch - h) / 2);
-  frame.style.left = x + 'px';
-  frame.style.top = y + 'px';
-  frame.style.width = w + 'px';
-  frame.style.height = h + 'px';
+  frame.style.left = x + 'px'; frame.style.top = y + 'px';
+  frame.style.width = w + 'px'; frame.style.height = h + 'px';
   cropRect = { x, y, w, h };
 }
-
 document.querySelectorAll('.ratio-btn').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
@@ -722,25 +665,21 @@ document.querySelectorAll('.ratio-btn').forEach(btn => {
   };
 });
 
-// ===== BACKGROUND FX HELPERS =====
+// ===== BACKGROUND FX =====
 function updateBgOverlayStyles() {
   const vig = document.getElementById('bg-vignette');
   vig.style.background = `radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(0,0,0,${bgEffects.vignette / 100}) 100%)`;
   vig.style.opacity = bgEffects.vignette > 0 ? '1' : '0';
-
   const shadow = document.getElementById('bg-studio-shadow');
   shadow.style.background = `radial-gradient(ellipse 42% 22% at 50% 82%, rgba(0,0,0,${(bgEffects.shadowBg / 100) * 0.75}) 0%, rgba(0,0,0,0) 72%)`;
   shadow.style.opacity = bgEffects.shadowBg > 0 ? '1' : '0';
-
   const grad = document.getElementById('bg-gradient-overlay');
   grad.style.background = `linear-gradient(to bottom, rgba(0,0,0,0) 0%, ${bgEffects.gradientColor} 100%)`;
   grad.style.opacity = (bgEffects.gradientOpacity / 100).toFixed(2);
 }
-
 function updateBgOverlaysVisibility() {
   document.getElementById('bg-overlays').style.display = isTransparentBg ? 'none' : 'block';
 }
-
 function updateBgEffectsUI() {
   document.getElementById('vignetteSlider').value = bgEffects.vignette;
   document.getElementById('vignetteValue').textContent = bgEffects.vignette;
@@ -758,10 +697,8 @@ function updateBgEffectsUI() {
   document.getElementById('bgSaturationSlider').value = bgEffects.saturation;
   document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
 }
-
 function drawBgEffectsOnCanvas(ctx, w, h) {
   if (isTransparentBg) return;
-
   if (bgEffects.vignette > 0) {
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
@@ -774,14 +711,10 @@ function drawBgEffectsOnCanvas(ctx, w, h) {
     ctx.fillRect(-1, -1, 2, 2);
     ctx.restore();
   }
-
   if (bgEffects.shadowBg > 0) {
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
-    const cx = w / 2;
-    const cy = h * 0.82;
-    const rx = w * 0.42;
-    const ry = h * 0.22;
+    const cx = w / 2, cy = h * 0.82, rx = w * 0.42, ry = h * 0.22;
     ctx.translate(cx, cy);
     ctx.scale(rx, ry);
     const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
@@ -791,7 +724,6 @@ function drawBgEffectsOnCanvas(ctx, w, h) {
     ctx.fillRect(-1, -1, 2, 2);
     ctx.restore();
   }
-
   if (bgEffects.gradientOpacity > 0) {
     ctx.save();
     ctx.globalAlpha = bgEffects.gradientOpacity / 100;
@@ -803,7 +735,6 @@ function drawBgEffectsOnCanvas(ctx, w, h) {
     ctx.restore();
   }
 }
-
 function processBgImage(img) {
   if (!img) return null;
   const needFilter = bgEffects.blur > 0 || bgEffects.brightness !== 100 || bgEffects.contrast !== 100 || bgEffects.saturation !== 100;
@@ -826,7 +757,6 @@ function processBgImage(img) {
   tex.needsUpdate = true;
   return tex;
 }
-
 function refreshBgImage() {
   if (!bgPlane || !bgImageSource) return;
   const newTex = processBgImage(bgImageSource);
@@ -848,7 +778,8 @@ function createFallbackShirt() {
   return g;
 }
 
-function setupShirt(model) {
+// Normalisasi & masukkan model ke shirtGroup
+function applyModelToScene(model) {
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
@@ -857,28 +788,88 @@ function setupShirt(model) {
   box.setFromObject(model);
   model.position.sub(box.getCenter(new THREE.Vector3()));
   model.updateMatrixWorld(true);
-
   model.traverse(c => {
     if (c.isMesh) {
       c.castShadow = c.receiveShadow = true;
-      if (!c.material?.isMeshStandardMaterial) c.material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1 });
-      else { c.material.color.set(0xffffff); c.material.roughness = 0.8; c.material.metalness = 0.1; }
+      if (!c.material?.isMeshStandardMaterial) {
+        c.material = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
+      } else {
+        c.material.color.set(currentShirtColor);
+        c.material.roughness = 0.8;
+        c.material.metalness = 0.1;
+      }
       shirtMaterials.push(c.material);
       shirtMeshes.push(c);
     }
   });
   shirtGroup.add(model);
   ground.position.y = box.min.y - 0.1;
+}
+
+// Loader generic — Promise
+function loadShirtModel(url) {
+  return new Promise(resolve => {
+    new GLTFLoader().load(
+      url,
+      g => { applyModelToScene(g.scene); resolve(); },
+      undefined,
+      () => { console.warn('Model gagal load, guna fallback:', url); applyModelToScene(createFallbackShirt()); resolve(); }
+    );
+  });
+}
+
+// Init kali pertama
+function setupShirt(model) {
+  applyModelToScene(model);
   const loadingEl = document.getElementById('loading');
   if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
   addBaseLayer();
   loadProjectList().then(loadLastProject);
   pushHistory();
 }
+
+// Tukar model secara live (dropdown)
+async function switchShirtModelLive(url) {
+  if (url === currentModelUrl && shirtMeshes.length > 0) return;
+  // Dispose decal lama
+  layers.forEach(d => {
+    if (!d.userData.isBg && !d.userData.isCanvasGraphic) disposeDummyDecals(d);
+  });
+  // Buang model lama (semua child shirtGroup yg bukan dalam layers)
+  const toRemove = shirtGroup.children.filter(c => !layers.includes(c));
+  toRemove.forEach(c => {
+    shirtGroup.remove(c);
+    c.traverse?.(n => { n.geometry?.dispose?.(); });
+  });
+  shirtMaterials.forEach(m => m.dispose?.());
+  shirtMeshes = [];
+  shirtMaterials = [];
+  // Load baru
+  currentModelUrl = url;
+  showToast('Memuat model baru...');
+  await loadShirtModel(url);
+  // Recreate decal
+  layers.forEach(d => {
+    if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
+  });
+  if (currentMode === 'free' && activeDummy) updateFreeTransformHandles();
+  pushHistory();
+  showToast('✅ Model baju ditukar');
+}
+
+// Wire dropdown
+document.getElementById('modelSelect').onchange = async e => {
+  const url = e.target.value;
+  if (url === currentModelUrl) return;
+  await switchShirtModelLive(url);
+};
+
+// Load awal
 new GLTFLoader().load('./T_shirt_gltf.gltf', g => setupShirt(g.scene), undefined, () => setupShirt(createFallbackShirt()));
 
 // ===== LAYERS =====
 function addBaseLayer() {
+  if (document.getElementById('layer-base')) return;
   const el = document.createElement('div');
   el.className = 'layer-item active'; el.id = 'layer-base';
   el.innerHTML = `<div class="layer-info"><span>👕</span><span class="layer-name">Baju 3D (Asas)</span></div>`;
@@ -891,7 +882,6 @@ function addBaseLayer() {
   };
   layerListUI.appendChild(el);
 }
-
 function addDesignLayer(dummy, name, icon, isBg = false) {
   const id = 'layer-' + Date.now() + Math.random().toString(36).slice(2, 7);
   dummy.userData.layerId = id;
@@ -903,7 +893,6 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.locked = false;
   dummy.userData.curve = dummy.userData.curve || 0;
   ensureEffects(dummy);
-
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
   if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
@@ -917,18 +906,13 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   const bDel = document.createElement('button'); bDel.className = 'del'; bDel.title = 'Padam'; bDel.textContent = '✕';
   actions.appendChild(bVis); actions.appendChild(bLock); actions.appendChild(bDel);
   el.appendChild(info); el.appendChild(actions);
-
-  el.onclick = e => {
-    if (e.target.closest('.layer-actions')) return;
-    selectLayer(dummy, el);
-  };
+  el.onclick = e => { if (e.target.closest('.layer-actions')) return; selectLayer(dummy, el); };
   bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
   layerListUI.prepend(el);
   selectLayer(dummy, el);
 }
-
 function selectLayer(dummy, el) {
   if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
@@ -937,13 +921,11 @@ function selectLayer(dummy, el) {
   gizmoControlsUI.classList.add('active');
   propertiesPanel.classList.add('active');
   ensureEffects(dummy);
-
   document.getElementById('propName').value = dummy.userData.name || '';
   document.getElementById('propScale').value = dummy.scale.x;
   document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
   document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
-
   const curveRow = document.getElementById('curveRow');
   if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) {
     curveRow.style.display = 'none';
@@ -953,14 +935,12 @@ function selectLayer(dummy, el) {
     document.getElementById('propCurve').value = c;
     document.getElementById('propCurveValue').textContent = c.toFixed(2);
   }
-
   const textProps = document.getElementById('textProps');
   if (dummy.userData.isText) {
     textProps.style.display = 'block';
     document.getElementById('propTextContent').value = dummy.userData.textContent || '';
     document.getElementById('propTextColor').value = dummy.userData.textColor || '#000000';
   } else textProps.style.display = 'none';
-
   const fxPanel = document.getElementById('fxPanel');
   if (dummy.userData.isBg) {
     fxPanel.style.display = 'none';
@@ -968,12 +948,10 @@ function selectLayer(dummy, el) {
     fxPanel.style.display = 'block';
     updateFxUI(dummy);
   }
-
   transformControls.setSpace(dummy.userData.isBg ? 'world' : 'local');
   if (currentMode === 'free') { transformControls.detach(); showFreeTransform(); }
   else { hideFreeTransform(); transformControls.attach(dummy); transformControls.setMode(currentMode === 'scale' ? 'scale' : 'translate'); }
 }
-
 function toggleVisibility(dummy, el) {
   dummy.userData.visible = !dummy.userData.visible;
   const visBtn = el.querySelector('.vis');
@@ -987,7 +965,6 @@ function toggleVisibility(dummy, el) {
     if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) dummy.visible = false;
   }
 }
-
 function toggleLock(dummy, el) {
   dummy.userData.locked = !dummy.userData.locked;
   const lockBtn = el.querySelector('.lock');
@@ -1000,7 +977,6 @@ function toggleLock(dummy, el) {
     }
   } else { lockBtn.textContent = '🔓'; el.classList.remove('locked'); }
 }
-
 function deleteLayer(dummy, el) {
   transformControls.detach(); hideFreeTransform(); propertiesPanel.classList.remove('active');
   if (dummy.userData.isCanvasGraphic) {
@@ -1018,12 +994,8 @@ function deleteLayer(dummy, el) {
   activeDummy = null;
   pushHistory();
 }
-
 function disposeDummyDecals(dummy) {
-  if (!dummy.userData.decals) {
-    dummy.userData.decals = [];
-    return;
-  }
+  if (!dummy.userData.decals) { dummy.userData.decals = []; return; }
   dummy.userData.decals.forEach(d => {
     shirtGroup.remove(d);
     d.geometry?.dispose?.();
@@ -1031,7 +1003,6 @@ function disposeDummyDecals(dummy) {
   });
   dummy.userData.decals = [];
 }
-
 function disposeDummyTextures(dummy) {
   dummy.userData.texture?.dispose?.();
   dummy.userData._decalTexFront?.dispose?.();
@@ -1044,48 +1015,39 @@ function disposeDummyTextures(dummy) {
   dummy.userData._fxKey = null;
 }
 
-// ===== OPTIMASI: IMAGE EFFECTS PROCESSOR =====
+// ===== IMAGE EFFECTS =====
 function applyLayerEffects(img, fx) {
   const W0 = img.width || img.naturalWidth || 512;
   const H0 = img.height || img.naturalHeight || 512;
   if (!W0 || !H0) return null;
-
-  // OPTIMASI: Guna 1024px untuk edit (laju), 4096px untuk export (tajam)
-  const MAX_SIDE = isExporting ? 4096 : 1024; 
+  const MAX_SIDE = isExporting ? 4096 : 1024;
   const sc = Math.min(1, MAX_SIDE / Math.max(W0, H0));
   const bw = Math.max(1, Math.round(W0 * sc));
   const bh = Math.max(1, Math.round(H0 * sc));
-
   const base = document.createElement('canvas');
   base.width = bw; base.height = bh;
   const bctx = base.getContext('2d');
   bctx.imageSmoothingEnabled = true;
   bctx.imageSmoothingQuality = 'high';
   bctx.drawImage(img, 0, 0, bw, bh);
-
   const strokeW = Math.max(0, fx.strokeWidth || 0) * sc;
   const blur    = Math.max(0, fx.shadowBlur || 0) * sc;
   const offX    = (fx.shadowOffsetX || 0) * sc;
   const offY    = (fx.shadowOffsetY || 0) * sc;
   const ovOp    = Math.max(0, Math.min(1, fx.overlayOpacity || 0));
-
   const hasStroke  = strokeW > 0.5;
   const hasShadow  = blur > 0.5 || Math.abs(offX) > 0.5 || Math.abs(offY) > 0.5;
   const hasOverlay = ovOp > 0.005;
-
   if (!hasStroke && !hasShadow && !hasOverlay) return base;
-
   const padX = Math.ceil(strokeW + blur * 1.5 + Math.abs(offX)) + 2;
   const padY = Math.ceil(strokeW + blur * 1.5 + Math.abs(offY)) + 2;
   const cw = bw + padX * 2;
   const ch = bh + padY * 2;
-
   const out = document.createElement('canvas');
   out.width = cw; out.height = ch;
   const ctx = out.getContext('2d');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-
   function makeSil(color) {
     const c = document.createElement('canvas');
     c.width = bw; c.height = bh;
@@ -1096,7 +1058,6 @@ function applyLayerEffects(img, fx) {
     x.fillRect(0, 0, bw, bh);
     return c;
   }
-
   if (hasShadow) {
     const sil = makeSil(fx.shadowColor || '#000000');
     ctx.save();
@@ -1104,7 +1065,6 @@ function applyLayerEffects(img, fx) {
     ctx.drawImage(sil, padX + offX, padY + offY);
     ctx.restore();
   }
-
   if (hasStroke) {
     const sil = makeSil(fx.strokeColor || '#000000');
     const DIRS = 32;
@@ -1114,7 +1074,6 @@ function applyLayerEffects(img, fx) {
       ctx.drawImage(sil, padX + Math.cos(a) * r, padY + Math.sin(a) * r);
     }
   }
-
   if (hasOverlay) {
     const tinted = document.createElement('canvas');
     tinted.width = bw; tinted.height = bh;
@@ -1128,40 +1087,30 @@ function applyLayerEffects(img, fx) {
   } else {
     ctx.drawImage(base, padX, padY);
   }
-
   return out;
 }
-
 function getProcessedCanvas(dummy) {
   const img = dummy.userData.texture?.image;
   if (!img) return null;
   const fx = ensureEffects(dummy);
-  // OPTIMASI: Masukkan isExporting dalam cache key supaya ia tahu bila nak re-render
   const key = JSON.stringify(fx) + (isExporting ? '_export' : '_preview');
-
   if (dummy.userData._fxKey === key && dummy.userData._fxCanvas) return dummy.userData._fxCanvas;
-
   const canvas = applyLayerEffects(img, fx);
   if (!canvas) return null;
-
   dummy.userData._fxKey = key;
   dummy.userData._fxCanvas = canvas;
-
   dummy.userData._decalTexFront?.dispose?.();
   dummy.userData._decalTexBack?.dispose?.();
   dummy.userData._decalTexFront = null;
   dummy.userData._decalTexBack = null;
   dummy.userData._decalTexFrontKey = null;
   dummy.userData._decalTexBackKey = null;
-
   return canvas;
 }
-
 function getDecalTexture(dummy, isBack) {
   const canvas = getProcessedCanvas(dummy);
   if (!canvas) return null;
   const key = dummy.userData._fxKey;
-
   if (isBack) {
     if (!dummy.userData._decalTexBack || dummy.userData._decalTexBackKey !== key) {
       dummy.userData._decalTexBack?.dispose?.();
@@ -1176,7 +1125,6 @@ function getDecalTexture(dummy, isBack) {
     }
     return dummy.userData._decalTexBack;
   }
-
   if (!dummy.userData._decalTexFront || dummy.userData._decalTexFrontKey !== key) {
     dummy.userData._decalTexFront?.dispose?.();
     const t = new THREE.CanvasTexture(canvas);
@@ -1188,7 +1136,6 @@ function getDecalTexture(dummy, isBack) {
   }
   return dummy.userData._decalTexFront;
 }
-
 function getDecalAspect(dummy) {
   const c = dummy.userData._fxCanvas;
   if (c && c.width && c.height) return c.width / c.height;
@@ -1231,7 +1178,6 @@ document.getElementById('propOpacity').oninput = e => {
   }
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
-
 document.getElementById('propCurve').oninput = e => {
   if (!activeDummy || activeDummy.userData.isBg || activeDummy.userData.isCanvasGraphic) return;
   const c = +e.target.value;
@@ -1242,34 +1188,28 @@ document.getElementById('propCurve').oninput = e => {
   scheduleDecal(activeDummy);
 };
 document.getElementById('propCurve').onchange = () => pushHistory();
-
 document.getElementById('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 document.getElementById('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
-// ===== KESAN IMEJ: UI HANDLERS =====
+// FX UI
 function updateFxUI(dummy) {
   if (!dummy) return;
   const fx = ensureEffects(dummy);
   const g = id => document.getElementById(id);
-
   g('fxOverlayColor').value = fx.overlayColor;
   g('fxOverlayOpacity').value = Math.round(fx.overlayOpacity * 100);
   g('fxOverlayOpacityValue').textContent = Math.round(fx.overlayOpacity * 100) + '%';
-
   g('fxStrokeColor').value = fx.strokeColor;
   g('fxStrokeWidth').value = fx.strokeWidth;
   g('fxStrokeWidthValue').textContent = fx.strokeWidth + 'px';
-
   g('fxShadowColor').value = fx.shadowColor;
   g('fxShadowBlur').value = fx.shadowBlur;
   g('fxShadowBlurValue').textContent = fx.shadowBlur + 'px';
-
   g('fxShadowX').value = fx.shadowOffsetX;
   g('fxShadowXValue').textContent = fx.shadowOffsetX;
   g('fxShadowY').value = fx.shadowOffsetY;
   g('fxShadowYValue').textContent = fx.shadowOffsetY;
 }
-
 function fxOnInput(key, value) {
   if (!activeDummy || activeDummy.userData.isBg) return;
   const fx = ensureEffects(activeDummy);
@@ -1277,7 +1217,6 @@ function fxOnInput(key, value) {
   scheduleDecal(activeDummy);
   if (currentMode === 'free') updateFreeTransformHandles();
 }
-
 document.getElementById('fxOverlayColor').oninput = e => fxOnInput('overlayColor', e.target.value);
 document.getElementById('fxOverlayColor').onchange = () => pushHistory();
 document.getElementById('fxOverlayOpacity').oninput = e => {
@@ -1309,7 +1248,6 @@ document.getElementById('fxShadowY').oninput = e => {
   fxOnInput('shadowOffsetY', +e.target.value);
 };
 document.getElementById('fxShadowY').onchange = () => pushHistory();
-
 document.getElementById('fxReset').onclick = () => {
   if (!activeDummy || activeDummy.userData.isBg) return;
   activeDummy.userData.effects = defaultEffects();
@@ -1320,62 +1258,54 @@ document.getElementById('fxReset').onclick = () => {
   showToast('Kesan direset ke 0');
 };
 
-// ===== KESAN LATAR BELAKANG: UI HANDLERS =====
+// BG FX UI
 document.getElementById('vignetteSlider').oninput = e => {
   bgEffects.vignette = +e.target.value;
   document.getElementById('vignetteValue').textContent = bgEffects.vignette;
   updateBgOverlayStyles();
 };
 document.getElementById('vignetteSlider').onchange = () => pushHistory();
-
 document.getElementById('shadowBgSlider').oninput = e => {
   bgEffects.shadowBg = +e.target.value;
   document.getElementById('shadowBgValue').textContent = bgEffects.shadowBg;
   updateBgOverlayStyles();
 };
 document.getElementById('shadowBgSlider').onchange = () => pushHistory();
-
 document.getElementById('gradientColor').oninput = e => {
   bgEffects.gradientColor = e.target.value;
   updateBgOverlayStyles();
 };
 document.getElementById('gradientColor').onchange = () => pushHistory();
-
 document.getElementById('gradientOpacitySlider').oninput = e => {
   bgEffects.gradientOpacity = +e.target.value;
   document.getElementById('gradientOpacityValue').textContent = bgEffects.gradientOpacity;
   updateBgOverlayStyles();
 };
 document.getElementById('gradientOpacitySlider').onchange = () => pushHistory();
-
 document.getElementById('bgBlurSlider').oninput = e => {
   bgEffects.blur = +e.target.value;
   document.getElementById('bgBlurValue').textContent = bgEffects.blur;
   if (bgPlane && bgImageSource) refreshBgImage();
 };
 document.getElementById('bgBlurSlider').onchange = () => pushHistory();
-
 document.getElementById('bgBrightnessSlider').oninput = e => {
   bgEffects.brightness = +e.target.value;
   document.getElementById('bgBrightnessValue').textContent = bgEffects.brightness;
   if (bgPlane && bgImageSource) refreshBgImage();
 };
 document.getElementById('bgBrightnessSlider').onchange = () => pushHistory();
-
 document.getElementById('bgContrastSlider').oninput = e => {
   bgEffects.contrast = +e.target.value;
   document.getElementById('bgContrastValue').textContent = bgEffects.contrast;
   if (bgPlane && bgImageSource) refreshBgImage();
 };
 document.getElementById('bgContrastSlider').onchange = () => pushHistory();
-
 document.getElementById('bgSaturationSlider').oninput = e => {
   bgEffects.saturation = +e.target.value;
   document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
   if (bgPlane && bgImageSource) refreshBgImage();
 };
 document.getElementById('bgSaturationSlider').onchange = () => pushHistory();
-
 document.getElementById('bgResetBtn').onclick = () => {
   bgEffects = defaultBgEffects();
   updateBgEffectsUI();
@@ -1403,7 +1333,6 @@ document.getElementById('btnDuplicate').onclick = () => {
   const src = activeDummy;
   const tex = src.userData.texture.clone();
   tex.needsUpdate = true;
-  
   if (src.userData.isCanvasGraphic) {
     const geo = new THREE.PlaneGeometry(1, 1 / (src.userData.aspect || 1));
     const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: src.userData.opacity || 1 });
@@ -1415,8 +1344,7 @@ document.getElementById('btnDuplicate').onclick = () => {
       dataURL: src.userData.dataURL, textContent: src.userData.textContent,
       textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
       opacity: src.userData.opacity, visible: true, locked: false, isCanvasGraphic: true,
-      effects: { ...ensureEffects(src) },
-      decals: []
+      effects: { ...ensureEffects(src) }, decals: []
     };
     canvasGroup.add(mesh);
     layers.push(mesh);
@@ -1430,8 +1358,7 @@ document.getElementById('btnDuplicate').onclick = () => {
       textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
       opacity: src.userData.opacity, visible: true, locked: false,
       curve: src.userData.curve || 0,
-      effects: { ...ensureEffects(src) },
-      decals: []
+      effects: { ...ensureEffects(src) }, decals: []
     };
     dummy.position.copy(src.position); dummy.position.x += 0.12;
     dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
@@ -1466,7 +1393,6 @@ async function updateTextLayer(dummy) {
   dummy.userData.textColor = color;
   dummy.userData.dataURL = canvas.toDataURL('image/png');
   dummy.userData.aspect = 4;
-  
   if (dummy.userData.isCanvasGraphic) {
     const newTex = getProcessedCanvas(dummy);
     if (newTex) {
@@ -1483,12 +1409,11 @@ async function updateTextLayer(dummy) {
   pushHistory();
 }
 
-// ===== DECAL SYSTEM (flat + curved) =====
+// ===== DECAL SYSTEM =====
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
 
-// OPTIMASI: Tambah debounce pada decal supaya tak membina geometri berulang kali semasa drag
 let decalQueuedDummy = null;
 let decalQueued = false;
 let decalTimeout = null;
@@ -1501,7 +1426,7 @@ function scheduleDecal(dummy) {
     decalQueued = false;
     if (decalQueuedDummy) createDecalNow(decalQueuedDummy);
     decalQueuedDummy = null;
-  }, 40); // Tunggu 40ms sebelum render decal baru
+  }, 40);
 }
 
 function createDecalNow(dummy) {
@@ -1531,16 +1456,13 @@ function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   const depth = onSleeve ? 0.38 : 0.22;
-
   const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
-
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
   const size = new THREE.Vector3(w, h, depth);
-
   shirtMeshes.forEach(mesh => {
     try {
       const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
@@ -1563,27 +1485,21 @@ function createFlatDecal(dummy) {
 function createCurvedDecal(dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-
   dummy.updateMatrixWorld(true);
   const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-
   const isBack = !onSleeve && dummyNormal.z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
-
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
-
   const segX = Math.max(16, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
   const segY = 8;
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
-
   const pos = geo.attributes.position;
   const halfW = w / 2;
   const maxAngle = (Math.PI / 2) * curve;
   const R = halfW / Math.max(0.001, Math.sin(maxAngle));
-
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const u = x / halfW;
@@ -1594,14 +1510,12 @@ function createCurvedDecal(dummy, curve) {
     pos.setZ(i, newZ);
   }
   geo.computeVertexNormals();
-
   const mat = new THREE.MeshStandardMaterial({
     map: tex, transparent: true, depthTest: true, depthWrite: false,
     polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
     roughness: 0.8, opacity: dummy.userData.opacity || 1,
     side: THREE.DoubleSide
   });
-
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
   mesh.position.add(dummyNormal.clone().multiplyScalar(0.002));
@@ -1748,7 +1662,6 @@ document.getElementById('logoUpload').onchange = e => {
   });
   e.target.value = '';
 };
-
 document.getElementById('canvasLogoUpload').onchange = e => {
   [...e.target.files].forEach(file => {
     const r = new FileReader();
@@ -1765,7 +1678,6 @@ document.getElementById('canvasLogoUpload').onchange = e => {
   });
   e.target.value = '';
 };
-
 document.getElementById('textSize').oninput = e => document.getElementById('textSizeValue').textContent = e.target.value;
 document.getElementById('addTextBtn').onclick = async () => {
   const text = document.getElementById('textInput').value.trim();
@@ -1787,7 +1699,6 @@ document.getElementById('addTextBtn').onclick = async () => {
   addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, size, false);
   document.getElementById('textInput').value = '';
 };
-
 document.getElementById('addCanvasTextBtn').onclick = async () => {
   const text = document.getElementById('canvasTextInput').value.trim();
   if (!text) return;
@@ -1808,7 +1719,6 @@ document.getElementById('addCanvasTextBtn').onclick = async () => {
   addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, size, true);
   document.getElementById('canvasTextInput').value = '';
 };
-
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
   if (isCanvas) {
     const geo = new THREE.PlaneGeometry(1, 1 / aspect);
@@ -1818,8 +1728,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     mesh.userData = {
       texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
       opacity: 1, visible: true, locked: false, isCanvasGraphic: true,
-      effects: defaultEffects(),
-      decals: []
+      effects: defaultEffects(), decals: []
     };
     canvasGroup.add(mesh);
     layers.push(mesh);
@@ -1829,13 +1738,11 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     showToast('Grafik Canvas ditambah');
     return;
   }
-
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
     opacity: 1, visible: true, locked: false, curve: 0,
-    effects: defaultEffects(),
-    decals: []
+    effects: defaultEffects(), decals: []
   };
   shirtGroup.add(dummy);
   const ox = logoCount % 2 === 0 ? 0.12 : -0.12;
@@ -1854,9 +1761,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
   } else dummy.position.set(0, 0.1, 0.4);
-
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
-
   logoCount++;
   createDecalNow(dummy);
   layers.push(dummy);
@@ -1878,7 +1783,6 @@ function applySolidBackground() {
   }
   updateBgOverlaysVisibility();
 }
-
 function createBgPlane(img, aspect) {
   if (bgPlane) {
     scene.remove(bgPlane);
@@ -1902,7 +1806,6 @@ function createBgPlane(img, aspect) {
   bgImagePanel.style.display = 'block';
   applyFillMode(bgFillMode);
 }
-
 function clearBgImage() {
   if (!bgPlane) return;
   scene.remove(bgPlane); bgPlane.material.map?.dispose(); bgPlane.material.dispose(); bgPlane.geometry.dispose();
@@ -1915,7 +1818,6 @@ function clearBgImage() {
   gizmoControlsUI.classList.remove('active'); propertiesPanel.classList.remove('active');
   applySolidBackground(); pushHistory();
 }
-
 function applyFillMode(mode) {
   if (!bgPlane) return;
   bgFillMode = mode;
@@ -1924,12 +1826,10 @@ function applyFillMode(mode) {
   if (mode === 'stretch') bgPlane.scale.set(16, 16 / a, 1);
   else if (mode === 'cover') bgPlane.scale.set(20, 20 / a, 1);
   else if (mode === 'contain') bgPlane.scale.set(10, 10 / a, 1);
-  else if (mode === 'free') { /* leave as-is */ }
   bgPlane.position.set(0, 0, -6);
   document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
   document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
 }
-
 document.getElementById('bgColor').oninput = e => { currentBgColor = e.target.value; if (!bgPlane) applySolidBackground(); };
 document.getElementById('bgColor').onchange = () => pushHistory();
 document.getElementById('bgImageUpload').onchange = e => {
@@ -1997,10 +1897,10 @@ async function getStateForSave() {
     bgOpacity, bgFillMode,
     bgEffects: { ...bgEffects },
     outputRatio,
+    modelUrl: currentModelUrl,
     layers: processed
   };
 }
-
 async function loadProjectList() {
   const list = document.getElementById('projectList');
   list.innerHTML = '';
@@ -2027,14 +1927,12 @@ async function loadProjectList() {
     list.appendChild(item);
   });
 }
-
 async function loadLastProject() {
   const projects = await dbGetAll();
   if (!projects.length) return;
   projects.sort((a, b) => (b.updated || 0) - (a.updated || 0));
   await loadProject(projects[0]);
 }
-
 async function loadProject(p) {
   try {
     currentProjectId = p.id;
@@ -2048,7 +1946,6 @@ async function loadProject(p) {
     showToast('Project dimuatkan');
   } catch (err) { console.error(err); showToast('Gagal load project', true); }
 }
-
 document.getElementById('btnSaveProject').onclick = async () => {
   const name = document.getElementById('projectNameInput').value.trim() || 'Design Baru';
   currentProjectName = name;
@@ -2056,7 +1953,6 @@ document.getElementById('btnSaveProject').onclick = async () => {
     const state = await getStateForSave();
     transformHelper.visible = false;
     renderer.render(scene, camera);
-    
     const thumbCanvas = document.createElement('canvas');
     thumbCanvas.width = 320;
     thumbCanvas.height = Math.round(320 * (cropRect.h / cropRect.w));
@@ -2064,7 +1960,6 @@ document.getElementById('btnSaveProject').onclick = async () => {
     tctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, thumbCanvas.width, thumbCanvas.height);
     drawBgEffectsOnCanvas(tctx, thumbCanvas.width, thumbCanvas.height);
     const thumb = thumbCanvas.toDataURL('image/jpeg', 0.4);
-    
     transformHelper.visible = true;
     let project = currentProjectId != null
       ? { id: currentProjectId, name, state, thumb, updated: Date.now() }
@@ -2075,8 +1970,6 @@ document.getElementById('btnSaveProject').onclick = async () => {
     showToast('✅ Project berjaya disimpan');
   } catch (err) { console.error(err); showToast('❌ Gagal simpan project', true); }
 };
-
-// ===== UPGRADE: EXPORT & IMPORT FAIL =====
 document.getElementById('btnExportProject').onclick = async () => {
   try {
     const state = await getStateForSave();
@@ -2090,12 +1983,8 @@ document.getElementById('btnExportProject').onclick = async () => {
     a.click();
     URL.revokeObjectURL(url);
     showToast('✅ Fail projek berjaya dieksport');
-  } catch (err) {
-    console.error(err);
-    showToast('❌ Gagal eksport fail', true);
-  }
+  } catch (err) { console.error(err); showToast('❌ Gagal eksport fail', true); }
 };
-
 document.getElementById('importProjectFile').onchange = e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -2104,7 +1993,6 @@ document.getElementById('importProjectFile').onchange = e => {
     try {
       const state = JSON.parse(ev.target.result);
       if (!state.layers) throw new Error("Format tidak sah");
-      
       await restoreState(state);
       history = [await getStateForSave()];
       historyIndex = 0;
@@ -2118,9 +2006,8 @@ document.getElementById('importProjectFile').onchange = e => {
     }
   };
   reader.readAsText(file);
-  e.target.value = ''; // reset input
+  e.target.value = '';
 };
-
 document.getElementById('btnNewProject').onclick = () => {
   if (!confirm('Buat project baru? Design semasa akan dikosongkan.')) return;
   clearAllLayers();
@@ -2140,17 +2027,14 @@ document.getElementById('btnNewProject').onclick = () => {
 
 // ===== HISTORY =====
 async function pushHistory() {
-  // OPTIMASI: Kunci supaya tak memproses berulang kali serentak
   if (isHistoryProcessing) return;
   isHistoryProcessing = true;
-
   if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
   const s = await getStateForSave();
   history.push(s);
   if (history.length > 40) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoButtons();
-  
   isHistoryProcessing = false;
 }
 function clearAllLayers() {
@@ -2177,23 +2061,36 @@ async function restoreState(state) {
   hideFreeTransform();
   propertiesPanel.classList.remove('active');
 
+  // ⬇️ TUKAR MODEL jika berbeza
+  const targetModelUrl = state.modelUrl || './T_shirt_gltf.gltf';
+  if (targetModelUrl !== currentModelUrl || shirtMeshes.length === 0) {
+    const toRemove = [...shirtGroup.children];
+    toRemove.forEach(c => {
+      shirtGroup.remove(c);
+      c.traverse?.(n => { n.geometry?.dispose?.(); });
+    });
+    shirtMaterials.forEach(m => m.dispose?.());
+    shirtMeshes = [];
+    shirtMaterials = [];
+    currentModelUrl = targetModelUrl;
+    await loadShirtModel(targetModelUrl);
+  }
+  document.getElementById('modelSelect').value = currentModelUrl;
+  // ⬆️ TAMAT
+
   currentShirtColor = state.color || '#ffffff';
   shirtMaterials.forEach(m => m.color.set(currentShirtColor));
   document.getElementById('customColor').value = currentShirtColor;
-
   currentBgColor = state.bgColor || '#09090b';
   document.getElementById('bgColor').value = currentBgColor;
   isTransparentBg = !!state.isTransparentBg;
   document.getElementById('toggleTransparent').classList.toggle('active', isTransparentBg);
-
   outputRatio = state.outputRatio || 'auto';
   document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === outputRatio));
   updateCropFrame();
-
   bgEffects = { ...defaultBgEffects(), ...(state.bgEffects || {}) };
   updateBgEffectsUI();
   updateBgOverlayStyles();
-
   ambientLight.intensity = state.ambient ?? 0.5;
   mainLight.intensity = state.directional ?? 2;
   mainLight.shadow.intensity = state.shadow ?? 1;
@@ -2204,11 +2101,9 @@ async function restoreState(state) {
   document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2);
   document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2);
   document.getElementById('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
-
   bgOpacity = state.bgOpacity ?? 1;
   bgFillMode = state.bgFillMode || 'stretch';
   applySolidBackground();
-
   for (const ldata of (state.layers || [])) {
     if (!ldata.dataURL) continue;
     await new Promise(resolve => {
@@ -2218,7 +2113,6 @@ async function restoreState(state) {
           const tex = new THREE.Texture(img);
           tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
           tex.anisotropy = maxAnisotropy;
-          
           if (ldata.isCanvasGraphic) {
             const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: ldata.opacity || 1 });
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1 / (ldata.aspect || 1)), mat);
@@ -2244,7 +2138,7 @@ async function restoreState(state) {
               if (!mesh.userData.visible) { el.querySelector('.vis').classList.add('hidden'); el.querySelector('.vis').textContent = '👁️‍🗨️'; }
               if (mesh.userData.locked) { el.querySelector('.lock').textContent = '🔒'; el.classList.add('locked'); }
             }
-            createDecalNow(mesh); // updates texture and aspect
+            createDecalNow(mesh);
           } else {
             const dummy = new THREE.Object3D();
             dummy.userData = {
@@ -2294,66 +2188,48 @@ btnUndo.onclick = undo; btnRedo.onclick = redo;
 
 // ===== IMAGE SAVE =====
 function captureImage(view = 'current') {
-  isExporting = true; // UPGRADE: Tukar ke kualiti max
+  isExporting = true;
   transformHelper.visible = false;
   hideFreeTransform();
   controls.enabled = false;
-
   const origPos = camera.position.clone();
   const origTarget = controls.target.clone();
-
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
-
   const targetRes = 3840;
   const scale = targetRes / Math.max(cropRect.w, cropRect.h);
   const outW = Math.round(cropRect.w * scale);
   const outH = Math.round(cropRect.h * scale);
-
   renderer.setPixelRatio(1);
   renderer.setSize(outW, outH, false);
-  
-  camera.setViewOffset(
-    container.clientWidth, container.clientHeight,
-    cropRect.x, cropRect.y,
-    cropRect.w, cropRect.h
-  );
+  camera.setViewOffset(container.clientWidth, container.clientHeight, cropRect.x, cropRect.y, cropRect.w, cropRect.h);
   camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
-
-  // Force all decals to re-render at 4096px
   layers.forEach(d => {
     if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
     else if (d.userData.isCanvasGraphic) createDecalNow(d);
   });
-
   function renderAndExtract(posX, posY, posZ) {
     camera.position.set(posX, posY, posZ);
     controls.target.set(0, 0.05, 0);
     camera.lookAt(controls.target);
-    
     renderer.render(scene, camera);
-
     const c = document.createElement('canvas');
-    c.width = outW;
-    c.height = outH;
+    c.width = outW; c.height = outH;
     const ctx = c.getContext('2d');
     ctx.drawImage(renderer.domElement, 0, 0);
     drawBgEffectsOnCanvas(ctx, outW, outH);
     return c;
   }
-
   if (view === 'all') {
     const gridCanvas = document.createElement('canvas');
     gridCanvas.width = outW * 2;
     gridCanvas.height = outH * 2;
     const ctx = gridCanvas.getContext('2d');
-
-    ctx.drawImage(renderAndExtract(0, 0.15, 5.2), 0, 0); // Front
-    ctx.drawImage(renderAndExtract(5.2, 0.15, 0), outW, 0); // Right
-    ctx.drawImage(renderAndExtract(-5.2, 0.15, 0), 0, outH); // Left
-    ctx.drawImage(renderAndExtract(0, 0.15, -5.2), outW, outH); // Back
-
+    ctx.drawImage(renderAndExtract(0, 0.15, 5.2), 0, 0);
+    ctx.drawImage(renderAndExtract(5.2, 0.15, 0), outW, 0);
+    ctx.drawImage(renderAndExtract(-5.2, 0.15, 0), 0, outH);
+    ctx.drawImage(renderAndExtract(0, 0.15, -5.2), outW, outH);
     const a = document.createElement('a');
     a.download = 'design-all-views.png';
     a.href = gridCanvas.toDataURL('image/png');
@@ -2364,15 +2240,12 @@ function captureImage(view = 'current') {
     else if (view === 'back') { px = 0; py = 0.15; pz = -5.2; }
     else if (view === 'left') { px = -5.2; py = 0.15; pz = 0; }
     else if (view === 'right') { px = 5.2; py = 0.15; pz = 0; }
-
     const c = renderAndExtract(px, py, pz);
     const a = document.createElement('a');
     a.download = `design-${view}.png`;
     a.href = c.toDataURL('image/png');
     a.click();
   }
-
-  // Reset semula
   isExporting = false;
   camera.clearViewOffset();
   camera.position.copy(origPos);
@@ -2383,18 +2256,12 @@ function captureImage(view = 'current') {
   renderer.setSize(oldSize.x, oldSize.y, false);
   transformHelper.visible = true;
   controls.enabled = true;
-  
-  // Revert all decals back to 1024px
-  layers.forEach(d => {
-    if (!d.userData.isBg) createDecalNow(d);
-  });
-
+  layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
   if (currentMode === 'free' && activeDummy) showFreeTransform();
   controls.update();
   renderer.render(scene, camera);
   showToast('✅ Imej HD berjaya disimpan');
 }
-
 document.getElementById('saveBtn').onclick = () => {
   const view = document.getElementById('saveViewSelect').value;
   captureImage(view);
@@ -2404,7 +2271,6 @@ document.getElementById('saveBtn').onclick = () => {
 document.getElementById('speedSlider').oninput = e => { rotationSpeed = +e.target.value; document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 document.getElementById('durationSlider').oninput = e => { recordDuration = +e.target.value; document.getElementById('durationValue').textContent = recordDuration + 's'; };
 document.getElementById('qualitySlider').oninput = e => { recordQuality = +e.target.value; document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait'; };
-
 btnPreview.onclick = () => { if (isRecording) return; isPreviewing ? stopPreview() : startPreview(); };
 
 function startPreview() {
@@ -2416,30 +2282,24 @@ function startPreview() {
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
-  
   camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
   shirtGroup.rotation.y = 0;
   animStartTime = performance.now();
   currentP = 0;
-  
   recordingOverlay.classList.add('active');
-  
   function loop(now) {
     if (!isPreviewing) return;
-    
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
       shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
       recordingText.textContent = `Preview... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
       if (currentP >= 1) { stopPreview(); return; }
     }
-    
     renderer.render(scene, camera);
     previewAnimationId = requestAnimationFrame(loop);
   }
   previewAnimationId = requestAnimationFrame(loop);
 }
-
 function stopPreview() {
   isPreviewing = false;
   isPaused = false;
@@ -2449,63 +2309,47 @@ function stopPreview() {
   floatingControls.style.display = 'none';
   shirtGroup.rotation.y = 0; transformHelper.visible = true; controls.enabled = true;
 }
-
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
 
 async function startVideoRecord() {
   if (isRecording) return;
-  
-  isExporting = true; // UPGRADE: Tukar ke kualiti max
-  
+  isExporting = true;
   transformHelper.visible = false; hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
-  
-  // Force decal re-render at max res
-  layers.forEach(d => { if(!d.userData.isBg) createDecalNow(d); });
-
+  layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
   let targetRes = recordQuality === 0 ? 1080 : 1920;
   let scale = targetRes / Math.max(cropRect.w, cropRect.h);
   let recW = Math.round(cropRect.w * scale);
   let recH = Math.round(cropRect.h * scale);
   recW = recW % 2 === 0 ? recW : recW + 1;
   recH = recH % 2 === 0 ? recH : recH + 1;
-
   const recordCanvas = document.createElement('canvas');
-  recordCanvas.width = recW;
-  recordCanvas.height = recH;
+  recordCanvas.width = recW; recordCanvas.height = recH;
   const rctx = recordCanvas.getContext('2d');
-
   const oldSize = new THREE.Vector2(); renderer.getSize(oldSize);
   const oldPR = renderer.getPixelRatio();
   const tw = container.clientWidth, th = container.clientHeight;
-  
   renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   camera.aspect = tw / th; camera.updateProjectionMatrix();
   camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
-  
-  for (let i = 0; i < 8; i++) { 
+  for (let i = 0; i < 8; i++) {
     renderer.clear(); renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
     rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
     drawBgEffectsOnCanvas(rctx, recW, recH);
   }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
   const stream = recordCanvas.captureStream(60);
   const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
   recordedChunks = [];
-  
-  const bitrate = recordQuality === 0 ? 15000000 : 25000000; 
+  const bitrate = recordQuality === 0 ? 15000000 : 25000000;
   mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
-  
   mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
   mediaRecorder.onstop = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
     a.download = `design-portrait-${Date.now()}.webm`; a.click();
-    
-    isExporting = false; // Kembali ke kualiti preview
-    layers.forEach(d => { if(!d.userData.isBg) createDecalNow(d); }); // Revert textures
-    
+    isExporting = false;
+    layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
     renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
     camera.aspect = oldSize.x / oldSize.y; camera.updateProjectionMatrix();
     transformHelper.visible = true; controls.enabled = true;
@@ -2514,32 +2358,26 @@ async function startVideoRecord() {
     recordingOverlay.classList.remove('active'); shirtGroup.rotation.y = 0;
     floatingControls.style.display = 'none';
   };
-  
   isRecording = true; isPaused = false;
   btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
   btnRenderVideo.textContent = '⏹ Sedang Merakam...'; recordingOverlay.classList.add('active');
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
-  
   mediaRecorder.start(100); shirtGroup.rotation.y = 0;
   animStartTime = performance.now();
   currentP = 0;
-  
   function loop(now) {
     if (!isRecording) return;
-    
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
       shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
       recordingText.textContent = `Sedang merakam... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
     }
-    
     renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
     rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
     drawBgEffectsOnCanvas(rctx, recW, recH);
-    
     if (currentP >= 1) {
       setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
     } else {
@@ -2548,8 +2386,6 @@ async function startVideoRecord() {
   }
   requestAnimationFrame(loop);
 }
-
-// Pause / Resume logic
 btnPausePlay.onclick = () => {
   if (!isPreviewing && !isRecording) return;
   isPaused = !isPaused;
@@ -2564,15 +2400,10 @@ btnPausePlay.onclick = () => {
     animStartTime = performance.now() - (currentP * recordDuration * 1000);
   }
 };
-
-// Capture Frame during pause
 btnSnap.onclick = () => {
   const view = document.getElementById('saveViewSelect').value;
-  if (view === 'current') {
-    captureImage('current');
-  } else {
-    showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
-  }
+  if (view === 'current') captureImage('current');
+  else showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
 };
 
 // ===== UI =====
@@ -2603,13 +2434,11 @@ document.getElementById('customColor').oninput = e => {
   currentShirtColor = e.target.value; shirtMaterials.forEach(m => m.color.set(e.target.value));
 };
 document.getElementById('customColor').onchange = () => pushHistory();
-
 document.getElementById('viewFront').onclick = () => { camera.position.set(0,0,4.5); controls.target.set(0,0,0); setActive('viewFront'); };
 document.getElementById('viewBack').onclick = () => { camera.position.set(0,0,-4.5); controls.target.set(0,0,0); setActive('viewBack'); };
 document.getElementById('viewRight').onclick = () => { camera.position.set(4.5,0,0); controls.target.set(0,0,0); setActive('viewRight'); };
 document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5,0,0); controls.target.set(0,0,0); setActive('viewLeft'); };
 function setActive(id) { document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-
 window.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
   const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
@@ -2649,8 +2478,6 @@ window.addEventListener('resize', () => {
   camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
   updateCropFrame();
 });
-
-// Initial
 updateBgOverlayStyles();
 updateBgEffectsUI();
 applySolidBackground();
