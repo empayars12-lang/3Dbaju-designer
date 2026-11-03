@@ -27,7 +27,6 @@
     .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#71717a}
     .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
     
-    /* max-height dinaikkan supaya tak terpotong */
     .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
     .accordion-item.open .accordion-body{max-height:3000px;padding:10px 12px 14px}
 
@@ -612,6 +611,10 @@ let outputRatio = 'auto';
 let cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
 let animStartTime = 0, currentP = 0;
 
+// OPTIMASI: Flag kualiti (Preview vs Export) dan lock history
+let isExporting = false;
+let isHistoryProcessing = false;
+
 // ===== KESAN LATAR BELAKANG =====
 function defaultBgEffects() {
   return {
@@ -736,11 +739,9 @@ function updateBgEffectsUI() {
   document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
 }
 
-// FUNGSI BARU: Melukis kesan latar belakang ke atas Kanvas (untuk Video & Gambar)
 function drawBgEffectsOnCanvas(ctx, w, h) {
   if (isTransparentBg) return;
 
-  // 1. Vignette
   if (bgEffects.vignette > 0) {
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
@@ -754,7 +755,6 @@ function drawBgEffectsOnCanvas(ctx, w, h) {
     ctx.restore();
   }
 
-  // 2. Shadow Studio
   if (bgEffects.shadowBg > 0) {
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
@@ -772,7 +772,6 @@ function drawBgEffectsOnCanvas(ctx, w, h) {
     ctx.restore();
   }
 
-  // 3. Gradient Overlay
   if (bgEffects.gradientOpacity > 0) {
     ctx.save();
     ctx.globalAlpha = bgEffects.gradientOpacity / 100;
@@ -1025,14 +1024,14 @@ function disposeDummyTextures(dummy) {
   dummy.userData._fxKey = null;
 }
 
-// ===== IMAGE EFFECTS PROCESSOR =====
+// ===== OPTIMASI: IMAGE EFFECTS PROCESSOR =====
 function applyLayerEffects(img, fx) {
   const W0 = img.width || img.naturalWidth || 512;
   const H0 = img.height || img.naturalHeight || 512;
   if (!W0 || !H0) return null;
 
-  // MAX_SIDE 4096px untuk ketajaman maksimum
-  const MAX_SIDE = 4096;
+  // OPTIMASI: Guna 1024px untuk edit (laju), 4096px untuk export (tajam)
+  const MAX_SIDE = isExporting ? 4096 : 1024; 
   const sc = Math.min(1, MAX_SIDE / Math.max(W0, H0));
   const bw = Math.max(1, Math.round(W0 * sc));
   const bh = Math.max(1, Math.round(H0 * sc));
@@ -1117,7 +1116,8 @@ function getProcessedCanvas(dummy) {
   const img = dummy.userData.texture?.image;
   if (!img) return null;
   const fx = ensureEffects(dummy);
-  const key = JSON.stringify(fx);
+  // OPTIMASI: Masukkan isExporting dalam cache key supaya ia tahu bila nak re-render
+  const key = JSON.stringify(fx) + (isExporting ? '_export' : '_preview');
 
   if (dummy.userData._fxKey === key && dummy.userData._fxCanvas) return dummy.userData._fxCanvas;
 
@@ -1468,17 +1468,20 @@ const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
 
+// OPTIMASI: Tambah debounce pada decal supaya tak membina geometri berulang kali semasa drag
 let decalQueuedDummy = null;
 let decalQueued = false;
+let decalTimeout = null;
 function scheduleDecal(dummy) {
   decalQueuedDummy = dummy;
   if (decalQueued) return;
   decalQueued = true;
-  requestAnimationFrame(() => {
+  if (decalTimeout) clearTimeout(decalTimeout);
+  decalTimeout = setTimeout(() => {
     decalQueued = false;
     if (decalQueuedDummy) createDecalNow(decalQueuedDummy);
     decalQueuedDummy = null;
-  });
+  }, 40); // Tunggu 40ms sebelum render decal baru
 }
 
 function createDecalNow(dummy) {
@@ -2072,12 +2075,18 @@ document.getElementById('btnNewProject').onclick = () => {
 
 // ===== HISTORY =====
 async function pushHistory() {
+  // OPTIMASI: Kunci supaya tak memproses berulang kali serentak
+  if (isHistoryProcessing) return;
+  isHistoryProcessing = true;
+
   if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
   const s = await getStateForSave();
   history.push(s);
   if (history.length > 40) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoButtons();
+  
+  isHistoryProcessing = false;
 }
 function clearAllLayers() {
   [...layers].forEach(d => {
@@ -2218,8 +2227,9 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
-// ===== IMAGE SAVE (FIXED: High Res + setViewOffset crop) =====
+// ===== IMAGE SAVE =====
 function captureImage(view = 'current') {
+  isExporting = true; // UPGRADE: Tukar ke kualiti max
   transformHelper.visible = false;
   hideFreeTransform();
   controls.enabled = false;
@@ -2230,7 +2240,6 @@ function captureImage(view = 'current') {
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
 
-  // Naik taraf resolusi untuk HD/4K
   const targetRes = 3840;
   const scale = targetRes / Math.max(cropRect.w, cropRect.h);
   const outW = Math.round(cropRect.w * scale);
@@ -2239,7 +2248,6 @@ function captureImage(view = 'current') {
   renderer.setPixelRatio(1);
   renderer.setSize(outW, outH, false);
   
-  // Guna setViewOffset untuk crop imej dengan tepat tanpa stretch
   camera.setViewOffset(
     container.clientWidth, container.clientHeight,
     cropRect.x, cropRect.y,
@@ -2247,6 +2255,12 @@ function captureImage(view = 'current') {
   );
   camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
+
+  // Force all decals to re-render at 4096px
+  layers.forEach(d => {
+    if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
+    else if (d.userData.isCanvasGraphic) createDecalNow(d);
+  });
 
   function renderAndExtract(posX, posY, posZ) {
     camera.position.set(posX, posY, posZ);
@@ -2294,6 +2308,7 @@ function captureImage(view = 'current') {
   }
 
   // Reset semula
+  isExporting = false;
   camera.clearViewOffset();
   camera.position.copy(origPos);
   controls.target.copy(origTarget);
@@ -2303,6 +2318,12 @@ function captureImage(view = 'current') {
   renderer.setSize(oldSize.x, oldSize.y, false);
   transformHelper.visible = true;
   controls.enabled = true;
+  
+  // Revert all decals back to 1024px
+  layers.forEach(d => {
+    if (!d.userData.isBg) createDecalNow(d);
+  });
+
   if (currentMode === 'free' && activeDummy) showFreeTransform();
   controls.update();
   renderer.render(scene, camera);
@@ -2348,9 +2369,7 @@ function startPreview() {
       if (currentP >= 1) { stopPreview(); return; }
     }
     
-    // FIX: Tambah renderer.render supaya nampak pergerakan semasa preview
     renderer.render(scene, camera);
-    
     previewAnimationId = requestAnimationFrame(loop);
   }
   previewAnimationId = requestAnimationFrame(loop);
@@ -2370,8 +2389,14 @@ btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRe
 
 async function startVideoRecord() {
   if (isRecording) return;
+  
+  isExporting = true; // UPGRADE: Tukar ke kualiti max
+  
   transformHelper.visible = false; hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
   
+  // Force decal re-render at max res
+  layers.forEach(d => { if(!d.userData.isBg) createDecalNow(d); });
+
   let targetRes = recordQuality === 0 ? 1080 : 1920;
   let scale = targetRes / Math.max(cropRect.w, cropRect.h);
   let recW = Math.round(cropRect.w * scale);
@@ -2412,6 +2437,10 @@ async function startVideoRecord() {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
     a.download = `design-portrait-${Date.now()}.webm`; a.click();
+    
+    isExporting = false; // Kembali ke kualiti preview
+    layers.forEach(d => { if(!d.userData.isBg) createDecalNow(d); }); // Revert textures
+    
     renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
     camera.aspect = oldSize.x / oldSize.y; camera.updateProjectionMatrix();
     transformHelper.visible = true; controls.enabled = true;
@@ -2444,7 +2473,7 @@ async function startVideoRecord() {
     renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
     rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
-    drawBgEffectsOnCanvas(rctx, recW, recH); // FIX: Lukis kesan latar pada video
+    drawBgEffectsOnCanvas(rctx, recW, recH);
     
     if (currentP >= 1) {
       setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
