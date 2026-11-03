@@ -9,14 +9,28 @@
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
     #app{display:flex;height:100vh}
-    #sidebar-left{width:300px;background:#18181b;padding:14px;display:flex;flex-direction:column;gap:8px;border-right:1px solid #27272a;z-index:10;overflow-y:auto}
-    .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden}
+    
+    /* UPGRADE: Custom scrollbar & padding supaya tak terlindung */
+    #sidebar-left{
+      width:300px;background:#18181b;padding:14px 14px 60px 14px;
+      display:flex;flex-direction:column;gap:8px;
+      border-right:1px solid #27272a;z-index:10;overflow-y:auto;
+    }
+    #sidebar-left::-webkit-scrollbar { width: 8px; }
+    #sidebar-left::-webkit-scrollbar-track { background: #18181b; }
+    #sidebar-left::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+    #sidebar-left::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+    .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden;flex-shrink:0}
     .accordion-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#d4d4d8}
     .accordion-header:hover{background:#27272a}
     .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#71717a}
     .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
+    
+    /* UPGRADE: max-height dinaikkan supaya tak terpotong */
     .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
-    .accordion-item.open .accordion-body{max-height:1200px;padding:10px 12px 14px}
+    .accordion-item.open .accordion-body{max-height:3000px;padding:10px 12px 14px}
+
     .color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
     .color-btn{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s}
     .color-btn:hover{transform:scale(1.1)}
@@ -962,13 +976,13 @@ function disposeDummyTextures(dummy) {
   dummy.userData._fxKey = null;
 }
 
-// ===== IMAGE EFFECTS PROCESSOR (HIGH RES) =====
+// ===== IMAGE EFFECTS PROCESSOR =====
 function applyLayerEffects(img, fx) {
   const W0 = img.width || img.naturalWidth || 512;
   const H0 = img.height || img.naturalHeight || 512;
   if (!W0 || !H0) return null;
 
-  // UPGRADE: MAX_SIDE dinaikkan ke 4096 untuk kualiti HD+ (Mengelakkan pecah)
+  // MAX_SIDE 4096px untuk ketajaman maksimum
   const MAX_SIDE = 4096;
   const sc = Math.min(1, MAX_SIDE / Math.max(W0, H0));
   const bw = Math.max(1, Math.round(W0 * sc));
@@ -1084,7 +1098,7 @@ function getDecalTexture(dummy, isBack) {
       dummy.userData._decalTexBack?.dispose?.();
       const t = new THREE.CanvasTexture(canvas);
       t.colorSpace = THREE.SRGBColorSpace;
-      t.anisotropy = maxAnisotropy; // UPGRADE: Ketajaman sudut
+      t.anisotropy = maxAnisotropy;
       t.wrapS = THREE.RepeatWrapping;
       t.repeat.x = -1;
       t.needsUpdate = true;
@@ -1098,7 +1112,7 @@ function getDecalTexture(dummy, isBack) {
     dummy.userData._decalTexFront?.dispose?.();
     const t = new THREE.CanvasTexture(canvas);
     t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = maxAnisotropy; // UPGRADE: Ketajaman sudut
+    t.anisotropy = maxAnisotropy;
     t.needsUpdate = true;
     dummy.userData._decalTexFront = t;
     dummy.userData._decalTexFrontKey = key;
@@ -2153,7 +2167,7 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
-// ===== IMAGE SAVE (VIEW SELECTOR + PROGRESSIVE 5 SUPERSAMPLING) =====
+// ===== IMAGE SAVE (FIXED: High Res + setViewOffset crop) =====
 function captureImage(view = 'current') {
   transformHelper.visible = false;
   hideFreeTransform();
@@ -2165,52 +2179,36 @@ function captureImage(view = 'current') {
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
 
-  // UPGRADE: Naik taraf resolusi untuk HD (4K)
-  const targetRes = 3840; 
+  // Naik taraf resolusi untuk HD/4K
+  const targetRes = 3840;
   const scale = targetRes / Math.max(cropRect.w, cropRect.h);
   const outW = Math.round(cropRect.w * scale);
   const outH = Math.round(cropRect.h * scale);
 
-  // Progressive Rendering (Supersampling) setup
-  const samples = 5; // 5 Peringkat untuk ketajaman max
-  const ssScale = 2; // 2x upscale semasa render
-  const ssW = outW * ssScale;
-  const ssH = outH * ssScale;
-
   renderer.setPixelRatio(1);
-  renderer.setSize(ssW, ssH, false);
-  camera.aspect = ssW / ssH;
+  renderer.setSize(outW, outH, false);
+  
+  // Guna setViewOffset untuk crop imej dengan tepat tanpa stretch
+  camera.setViewOffset(
+    container.clientWidth, container.clientHeight,
+    cropRect.x, cropRect.y,
+    cropRect.w, cropRect.h
+  );
+  camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
 
   function renderAndExtract(posX, posY, posZ) {
     camera.position.set(posX, posY, posZ);
     controls.target.set(0, 0.05, 0);
     camera.lookAt(controls.target);
-
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = outW;
-    finalCanvas.height = outH;
-    const fctx = finalCanvas.getContext('2d');
     
-    // Render berbilang sampel sedikit demi sedikit (Jittered Supersampling)
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = ssW;
-    tempCanvas.height = ssH;
-    const tctx = tempCanvas.getContext('2d');
+    renderer.render(scene, camera);
 
-    for (let i = 0; i < samples; i++) {
-      renderer.render(scene, camera);
-      // Jitter posisi pixel sedikit untuk lancarkan tepi (anti-aliasing progressive)
-      const jitterX = (Math.random() - 0.5) * 1.5;
-      const jitterY = (Math.random() - 0.5) * 1.5;
-      tctx.clearRect(0, 0, ssW, ssH);
-      tctx.drawImage(renderer.domElement, jitterX, jitterY);
-      
-      // Turunkan resolusi ke outW/outH
-      fctx.globalAlpha = 1 / (i + 1);
-      fctx.drawImage(tempCanvas, cropRect.x * ssScale, cropRect.y * ssScale, cropRect.w * ssScale, cropRect.h * ssScale, 0, 0, outW, outH);
-    }
-    return finalCanvas;
+    const c = document.createElement('canvas');
+    c.width = outW;
+    c.height = outH;
+    c.getContext('2d').drawImage(renderer.domElement, 0, 0);
+    return c;
   }
 
   if (view === 'all') {
@@ -2243,6 +2241,7 @@ function captureImage(view = 'current') {
   }
 
   // Reset semula
+  camera.clearViewOffset();
   camera.position.copy(origPos);
   controls.target.copy(origTarget);
   camera.aspect = oldSize.x / oldSize.y;
@@ -2342,11 +2341,10 @@ async function startVideoRecord() {
   }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-  const stream = recordCanvas.captureStream(60); // 60 FPS untuk kelancaran
+  const stream = recordCanvas.captureStream(60);
   const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
   recordedChunks = [];
   
-  // UPGRADE: Bitrate dinaikkan untuk kualiti tertinggi (15Mbps & 25Mbps)
   const bitrate = recordQuality === 0 ? 15000000 : 25000000; 
   mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
   
