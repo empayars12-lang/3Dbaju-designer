@@ -842,7 +842,8 @@ function applyModelColorAndEffects(container) {
   base.b = Math.max(0, Math.min(1, (base.b - 0.5) * c + 0.5));
   
   container.traverse(child => {
-    if (child.isMesh && child.material) {
+    // PENTING: Jangan ubah warna jika ia adalah decal/logo!
+    if (child.isMesh && child.material && !child.userData.isDecal) {
       if (Array.isArray(child.material)) {
         child.material.forEach(m => m.color.copy(base));
       } else {
@@ -1846,11 +1847,13 @@ function createFlatDecal(dummy) {
         const mat = new THREE.MeshStandardMaterial({
           map: tex, transparent: true, depthTest: true, depthWrite: false,
           polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
+          color: 0xffffff, // Set to pure white so the texture isn't tinted
           opacity: dummy.userData.opacity || 1
         });
         const m = new THREE.Mesh(geo, mat);
         m.renderOrder = 2;
         m.visible = dummy.userData.visible !== false;
+        m.userData.isDecal = true; // Tag as decal
         
         if (target) target.add(m);
         else shirtGroup.add(m);
@@ -1892,7 +1895,8 @@ function createCurvedDecal(dummy, curve) {
   const mat = new THREE.MeshStandardMaterial({
     map: tex, transparent: true, depthTest: true, depthWrite: false,
     polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
-    roughness: 0.8, opacity: dummy.userData.opacity || 1,
+    roughness: 0.8, color: 0xffffff,
+    opacity: dummy.userData.opacity || 1,
     side: THREE.DoubleSide
   });
   const mesh = new THREE.Mesh(geo, mat);
@@ -1901,6 +1905,7 @@ function createCurvedDecal(dummy, curve) {
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
+  mesh.userData.isDecal = true; // Tag as decal
   
   if (dummy.userData.targetContainer) dummy.userData.targetContainer.add(mesh);
   else shirtGroup.add(mesh);
