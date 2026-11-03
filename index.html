@@ -10,7 +10,7 @@
     html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
     #app{display:flex;height:100vh}
     
-    /* UPGRADE: Custom scrollbar & padding supaya tak terlindung */
+    /* Custom scrollbar & padding supaya tak terlindung */
     #sidebar-left{
       width:300px;background:#18181b;padding:14px 14px 60px 14px;
       display:flex;flex-direction:column;gap:8px;
@@ -27,7 +27,7 @@
     .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#71717a}
     .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
     
-    /* UPGRADE: max-height dinaikkan supaya tak terpotong */
+    /* max-height dinaikkan supaya tak terpotong */
     .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
     .accordion-item.open .accordion-body{max-height:3000px;padding:10px 12px 14px}
 
@@ -2294,6 +2294,10 @@ function startPreview() {
       recordingText.textContent = `Preview... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
       if (currentP >= 1) { stopPreview(); return; }
     }
+    
+    // FIX: Tambah renderer.render supaya nampak pergerakan semasa preview
+    renderer.render(scene, camera);
+    
     previewAnimationId = requestAnimationFrame(loop);
   }
   previewAnimationId = requestAnimationFrame(loop);
