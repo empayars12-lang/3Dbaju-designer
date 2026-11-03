@@ -112,9 +112,11 @@
     
     /* ==== LAYER GROUPING STYLES ==== */
     .layer-group { margin-bottom: 8px; border: 1px solid #3f3f46; border-radius: 6px; overflow: hidden; }
-    .group-header { background: #27272a; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; cursor: pointer; color: #e4e4e7; }
+    .group-header { background: #27272a; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; color: #e4e4e7; }
     .group-header:hover { background: #3f3f46; }
-    .group-header .arrow { transition: transform 0.2s; font-size: 10px; }
+    .group-header.active { border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .group-title { flex: 1; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .group-header .arrow { transition: transform 0.2s; font-size: 10px; cursor: pointer; padding: 4px; }
     .layer-group.collapsed .group-header .arrow { transform: rotate(-90deg); }
     .group-items { padding: 4px; border-left: 2px solid #38bdf8; margin-left: 12px; display: flex; flex-direction: column; gap: 2px; }
     .layer-group.collapsed .group-items { display: none; }
@@ -385,81 +387,88 @@
     <div id="layers-header"><h2>Senarai Layer & Kumpulan</h2></div>
     <div id="layers-list"></div>
     <div id="properties-panel">
-      <h3>Properties</h3>
-      <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
-      <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
-      <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
-      <div class="prop-row" id="curveRow">
-        <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
-        <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
-        <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
-      </div>
-      <div class="align-row">
-        <button class="align-btn" id="btnAlignCenterX">Center X</button>
-        <button class="align-btn" id="btnAlignCenterY">Center Y</button>
-      </div>
-      <button class="small-btn" id="btnDuplicate" style="margin-top:10px">Duplicate Layer</button>
-      <div id="textProps" style="display:none;margin-top:12px">
-        <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
-        <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
-      </div>
+      <h3 id="propTitle">Properties</h3>
       
-      <!-- ===== KESAN IMEJ ===== -->
-      <div id="fxPanel" style="display:none">
-        <h3 style="margin-top:14px">Kesan Imej</h3>
-        
-        <div class="fx-group">
-          <div class="fx-title">Brightness & Contrast</div>
-          <div class="fx-row">
-            <span class="fx-val" style="color:#a1a1aa;text-align:left">B</span>
-            <input type="range" id="fxBrightness" min="20" max="200" step="5" value="100">
-            <span class="fx-val" id="fxBrightnessValue">100%</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-val" style="color:#a1a1aa;text-align:left">C</span>
-            <input type="range" id="fxContrast" min="20" max="200" step="5" value="100">
-            <span class="fx-val" id="fxContrastValue">100%</span>
-          </div>
+      <!-- Decal Properties -->
+      <div id="decalProps">
+        <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
+        <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
+        <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
+        <div class="prop-row" id="curveRow">
+          <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
+          <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
+          <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
         </div>
-
-        <div class="fx-group">
-          <div class="fx-title">Overlay Warna</div>
-          <div class="fx-row">
-            <input type="color" id="fxOverlayColor" value="#ff0000">
-            <input type="range" id="fxOverlayOpacity" min="0" max="100" step="1" value="0">
-            <span class="fx-val" id="fxOverlayOpacityValue">0%</span>
-          </div>
+        <div class="align-row">
+          <button class="align-btn" id="btnAlignCenterX">Center X</button>
+          <button class="align-btn" id="btnAlignCenterY">Center Y</button>
+        </div>
+        <button class="small-btn" id="btnDuplicate" style="margin-top:10px">Duplicate Layer</button>
+        <div id="textProps" style="display:none;margin-top:12px">
+          <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
+          <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
         </div>
         
-        <div class="fx-group">
-          <div class="fx-title">Stroke</div>
-          <div class="fx-row">
-            <input type="color" id="fxStrokeColor" value="#000000">
-            <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
-            <span class="fx-val" id="fxStrokeWidthValue">0px</span>
+        <div id="fxPanel" style="display:none">
+          <h3 style="margin-top:14px">Kesan Imej</h3>
+          <div class="fx-group">
+            <div class="fx-title">Brightness & Contrast</div>
+            <div class="fx-row">
+              <span class="fx-val" style="color:#a1a1aa;text-align:left">B</span>
+              <input type="range" id="fxBrightness" min="20" max="200" step="5" value="100">
+              <span class="fx-val" id="fxBrightnessValue">100%</span>
+            </div>
+            <div class="fx-row">
+              <span class="fx-val" style="color:#a1a1aa;text-align:left">C</span>
+              <input type="range" id="fxContrast" min="20" max="200" step="5" value="100">
+              <span class="fx-val" id="fxContrastValue">100%</span>
+            </div>
           </div>
+          <div class="fx-group">
+            <div class="fx-title">Overlay Warna</div>
+            <div class="fx-row">
+              <input type="color" id="fxOverlayColor" value="#ff0000">
+              <input type="range" id="fxOverlayOpacity" min="0" max="100" step="1" value="0">
+              <span class="fx-val" id="fxOverlayOpacityValue">0%</span>
+            </div>
+          </div>
+          <div class="fx-group">
+            <div class="fx-title">Stroke</div>
+            <div class="fx-row">
+              <input type="color" id="fxStrokeColor" value="#000000">
+              <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
+              <span class="fx-val" id="fxStrokeWidthValue">0px</span>
+            </div>
+          </div>
+          <div class="fx-group">
+            <div class="fx-title">Drop Shadow</div>
+            <div class="fx-row">
+              <input type="color" id="fxShadowColor" value="#000000">
+              <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="0">
+              <span class="fx-val" id="fxShadowBlurValue">0px</span>
+            </div>
+            <div class="fx-row">
+              <span class="fx-val" style="color:#a1a1aa;text-align:left">X</span>
+              <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="0">
+              <span class="fx-val" id="fxShadowXValue">0</span>
+            </div>
+            <div class="fx-row">
+              <span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span>
+              <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="0">
+              <span class="fx-val" id="fxShadowYValue">0</span>
+            </div>
+          </div>
+          <button class="small-btn" id="fxReset">↺ Reset Kesan (0)</button>
         </div>
-        
-        <div class="fx-group">
-          <div class="fx-title">Drop Shadow</div>
-          <div class="fx-row">
-            <input type="color" id="fxShadowColor" value="#000000">
-            <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="0">
-            <span class="fx-val" id="fxShadowBlurValue">0px</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-val" style="color:#a1a1aa;text-align:left">X</span>
-            <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="0">
-            <span class="fx-val" id="fxShadowXValue">0</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span>
-            <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="0">
-            <span class="fx-val" id="fxShadowYValue">0</span>
-          </div>
-        </div>
-        <button class="small-btn" id="fxReset">↺ Reset Kesan (0)</button>
       </div>
+
+      <!-- Model Properties -->
+      <div id="modelProps" style="display:none; margin-top:12px;">
+        <div class="prop-row"><label>Warna Baju</label><input type="color" id="modelColor" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
+        <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
+        <div class="prop-row"><label>Contrast <span id="modelContrastValue">100</span>%</label><input type="range" id="modelContrast" min="20" max="200" step="5" value="100"></div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -485,7 +494,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 });
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v7';
+const DB_NAME = 'ProDesigner3D_v8';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -621,8 +630,8 @@ scene.add(shirtGroup);
 scene.add(canvasGroup);
 
 let loadedModelContainers = [];
-let layerGroups = new Map(); // Maps containerId -> { headerEl, itemsEl }
-let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, logoCount = 0;
+let layerGroups = new Map();
+let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, activeModelContainer = null, logoCount = 0;
 let currentShirtColor = '#ffffff', currentMode = 'translate';
 let history = [], historyIndex = -1;
 let currentBgColor = '#09090b', isTransparentBg = false, bgPlane = null, bgFillMode = 'stretch', bgOpacity = 1;
@@ -817,7 +826,33 @@ function createFallbackShirt() {
   return g;
 }
 
-function loadShirtModel(url) {
+function applyModelColorAndEffects(container) {
+  const base = new THREE.Color(container.userData.baseColor || '#ffffff');
+  const b = (container.userData.brightness ?? 100) / 100;
+  const c = (container.userData.contrast ?? 100) / 100;
+  
+  // Brightness
+  base.r *= b;
+  base.g *= b;
+  base.b *= b;
+  
+  // Contrast
+  base.r = Math.max(0, Math.min(1, (base.r - 0.5) * c + 0.5));
+  base.g = Math.max(0, Math.min(1, (base.g - 0.5) * c + 0.5));
+  base.b = Math.max(0, Math.min(1, (base.b - 0.5) * c + 0.5));
+  
+  container.traverse(child => {
+    if (child.isMesh && child.material) {
+      if (Array.isArray(child.material)) {
+        child.material.forEach(m => m.color.copy(base));
+      } else {
+        child.material.color.copy(base);
+      }
+    }
+  });
+}
+
+function loadShirtModel(url, config = {}) {
   return new Promise((resolve) => {
     new GLTFLoader().load(url, (g) => {
       const model = g.scene;
@@ -833,21 +868,25 @@ function loadShirtModel(url) {
 
       const container = new THREE.Group();
       container.userData.modelUrl = url;
+      container.userData.baseColor = config.baseColor || currentShirtColor;
+      container.userData.brightness = config.brightness ?? 100;
+      container.userData.contrast = config.contrast ?? 100;
       container.add(model);
 
       model.traverse(c => {
         if (c.isMesh) {
           c.castShadow = c.receiveShadow = true;
           if (!c.material?.isMeshStandardMaterial) {
-            c.material = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
+            c.material = new THREE.MeshStandardMaterial({ roughness: 0.8, metalness: 0.1 });
           } else {
-            c.material.color.set(currentShirtColor);
             c.material.roughness = 0.8;
             c.material.metalness = 0.1;
           }
           shirtMaterials.push(c.material);
         }
       });
+      
+      applyModelColorAndEffects(container);
 
       const xOffset = loadedModelContainers.length * 2.2;
       container.position.set(xOffset, 0, 0);
@@ -864,8 +903,13 @@ function loadShirtModel(url) {
       const fallback = createFallbackShirt();
       const container = new THREE.Group();
       container.userData.modelUrl = url;
+      container.userData.baseColor = config.baseColor || currentShirtColor;
+      container.userData.brightness = config.brightness ?? 100;
+      container.userData.contrast = config.contrast ?? 100;
       container.add(fallback);
       fallback.traverse(c => { if(c.isMesh) shirtMaterials.push(c.material); });
+      applyModelColorAndEffects(container);
+      
       container.position.set(loadedModelContainers.length * 2.2, 0, 0);
       shirtGroup.add(container);
       loadedModelContainers.push(container);
@@ -891,8 +935,22 @@ function addModelGroup(container, url) {
   
   const headerEl = document.createElement('div');
   headerEl.className = 'group-header';
-  headerEl.innerHTML = `<span>👕 ${name}</span><span class="arrow">▼</span>`;
-  headerEl.onclick = () => groupEl.classList.toggle('collapsed');
+  
+  const titleEl = document.createElement('div');
+  titleEl.className = 'group-title';
+  titleEl.innerHTML = `<span>👕 ${name}</span>`;
+  titleEl.onclick = (e) => {
+    e.stopPropagation();
+    selectModelGroup(container, groupEl);
+  };
+
+  const arrowEl = document.createElement('span');
+  arrowEl.className = 'arrow';
+  arrowEl.textContent = '▼';
+  arrowEl.onclick = (e) => {
+    e.stopPropagation();
+    groupEl.classList.toggle('collapsed');
+  };
   
   const actionsEl = document.createElement('div');
   actionsEl.style.display = 'flex';
@@ -901,7 +959,10 @@ function addModelGroup(container, url) {
   const bDel = document.createElement('button'); bDel.className = 'del'; bDel.textContent = '✕'; bDel.style.background='none'; bDel.style.border='none'; bDel.style.cursor='pointer'; bDel.style.color='#ef4444'; bDel.style.fontSize='13px';
   actionsEl.appendChild(bVis);
   actionsEl.appendChild(bDel);
+  
+  headerEl.appendChild(titleEl);
   headerEl.appendChild(actionsEl);
+  headerEl.appendChild(arrowEl);
 
   const itemsEl = document.createElement('div');
   itemsEl.className = 'group-items';
@@ -911,7 +972,7 @@ function addModelGroup(container, url) {
   groupEl.appendChild(itemsEl);
   layerListUI.prepend(groupEl);
   
-  layerGroups.set(id, { el: groupEl, items: itemsEl });
+  layerGroups.set(id, { el: groupEl, items: itemsEl, header: headerEl });
 
   bDel.onclick = (e) => {
     e.stopPropagation();
@@ -922,7 +983,12 @@ function addModelGroup(container, url) {
       groupEl.remove();
       layerGroups.delete(id);
       
-      // Padam decal yang terlekat pada model ini
+      if (activeModelContainer === container) {
+        activeModelContainer = null;
+        document.getElementById('properties-panel').classList.remove('active');
+        document.getElementById('modelProps').style.display = 'none';
+      }
+      
       layers.forEach(d => {
         if (d.userData.targetContainer === container) {
           const lEl = document.getElementById(d.userData.layerId);
@@ -938,7 +1004,6 @@ function addModelGroup(container, url) {
     e.stopPropagation();
     container.visible = !container.visible;
     bVis.textContent = container.visible ? '👁️' : '👁️‍🗨️';
-    // Sembunyikan/tunjuk decal dalam kumpulan ini
     layers.forEach(d => {
         if (d.userData.targetContainer === container) {
             if (d.userData.decals) d.userData.decals.forEach(m => m.visible = container.visible && d.userData.visible);
@@ -946,6 +1011,35 @@ function addModelGroup(container, url) {
         }
     });
   };
+}
+
+function selectModelGroup(container, groupEl) {
+  // Clear decal selection
+  transformControls.detach();
+  hideFreeTransform();
+  activeDummy = null;
+  gizmoControlsUI.classList.remove('active');
+  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+  
+  // Highlight group
+  document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
+  const header = groupEl.querySelector('.group-header');
+  if (header) header.classList.add('active');
+
+  activeModelContainer = container;
+  propertiesPanel.classList.add('active');
+  
+  // Toggle UI
+  document.getElementById('decalProps').style.display = 'none';
+  document.getElementById('modelProps').style.display = 'block';
+  document.getElementById('propTitle').textContent = 'Model 3D Properties';
+
+  // Populate values
+  document.getElementById('modelColor').value = container.userData.baseColor || '#ffffff';
+  document.getElementById('modelBrightness').value = container.userData.brightness ?? 100;
+  document.getElementById('modelBrightnessValue').textContent = container.userData.brightness ?? 100;
+  document.getElementById('modelContrast').value = container.userData.contrast ?? 100;
+  document.getElementById('modelContrastValue').textContent = container.userData.contrast ?? 100;
 }
 
 function fitCameraToModels() {
@@ -997,6 +1091,7 @@ function clearAllModels() {
   shirtMaterials = [];
   layerGroups.clear();
   ground.position.y = -1.2;
+  activeModelContainer = null;
 }
 
 document.getElementById('btnAddModel').onclick = async () => {
@@ -1059,14 +1154,13 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
   
-  // Append ke group yang betul
   if (dummy.userData.isCanvasGraphic) {
-    layerListUI.prepend(el); // Canvas grafik bebas
+    layerListUI.prepend(el); 
   } else if (dummy.userData.targetContainer && layerGroups.has(dummy.userData.targetContainer.userData.layerId)) {
     const groupItems = layerGroups.get(dummy.userData.targetContainer.userData.layerId).items;
     groupItems.prepend(el);
   } else {
-    layerListUI.prepend(el); // Fallback
+    layerListUI.prepend(el); 
   }
   
   selectLayer(dummy, el);
@@ -1074,12 +1168,22 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
 
 function selectLayer(dummy, el) {
   if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
+  
+  // Clear model selection
+  activeModelContainer = null;
+  document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
+
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   activeDummy = dummy;
   gizmoControlsUI.classList.add('active');
   propertiesPanel.classList.add('active');
   ensureEffects(dummy);
+  
+  document.getElementById('decalProps').style.display = 'block';
+  document.getElementById('modelProps').style.display = 'none';
+  document.getElementById('propTitle').textContent = 'Layer Properties';
+
   document.getElementById('propName').value = dummy.userData.name || '';
   document.getElementById('propScale').value = dummy.scale.x;
   document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
@@ -1307,7 +1411,7 @@ function getDecalAspect(dummy) {
   return dummy.userData.aspect || 1;
 }
 
-// Properties
+// Properties (Decal)
 document.getElementById('propName').onchange = e => {
   if (!activeDummy) return;
   activeDummy.userData.name = e.target.value;
@@ -1356,7 +1460,75 @@ document.getElementById('propCurve').onchange = () => pushHistory();
 document.getElementById('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 document.getElementById('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
-// FX UI
+// Model Properties (Color, Brightness, Contrast)
+document.getElementById('modelColor').oninput = e => {
+  if (!activeModelContainer) return;
+  activeModelContainer.userData.baseColor = e.target.value;
+  applyModelColorAndEffects(activeModelContainer);
+  currentShirtColor = e.target.value;
+};
+document.getElementById('modelColor').onchange = () => pushHistory();
+
+document.getElementById('modelBrightness').oninput = e => {
+  if (!activeModelContainer) return;
+  activeModelContainer.userData.brightness = +e.target.value;
+  document.getElementById('modelBrightnessValue').textContent = e.target.value;
+  applyModelColorAndEffects(activeModelContainer);
+};
+document.getElementById('modelBrightness').onchange = () => pushHistory();
+
+document.getElementById('modelContrast').oninput = e => {
+  if (!activeModelContainer) return;
+  activeModelContainer.userData.contrast = +e.target.value;
+  document.getElementById('modelContrastValue').textContent = e.target.value;
+  applyModelColorAndEffects(activeModelContainer);
+};
+document.getElementById('modelContrast').onchange = () => pushHistory();
+
+// Global Color Grid
+['#ffffff','#171717','#64748b','#dc2626','#2563eb','#16a34a','#ca8a04','#9333ea'].forEach((hex, i) => {
+  const b = document.createElement('button');
+  b.className = 'color-btn' + (i === 0 ? ' active' : '');
+  b.style.background = hex;
+  b.onclick = () => {
+    document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); 
+    currentShirtColor = hex;
+    
+    if (activeModelContainer) {
+      activeModelContainer.userData.baseColor = hex;
+      applyModelColorAndEffects(activeModelContainer);
+      document.getElementById('modelColor').value = hex;
+    } else {
+      loadedModelContainers.forEach(c => {
+        c.userData.baseColor = hex;
+        applyModelColorAndEffects(c);
+      });
+    }
+    pushHistory();
+  };
+  document.getElementById('colorGrid').appendChild(b);
+});
+
+document.getElementById('customColor').oninput = e => {
+  document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
+  currentShirtColor = e.target.value; 
+  
+  if (activeModelContainer) {
+    activeModelContainer.userData.baseColor = e.target.value;
+    applyModelColorAndEffects(activeModelContainer);
+    document.getElementById('modelColor').value = e.target.value;
+  } else {
+    loadedModelContainers.forEach(c => {
+      c.userData.baseColor = e.target.value;
+      applyModelColorAndEffects(c);
+    });
+  }
+};
+document.getElementById('customColor').onchange = () => pushHistory();
+
+
+// FX UI (Decal)
 function updateFxUI(dummy) {
   if (!dummy) return;
   const fx = ensureEffects(dummy);
@@ -1767,7 +1939,6 @@ transformControls.addEventListener('objectChange', () => {
         if (activeDummy.userData.targetContainer !== hitContainer) {
           activeDummy.userData.targetContainer = hitContainer;
           
-          // Move ke group DOM baru
           const el = document.getElementById(activeDummy.userData.layerId);
           if (el && layerGroups.has(hitContainer.userData.layerId)) {
              layerGroups.get(hitContainer.userData.layerId).items.appendChild(el);
@@ -2144,7 +2315,12 @@ async function getStateForSave() {
     bgOpacity, bgFillMode,
     bgEffects: { ...bgEffects },
     outputRatio,
-    models: loadedModelContainers.map(c => c.userData.modelUrl),
+    models: loadedModelContainers.map(c => ({
+      url: c.userData.modelUrl,
+      baseColor: c.userData.baseColor || '#ffffff',
+      brightness: c.userData.brightness ?? 100,
+      contrast: c.userData.contrast ?? 100
+    })),
     layers: processed
   };
 }
@@ -2311,17 +2487,19 @@ async function restoreState(state) {
   clearAllLayers();
   hideFreeTransform();
   propertiesPanel.classList.remove('active');
+  activeModelContainer = null;
 
   clearAllModels();
   
-  const modelsToLoad = state.models || (state.modelUrl ? [state.modelUrl] : ['./T_shirt_gltf.gltf']);
-  for (const url of modelsToLoad) {
-    await loadShirtModel(url);
+  const modelsToLoad = state.models || (state.modelUrl ? [{url: state.modelUrl}] : [{url: './T_shirt_gltf.gltf'}]);
+  for (const m of modelsToLoad) {
+    const url = typeof m === 'string' ? m : m.url;
+    const config = typeof m === 'object' ? m : {};
+    await loadShirtModel(url, config);
   }
   fitCameraToModels();
   
   currentShirtColor = state.color || '#ffffff';
-  shirtMaterials.forEach(m => m.color.set(currentShirtColor));
   document.getElementById('customColor').value = currentShirtColor;
   currentBgColor = state.bgColor || '#09090b';
   document.getElementById('bgColor').value = currentBgColor;
@@ -2679,22 +2857,6 @@ document.getElementById('btnTranslate').onclick = () => setMode('translate');
 document.getElementById('btnScale').onclick = () => setMode('scale');
 document.getElementById('btnFree').onclick = () => setMode('free');
 
-['#ffffff','#171717','#64748b','#dc2626','#2563eb','#16a34a','#ca8a04','#9333ea'].forEach((hex, i) => {
-  const b = document.createElement('button');
-  b.className = 'color-btn' + (i === 0 ? ' active' : '');
-  b.style.background = hex;
-  b.onclick = () => {
-    document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active'); currentShirtColor = hex;
-    shirtMaterials.forEach(m => m.color.set(hex)); pushHistory();
-  };
-  document.getElementById('colorGrid').appendChild(b);
-});
-document.getElementById('customColor').oninput = e => {
-  document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
-  currentShirtColor = e.target.value; shirtMaterials.forEach(m => m.color.set(e.target.value));
-};
-document.getElementById('customColor').onchange = () => pushHistory();
 document.getElementById('viewFront').onclick = () => { camera.position.set(0,0,4.5); controls.target.set(0,0,0); setActive('viewFront'); };
 document.getElementById('viewBack').onclick = () => { camera.position.set(0,0,-4.5); controls.target.set(0,0,0); setActive('viewBack'); };
 document.getElementById('viewRight').onclick = () => { camera.position.set(4.5,0,0); controls.target.set(0,0,0); setActive('viewRight'); };
@@ -2719,8 +2881,9 @@ window.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     transformControls.detach(); hideFreeTransform();
-    activeDummy = null; gizmoControlsUI.classList.remove('active');
+    activeDummy = null; activeModelContainer = null; gizmoControlsUI.classList.remove('active');
     propertiesPanel.classList.remove('active');
+    document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
   }
 });
 
