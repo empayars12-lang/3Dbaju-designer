@@ -22,10 +22,20 @@
     #sidebar-left::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
     .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden;flex-shrink:0}
-    .accordion-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#d4d4d8}
-    .accordion-header:hover{background:#27272a}
-    .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#71717a}
+    
+    /* UPGRADE: Warna tajuk ditukar ke Biru Gelap */
+    .accordion-header{
+      padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
+      cursor:pointer;user-select:none;font-size:12px;font-weight:600;
+      text-transform:uppercase;letter-spacing:0.8px;
+      background:#1e40af; /* Warna Biru */
+      color:#ffffff;
+      transition: background 0.2s;
+    }
+    .accordion-header:hover{background:#1d4ed8}
+    .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#93c5fd}
     .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
+    .accordion-item.open .accordion-header{background:#1e40af} /* Kekal biru bila dibuka */
     
     .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
     .accordion-item.open .accordion-body{max-height:3000px;padding:10px 12px 14px}
@@ -156,6 +166,16 @@
         <input type="text" id="projectNameInput" class="prop-input" placeholder="Nama project..." value="Design Baru" style="margin-bottom:8px">
         <button class="project-btn" id="btnSaveProject">💾 Simpan Project</button>
         <button class="project-btn secondary" id="btnNewProject">+ Project Baru</button>
+        
+        <!-- UPGRADE: Butang Export & Import Fail -->
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="small-btn" id="btnExportProject" style="margin-top:0">📤 Eksport Fail</button>
+          <button class="small-btn" id="btnImportProject" style="margin-top:0;position:relative">
+            📥 Import Fail
+            <input type="file" id="importProjectFile" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+          </button>
+        </div>
+        
         <div id="projectList"></div>
       </div>
     </div>
@@ -2054,6 +2074,51 @@ document.getElementById('btnSaveProject').onclick = async () => {
     await loadProjectList();
     showToast('✅ Project berjaya disimpan');
   } catch (err) { console.error(err); showToast('❌ Gagal simpan project', true); }
+};
+
+// ===== UPGRADE: EXPORT & IMPORT FAIL =====
+document.getElementById('btnExportProject').onclick = async () => {
+  try {
+    const state = await getStateForSave();
+    const dataStr = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const name = document.getElementById('projectNameInput').value.trim() || 'design';
+    a.download = `${name}.json`;
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ Fail projek berjaya dieksport');
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Gagal eksport fail', true);
+  }
+};
+
+document.getElementById('importProjectFile').onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const state = JSON.parse(ev.target.result);
+      if (!state.layers) throw new Error("Format tidak sah");
+      
+      await restoreState(state);
+      history = [await getStateForSave()];
+      historyIndex = 0;
+      updateUndoRedoButtons();
+      document.getElementById('projectNameInput').value = file.name.replace('.json', '');
+      currentProjectId = null;
+      showToast('✅ Fail projek berjaya diimport');
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Fail tidak sah atau rosak', true);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // reset input
 };
 
 document.getElementById('btnNewProject').onclick = () => {
