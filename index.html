@@ -1,163 +1,153 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Pro Designer 3D - Multi Model Studio</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@400;700&family=Oswald:wght@400;600&family=Playfair+Display:wght@400;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
-#app{display:flex;height:100vh}
-#sidebar-left{width:300px;background:#18181b;padding:14px 14px 60px 14px;display:flex;flex-direction:column;gap:8px;border-right:1px solid #27272a;z-index:10;overflow-y:auto}
-#sidebar-left::-webkit-scrollbar{width:8px}
-#sidebar-left::-webkit-scrollbar-track{background:#18181b}
-#sidebar-left::-webkit-scrollbar-thumb{background:#3f3f46;border-radius:4px}
-.accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden;flex-shrink:0}
-.accordion-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;background:#1e40af;color:#fff;transition:background .2s}
-.accordion-header:hover{background:#1d4ed8}
-.accordion-header .arrow{transition:transform .25s;font-size:10px;color:#93c5fd}
-.accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
-.accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
-.accordion-item.open .accordion-body{max-height:4000px;padding:10px 12px 14px}
-.color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.color-btn{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s}
-.color-btn:hover{transform:scale(1.1)}
-.color-btn.active{border-color:#38bdf8;transform:scale(1.1)}
-.custom-color-wrapper{display:flex;align-items:center;gap:10px;background:#27272a;padding:8px 12px;border-radius:8px;border:1px solid #3f3f46;margin-top:8px}
-.custom-color-wrapper input[type=color]{width:28px;height:28px;border:none;background:none;cursor:pointer}
-.custom-color-wrapper span{font-size:13px;color:#d4d4d8}
-.upload-btn{background:#38bdf8;color:#000;text-align:center;padding:11px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;position:relative;overflow:hidden}
-.upload-btn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
-.add-text-btn,.small-btn,.action-btn,.preview-btn,.video-btn,.save-btn,.project-btn,.align-btn{border:none;border-radius:6px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
-.add-text-btn{background:#27272a;color:#d4d4d8;border:1px solid #3f3f46;padding:10px;font-size:13px;width:100%}
-.add-text-btn:hover{background:#3f3f46}
-.save-btn{margin-top:10px;background:#10b981;color:#fff;padding:13px;font-size:14px;width:100%}
-.slider-row{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
-.slider-row label{font-size:12px;color:#d4d4d8;display:flex;justify-content:space-between}
-.slider-row input[type=range]{width:100%;accent-color:#38bdf8;cursor:pointer}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;margin:6px 0}
-.toggle-switch{position:relative;width:42px;height:22px;background:#3f3f46;border-radius:11px;cursor:pointer}
-.toggle-switch.active{background:#38bdf8}
-.toggle-switch::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
-.toggle-switch.active::after{left:23px}
-.small-btn{background:#3f3f46;color:#d4d4d8;border:1px solid #52525b;padding:8px 10px;font-size:12px;width:100%;margin-top:6px}
-.fill-modes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.fill-btn{background:#3f3f46;border:none;color:#d4d4d8;padding:7px 4px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer}
-.fill-btn.active{background:#38bdf8;color:#000}
-.video-btn{background:#7c3aed;color:#fff;padding:11px;font-size:13px;width:100%}
-.video-btn.recording{background:#dc2626}
-.preview-btn{background:#0ea5e9;color:#fff;padding:10px;font-size:13px;width:100%;margin-bottom:6px}
-.preview-btn.playing{background:#f59e0b}
-.project-btn{background:#3b82f6;color:#fff;padding:10px;font-size:13px;width:100%;margin-bottom:6px}
-.project-btn.secondary{background:#3f3f46;color:#d4d4d8}
-#projectList{max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-top:6px}
-.project-item{background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;gap:6px}
-.project-item:hover,.project-item.active{border-color:#38bdf8}
-.project-item .thumb{width:32px;height:32px;object-fit:cover;border-radius:4px;background:#18181b;flex-shrink:0}
-.project-item .name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.project-item .del{color:#ef4444;background:none;border:none;cursor:pointer;font-size:13px}
-select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f3f46;background:#1f1f23;color:#fff;font-size:13px;font-family:inherit}
-.align-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.align-btn{background:#3f3f46;color:#d4d4d8;padding:8px;font-size:12px}
-.align-btn:hover{background:#52525b}
-#viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden}
-#viewer-container canvas{display:block}
-#bgCanvas,#fgCanvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
-#bgCanvas{z-index:0}
-#fgCanvas{z-index:2}
-.preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.preset-btn{aspect-ratio:1;border-radius:8px;border:2px solid #3f3f46;cursor:pointer;font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;padding:3px 1px;font-family:inherit;transition:.15s}
-.preset-btn:hover{border-color:#38bdf8;transform:translateY(-1px)}
-.sub-title{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 8px;padding-top:10px;border-top:1px solid #2e2e32}
-.sub-title:first-child{margin-top:0;padding-top:0;border-top:none}
-.hint{font-size:11px;color:#71717a;line-height:1.5;margin-bottom:8px}
-#crop-overlay{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
-#crop-overlay.active{display:block}
-#crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.6);border:1.5px dashed #38bdf8}
-#floating-controls{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:60;display:none;gap:10px;background:rgba(0,0,0,.75);padding:8px 12px;border-radius:12px;backdrop-filter:blur(4px);border:1px solid #3f3f46}
-#floating-controls button{padding:8px 16px;font-size:13px;border-radius:6px;border:none;font-weight:600;cursor:pointer}
-#btnPausePlay{background:#f59e0b;color:#000}
-#btnSnap{background:#10b981;color:#fff}
-#btnSnap:disabled{opacity:.5;cursor:not-allowed}
-#free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
-#free-transform.active{display:block}
-.ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:auto;cursor:move;background:transparent}
-.ft-handle{position:absolute;width:12px;height:12px;background:#fff;border:2px solid #38bdf8;border-radius:2px;pointer-events:auto;cursor:nwse-resize;transform:translate(-50%,-50%)}
-.ft-rotate-handle{position:absolute;width:18px;height:18px;background:#38bdf8;border:2px solid #fff;border-radius:50%;pointer-events:auto;cursor:grab;transform:translate(-50%,-50%)}
-.ft-rotate-line{position:absolute;width:1.5px;background:#38bdf8;pointer-events:none}
-#view-toggles{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(24,24,27,.85);padding:8px;border-radius:12px;z-index:15}
-#view-toggles button{background:#3f3f46;color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
-#view-toggles button.active{background:#38bdf8;color:#000}
-#sidebar-right{width:340px;background:#18181b;border-left:1px solid #27272a;display:flex;flex-direction:column}
-#layers-header{padding:16px 16px 10px;border-bottom:1px solid #27272a}
-#layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
-#layers-list{flex:1;overflow-y:auto;max-height:40%}
-.layer-item{padding:10px 14px;border-bottom:1px solid #27272a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px}
-.layer-item:hover{background:#27272a}
-.layer-item.active{background:rgba(56,189,248,.1);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
-.layer-item.locked{opacity:.65}
-.layer-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
-.layer-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.layer-actions{display:flex;gap:4px;align-items:center}
-.layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7}
-.layer-actions button:hover{opacity:1}
-.layer-actions .vis.hidden{opacity:.35}
-#properties-panel{border-top:1px solid #27272a;padding:14px 16px;overflow-y:auto;flex:1;display:none}
-#properties-panel.active{display:block}
-#properties-panel h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:12px}
-.prop-row{margin-bottom:11px}
-.prop-row label{display:block;font-size:12px;color:#a1a1aa;margin-bottom:5px}
-#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#09090b;color:#38bdf8;z-index:100;font-weight:600;letter-spacing:2px;transition:opacity .5s}
-#recording-overlay{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:rgba(220,38,38,.9);color:#fff;padding:10px 20px;border-radius:20px;font-weight:600;font-size:14px;z-index:50;display:none;align-items:center;gap:8px}
-#recording-overlay.active{display:flex}
-#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;z-index:200;display:none}
-#toast.error{background:#dc2626}
-.curve-active{background:rgba(124,58,237,.15);border-left:3px solid #7c3aed!important}
-#fxPanel{border-top:1px solid #27272a;margin-top:14px;padding-top:12px}
-.fx-group{margin-bottom:12px}
-.fx-title{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.fx-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.fx-row input[type=color]{width:34px;height:30px;border:none;background:#1f1f23;border-radius:6px;cursor:pointer;padding:0;flex-shrink:0}
-.fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
-.fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pro Designer 3D - Studio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@400;700&family=Oswald:wght@400;600&family=Playfair+Display:wght@400;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
+    #app{display:flex;height:100vh}
+    #sidebar-left{
+      width:300px;background:#18181b;padding:14px 14px 60px 14px;
+      display:flex;flex-direction:column;gap:8px;
+      border-right:1px solid #27272a;z-index:10;overflow-y:auto;
+    }
+    #sidebar-left::-webkit-scrollbar { width: 8px; }
+    #sidebar-left::-webkit-scrollbar-track { background: #18181b; }
+    #sidebar-left::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+    #sidebar-left::-webkit-scrollbar-thumb:hover { background: #52525b; }
+    .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden;flex-shrink:0}
+    .accordion-header{
+      padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
+      cursor:pointer;user-select:none;font-size:12px;font-weight:600;
+      text-transform:uppercase;letter-spacing:0.8px;
+      background:#1e40af;color:#ffffff;transition: background 0.2s;
+    }
+    .accordion-header:hover{background:#1d4ed8}
+    .accordion-header .arrow{transition:transform .25s;font-size:10px;color:#93c5fd}
+    .accordion-item.open .accordion-header .arrow{transform:rotate(180deg)}
+    .accordion-item.open .accordion-header{background:#1e40af}
+    .accordion-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 12px}
+    .accordion-item.open .accordion-body{max-height:3000px;padding:10px 12px 14px}
+    .color-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+    .color-btn{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:.2s}
+    .color-btn:hover{transform:scale(1.1)}
+    .color-btn.active{border-color:#38bdf8;transform:scale(1.1)}
+    .custom-color-wrapper{display:flex;align-items:center;gap:10px;background:#27272a;padding:8px 12px;border-radius:8px;border:1px solid #3f3f46;margin-top:8px}
+    .custom-color-wrapper input[type=color]{width:28px;height:28px;border:none;background:none;cursor:pointer}
+    .custom-color-wrapper span{font-size:13px;color:#d4d4d8}
+    .upload-btn{background:#38bdf8;color:#000;text-align:center;padding:11px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;position:relative;overflow:hidden}
+    .upload-btn input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .add-text-btn,.small-btn,.action-btn,.preview-btn,.video-btn,.save-btn,.project-btn,.align-btn{border:none;border-radius:6px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+    .add-text-btn{background:#27272a;color:#d4d4d8;border:1px solid #3f3f46;padding:10px;font-size:13px;width:100%}
+    .add-text-btn:hover{background:#3f3f46}
+    .gizmo-controls{display:none;background:#1f1f23;padding:12px;border-radius:8px;border:1px solid #2e2e32}
+    .gizmo-controls.active{display:block}
+    .mode-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+    .mode-btn{background:#3f3f46;border:none;color:#d4d4d8;padding:9px 4px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+    .mode-btn.active{background:#38bdf8;color:#000}
+    .mode-btn.free{grid-column:1/-1;background:#7c3aed;color:#fff}
+    .action-row{display:flex;gap:6px;margin-top:8px}
+    .action-btn{flex:1;background:#3f3f46;color:#d4d4d8;border:1px solid #52525b;padding:9px;font-size:12px}
+    .action-btn:disabled{opacity:.4;cursor:not-allowed}
+    .save-btn{margin-top:10px;background:#10b981;color:#fff;padding:13px;font-size:14px;width:100%}
+    .slider-row{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+    .slider-row label{font-size:12px;color:#d4d4d8;display:flex;justify-content:space-between}
+    .slider-row input[type=range]{width:100%;accent-color:#38bdf8;cursor:pointer}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;margin:6px 0}
+    .toggle-switch{position:relative;width:42px;height:22px;background:#3f3f46;border-radius:11px;cursor:pointer}
+    .toggle-switch.active{background:#38bdf8}
+    .toggle-switch::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
+    .toggle-switch.active::after{left:23px}
+    .small-btn{background:#3f3f46;color:#d4d4d8;border:1px solid #52525b;padding:8px 10px;font-size:12px;width:100%;margin-top:6px}
+    .fill-modes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .fill-btn{background:#3f3f46;border:none;color:#d4d4d8;padding:7px 4px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer}
+    .fill-btn.active{background:#38bdf8;color:#000}
+    .video-btn{background:#7c3aed;color:#fff;padding:11px;font-size:13px;width:100%}
+    .video-btn.recording{background:#dc2626}
+    .preview-btn{background:#0ea5e9;color:#fff;padding:10px;font-size:13px;width:100%;margin-bottom:6px}
+    .preview-btn.playing{background:#f59e0b}
+    .project-btn{background:#3b82f6;color:#fff;padding:10px;font-size:13px;width:100%;margin-bottom:6px}
+    .project-btn.secondary{background:#3f3f46;color:#d4d4d8}
+    #projectList{max-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-top:6px}
+    .project-item{background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;gap:6px}
+    .project-item:hover,.project-item.active{border-color:#38bdf8}
+    .project-item .thumb{width:32px;height:32px;object-fit:cover;border-radius:4px;background:#18181b;flex-shrink:0}
+    .project-item .name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .project-item .del{color:#ef4444;background:none;border:none;cursor:pointer;font-size:13px}
+    select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f3f46;background:#1f1f23;color:#fff;font-size:13px;font-family:inherit}
+    .align-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+    .align-btn{background:#3f3f46;color:#d4d4d8;padding:8px;font-size:12px}
+    .align-btn:hover{background:#52525b}
+    #viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden}
+    #viewer-container canvas{display:block}
 
-/* ===== GROUP LAYER ===== */
-.layer-group{background:#1a1a1f;border:1px solid #2e2e32;border-radius:6px;margin-bottom:6px;overflow:hidden}
-.layer-group.active{border-color:#38bdf8;box-shadow:0 0 0 1px #38bdf8;background:#141a20}
-.group-header{padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600;color:#e4e4e7;background:#232328;user-select:none}
-.group-header:hover{background:#2a2a30}
-.layer-group.active .group-header{background:#1e3a5f}
-.group-header .g-arrow{font-size:9px;color:#93c5fd;transition:transform .2s;display:inline-block}
-.layer-group.open .g-arrow{transform:rotate(90deg)}
-.group-header .g-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.group-header .g-badge{font-size:9px;background:#7c3aed;color:#fff;padding:2px 6px;border-radius:8px;font-weight:700}
-.group-header .g-active-badge{font-size:9px;background:#38bdf8;color:#000;padding:2px 6px;border-radius:8px;font-weight:700;display:none}
-.layer-group.active .group-header .g-active-badge{display:inline-block}
-.group-body{display:none;padding:6px;background:#141418}
-.layer-group.open .group-body{display:block}
-.group-body .layer-item{margin-bottom:3px;border-radius:4px;background:#1f1f24;padding:7px 10px;font-size:11px}
-.group-tools{display:flex;gap:4px;padding:6px;border-top:1px solid #2e2e32;background:#18181c}
-.group-tools button{flex:1;background:#3f3f46;color:#d4d4d8;border:none;padding:6px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:600}
-.group-tools button:hover{background:#52525b}
-.group-tools button.danger{background:#7f1d1d;color:#fca5a5}
-.group-settings{padding:8px;background:#1a1a1f;border-top:1px solid #2e2e32;display:none;max-height:400px;overflow-y:auto}
-.group-settings.show{display:block}
-.gs-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:10px;color:#a1a1aa}
-.gs-row label{width:68px;flex-shrink:0}
-.gs-row input[type=range]{flex:1;accent-color:#38bdf8;min-width:0}
-.gs-row .gs-val{width:34px;text-align:right;color:#38bdf8;font-weight:600}
-.gs-section{font-size:9px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px;padding-top:6px;border-top:1px solid #2e2e32}
-.gs-section:first-child{margin-top:0;padding-top:0;border-top:none}
-.gs-btn-row{display:flex;gap:4px;margin-top:4px}
-.gs-btn-row button{flex:1;background:#3f3f46;color:#d4d4d8;border:none;padding:5px;border-radius:4px;font-size:10px;cursor:pointer;font-weight:600}
-.gs-btn-row button:hover{background:#52525b}
-.gs-btn-row button.primary{background:#7c3aed;color:#fff}
-.multi-badge{position:absolute;top:8px;right:8px;background:#7c3aed;color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;z-index:16;display:none}
-.multi-badge.active{display:block}
-.group-focus-hint{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);background:rgba(56,189,248,.9);color:#000;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;z-index:17;display:none;box-shadow:0 4px 12px rgba(0,0,0,.4)}
-.group-focus-hint.active{display:block}
-</style>
+    /* ===== LAPISAN LATAR TETAP (2D) ===== */
+    #bgCanvas,#fgCanvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+    #bgCanvas{z-index:0}
+    #fgCanvas{z-index:2}
+
+    /* ===== PRESET LATAR ===== */
+    .preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .preset-btn{aspect-ratio:1;border-radius:8px;border:2px solid #3f3f46;cursor:pointer;font-size:9px;font-weight:600;color:#fff;
+      text-shadow:0 1px 2px rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;padding:3px 1px;font-family:inherit;transition:.15s}
+    .preset-btn:hover{border-color:#38bdf8;transform:translateY(-1px)}
+    .sub-title{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 8px;padding-top:10px;border-top:1px solid #2e2e32}
+    .sub-title:first-child{margin-top:0;padding-top:0;border-top:none}
+    .hint{font-size:11px;color:#71717a;line-height:1.5;margin-bottom:8px}
+
+    #crop-overlay{position:absolute;inset:0;pointer-events:none;z-index:12;display:none;}
+    #crop-overlay.active{display:block;}
+    #crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);border:1.5px dashed #38bdf8;}
+    #floating-controls{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:60;display:none;gap:10px;background:rgba(0,0,0,0.75);padding:8px 12px;border-radius:12px;backdrop-filter:blur(4px);border:1px solid #3f3f46;}
+    #floating-controls button{padding:8px 16px;font-size:13px;border-radius:6px;border:none;font-weight:600;cursor:pointer;}
+    #btnPausePlay{background:#f59e0b;color:#000;}
+    #btnSnap{background:#10b981;color:#fff;}
+    #btnSnap:disabled{opacity:0.5;cursor:not-allowed;}
+    #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
+    #free-transform.active{display:block}
+    .ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:auto;cursor:move;background:transparent}
+    .ft-handle{position:absolute;width:12px;height:12px;background:#fff;border:2px solid #38bdf8;border-radius:2px;pointer-events:auto;cursor:nwse-resize;transform:translate(-50%,-50%)}
+    .ft-rotate-handle{position:absolute;width:18px;height:18px;background:#38bdf8;border:2px solid #fff;border-radius:50%;pointer-events:auto;cursor:grab;transform:translate(-50%,-50%)}
+    .ft-rotate-line{position:absolute;width:1.5px;background:#38bdf8;pointer-events:none}
+    #view-toggles{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(24,24,27,.85);padding:8px;border-radius:12px;z-index:15}
+    #view-toggles button{background:#3f3f46;color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
+    #view-toggles button.active{background:#38bdf8;color:#000}
+    #sidebar-right{width:300px;background:#18181b;border-left:1px solid #27272a;display:flex;flex-direction:column}
+    #layers-header{padding:16px 16px 10px;border-bottom:1px solid #27272a}
+    #layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
+    #layers-list{flex:1;overflow-y:auto;max-height:45%}
+    .layer-item{padding:10px 14px;border-bottom:1px solid #27272a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px}
+    .layer-item:hover{background:#27272a}
+    .layer-item.active{background:rgba(56,189,248,.1);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
+    .layer-item.locked{opacity:.65}
+    .layer-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+    .layer-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .layer-actions{display:flex;gap:4px;align-items:center}
+    .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7}
+    .layer-actions button:hover{opacity:1}
+    .layer-actions .vis.hidden{opacity:.35}
+    #properties-panel{border-top:1px solid #27272a;padding:14px 16px;overflow-y:auto;flex:1;display:none}
+    #properties-panel.active{display:block}
+    #properties-panel h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:12px}
+    .prop-row{margin-bottom:11px}
+    .prop-row label{display:block;font-size:12px;color:#a1a1aa;margin-bottom:5px}
+    #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#09090b;color:#38bdf8;z-index:100;font-weight:600;letter-spacing:2px;transition:opacity .5s}
+    #recording-overlay{position:absolute;top:20px;left:50%;transform:translateX(-50%);background:rgba(220,38,38,.9);color:#fff;padding:10px 20px;border-radius:20px;font-weight:600;font-size:14px;z-index:50;display:none;align-items:center;gap:8px}
+    #recording-overlay.active{display:flex}
+    #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;z-index:200;display:none}
+    #toast.error{background:#dc2626}
+    .curve-active{background:rgba(124,58,237,.15);border-left:3px solid #7c3aed !important}
+    #fxPanel{border-top:1px solid #27272a;margin-top:14px;padding-top:12px}
+    .fx-group{margin-bottom:12px}
+    .fx-title{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .fx-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .fx-row input[type=color]{width:34px;height:30px;border:none;background:#1f1f23;border-radius:6px;cursor:pointer;padding:0;flex-shrink:0}
+    .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
+    .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
+  </style>
 </head>
 <body>
 <div id="app">
@@ -169,25 +159,28 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
         <button class="project-btn" id="btnSaveProject">💾 Simpan Project</button>
         <button class="project-btn secondary" id="btnNewProject">+ Project Baru</button>
         <div style="display:flex;gap:6px;margin-top:6px">
-          <button class="small-btn" id="btnExportProject" style="margin-top:0">📤 Eksport</button>
-          <button class="small-btn" id="btnImportProject" style="margin-top:0;position:relative">📥 Import<input type="file" id="importProjectFile" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></button>
+          <button class="small-btn" id="btnExportProject" style="margin-top:0">📤 Eksport Fail</button>
+          <button class="small-btn" id="btnImportProject" style="margin-top:0;position:relative">
+            📥 Import Fail
+            <input type="file" id="importProjectFile" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+          </button>
         </div>
         <div id="projectList"></div>
       </div>
     </div>
 
     <div class="accordion-item open">
-      <div class="accordion-header">🔗 Gabung Model 3D <span class="arrow">▼</span></div>
+      <div class="accordion-header">Model Baju 3D <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="hint">Tambah berbilang baju 3D dalam satu frame. Setiap baju jadi Group Layer yang boleh digerak dan diputar sendiri.</div>
-        <select id="multiModelSelect" class="prop-input" style="margin-bottom:8px">
-          <option value="./T_shirt_gltf.gltf">👕 T-Shirt (Lengan Pendek)</option>
-          <option value="./baju_baru.glb">👕 Baju Baru</option>
-          <option value="./long_sleeve_t-_shirt.glb">🧥 Lengan Panjang</option>
-          <option value="./short_sleeve_polo.glb">👔 Polo Shirt</option>
+        <select id="modelSelect" class="prop-input">
+          <option value="./T_shirt_gltf.gltf">👕 Baju Asal (GLTF)</option>
+          <option value="./baju_baru.glb">👕 Baju Baru (GLB)</option>
+          <option value="./long_sleeve_t-_shirt.glb">🧥 Lengan Panjang (GLB)</option>
+          <option value="./short_sleeve_polo.glb">👔 Polo Shirt (GLB)</option>
         </select>
-        <button class="add-text-btn" id="btnAddModel3D" style="background:#7c3aed;color:#fff;border-color:#7c3aed">➕ Tambah Baju 3D ke Frame</button>
-        <div id="modelGroupsInfo" style="font-size:11px;color:#71717a;margin-top:8px;line-height:1.5">Tiada baju tambahan. Klik butang di atas.</div>
+        <div style="font-size:11px;color:#71717a;margin-top:8px;line-height:1.5">
+          Tukar model 3D. Design sedia ada akan dikekalkan automatik.
+        </div>
       </div>
     </div>
 
@@ -195,16 +188,17 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
       <div class="accordion-header">Warna Baju <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <div class="color-grid" id="colorGrid"></div>
-        <div class="custom-color-wrapper"><input type="color" id="customColor" value="#ffffff"><span>Warna Custom</span></div>
-        <div class="hint" style="margin-top:6px">Warna ini untuk <b>group aktif</b> sahaja. Jika tiada group dipilih, untuk baju utama.</div>
+        <div class="custom-color-wrapper">
+          <input type="color" id="customColor" value="#ffffff">
+          <span>Warna Custom</span>
+        </div>
       </div>
     </div>
 
     <div class="accordion-item open">
       <div class="accordion-header">Design Anda <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="upload-btn">+ Tambah Logo/Gambar<input type="file" id="logoUpload" accept="image/*" multiple></div>
-        <div class="hint" style="margin-top:6px" id="logoHint">Jika Group dipilih, gambar masuk dalam Group tersebut.</div>
+        <div class="upload-btn">+ Tambah Logo Baju<input type="file" id="logoUpload" accept="image/*" multiple></div>
       </div>
     </div>
 
@@ -215,25 +209,32 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <input type="color" id="textColor" value="#000000" style="width:42px;height:38px;border:none;background:#1f1f23;border-radius:6px">
           <select id="textFont" class="prop-input" style="flex:1">
-            <option value="Inter">Inter</option><option value="Roboto">Roboto</option>
-            <option value="Oswald">Oswald</option><option value="Playfair Display">Playfair</option>
+            <option value="Inter">Inter</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Oswald">Oswald</option>
+            <option value="Playfair Display">Playfair</option>
             <option value="Arial">Arial</option>
           </select>
         </div>
-        <div class="slider-row"><label><span>Saiz Teks</span><span id="textSizeValue">120</span></label><input type="range" id="textSize" min="40" max="220" value="120"></div>
-        <button class="add-text-btn" id="addTextBtn">Tambah Teks</button>
+        <div class="slider-row">
+          <label><span>Saiz Teks</span><span id="textSizeValue">120</span></label>
+          <input type="range" id="textSize" min="40" max="220" value="120">
+        </div>
+        <button class="add-text-btn" id="addTextBtn">Tambah Teks Baju</button>
       </div>
     </div>
 
     <div class="accordion-item">
       <div class="accordion-header">Grafik Canvas (Bebas) <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="upload-btn" style="margin-bottom:8px">+ Logo Canvas<input type="file" id="canvasLogoUpload" accept="image/*" multiple></div>
+        <div class="upload-btn" style="margin-bottom:8px">+ Tambah Logo Canvas<input type="file" id="canvasLogoUpload" accept="image/*" multiple></div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <input type="color" id="canvasTextColor" value="#ffffff" style="width:42px;height:38px;border:none;background:#1f1f23;border-radius:6px">
           <select id="canvasTextFont" class="prop-input" style="flex:1">
-            <option value="Inter">Inter</option><option value="Roboto">Roboto</option>
-            <option value="Oswald">Oswald</option><option value="Playfair Display">Playfair</option>
+            <option value="Inter">Inter</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Oswald">Oswald</option>
+            <option value="Playfair Display">Playfair</option>
             <option value="Arial">Arial</option>
           </select>
         </div>
@@ -242,8 +243,9 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
       </div>
     </div>
 
+    <!-- ================= LATAR BELAKANG PRO ================= -->
     <div class="accordion-item open">
-      <div class="accordion-header">🎨 Preset Latar <span class="arrow">▼</span></div>
+      <div class="accordion-header">🎨 Preset Latar Pro <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <div class="preset-grid">
           <button class="preset-btn" data-preset="studioPutih" style="background:radial-gradient(circle at 50% 40%,#ffffff,#cfd2d8);color:#111;text-shadow:none">Putih</button>
@@ -255,27 +257,40 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
           <button class="preset-btn" data-preset="mint" style="background:linear-gradient(180deg,#ecfdf5,#99f6e4);color:#064e3b;text-shadow:none">Mint</button>
           <button class="preset-btn" data-preset="lantai" style="background:linear-gradient(180deg,#e5e7eb 60%,#9ca3af);color:#111;text-shadow:none">Lantai</button>
         </div>
+        <div class="hint" style="margin-top:8px">Klik preset, kemudian ubah suai kawalan di bawah.</div>
       </div>
     </div>
 
-    <div class="accordion-item">
-      <div class="accordion-header">Jenis Latar <span class="arrow">▼</span></div>
+    <div class="accordion-item open">
+      <div class="accordion-header">Jenis &amp; Warna Latar <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <select id="bg_type" class="prop-input" style="margin-bottom:8px">
-          <option value="solid">Solid</option><option value="gradient">Gradient</option><option value="radial">Radial</option>
+          <option value="solid">Warna Solid</option>
+          <option value="gradient">Gradient Linear</option>
+          <option value="radial">Gradient Radial (studio)</option>
         </select>
-        <div class="custom-color-wrapper" style="margin-top:0"><input type="color" id="bg_color" value="#09090b"><span>Warna 1</span></div>
-        <div class="custom-color-wrapper" id="bgRowColor2" style="display:none"><input type="color" id="bg_color2" value="#27272a"><span>Warna 2</span></div>
-        <div class="slider-row" id="bgRowAngle" style="display:none;margin-top:10px"><label><span>Sudut</span><span id="bgv_angle">180°</span></label><input type="range" id="bg_angle" min="0" max="360" step="1" value="180"></div>
-        <div class="toggle-row"><span>Latar Transparent</span><div class="toggle-switch" id="toggleTransparent"></div></div>
+        <div class="custom-color-wrapper" style="margin-top:0">
+          <input type="color" id="bg_color" value="#09090b">
+          <span>Warna Utama</span>
+        </div>
+        <div class="custom-color-wrapper" id="bgRowColor2" style="display:none">
+          <input type="color" id="bg_color2" value="#27272a">
+          <span>Warna Kedua</span>
+        </div>
+        <div class="slider-row" id="bgRowAngle" style="display:none;margin-top:10px">
+          <label><span>Sudut Gradient</span><span id="bgv_angle">180°</span></label>
+          <input type="range" id="bg_angle" min="0" max="360" step="1" value="180">
+        </div>
+        <div class="toggle-row"><span>Latar Transparent (PNG)</span><div class="toggle-switch" id="toggleTransparent"></div></div>
       </div>
     </div>
 
-    <div class="accordion-item">
-      <div class="accordion-header">Imej Latar <span class="arrow">▼</span></div>
+    <div class="accordion-item open">
+      <div class="accordion-header">Imej Latar (Tetap) <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="upload-btn" style="padding:10px;font-size:13px">+ Pilih Imej<input type="file" id="bgImageUpload" accept="image/*"></div>
-        <button class="small-btn" id="btnClearBgImage">Buang Imej</button>
+        <div class="hint">Imej ini <b style="color:#a1a1aa">kekal tetap</b> di belakang. Ia tidak berpusing atau bergerak bila baju diputar, preview atau video.</div>
+        <div class="upload-btn" style="padding:10px;font-size:13px">+ Pilih Imej Latar<input type="file" id="bgImageUpload" accept="image/*"></div>
+        <button class="small-btn" id="btnClearBgImage">Buang Imej Latar</button>
         <div id="bgImagePanel" style="display:none;margin-top:10px">
           <div class="fill-modes" style="margin-bottom:10px">
             <button class="fill-btn active" data-mode="cover">Cover</button>
@@ -284,10 +299,10 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
             <button class="fill-btn" data-mode="free">Free</button>
           </div>
           <div class="slider-row"><label><span>Saiz</span><span id="bgv_imgScale">1.00</span></label><input type="range" id="bg_imgScale" min="0.2" max="4" step="0.05" value="1"></div>
-          <div class="slider-row"><label><span>X</span><span id="bgv_imgX">0%</span></label><input type="range" id="bg_imgX" min="-100" max="100" step="1" value="0"></div>
-          <div class="slider-row"><label><span>Y</span><span id="bgv_imgY">0%</span></label><input type="range" id="bg_imgY" min="-100" max="100" step="1" value="0"></div>
+          <div class="slider-row"><label><span>Kedudukan X</span><span id="bgv_imgX">0%</span></label><input type="range" id="bg_imgX" min="-100" max="100" step="1" value="0"></div>
+          <div class="slider-row"><label><span>Kedudukan Y</span><span id="bgv_imgY">0%</span></label><input type="range" id="bg_imgY" min="-100" max="100" step="1" value="0"></div>
           <div class="slider-row"><label><span>Opacity</span><span id="bgv_imgOpacity">1.00</span></label><input type="range" id="bg_imgOpacity" min="0" max="1" step="0.01" value="1"></div>
-          <div class="slider-row"><label><span>Blur</span><span id="bgv_imgBlur">0px</span></label><input type="range" id="bg_imgBlur" min="0" max="20" step="1" value="0"></div>
+          <div class="slider-row"><label><span>Blur Imej</span><span id="bgv_imgBlur">0px</span></label><input type="range" id="bg_imgBlur" min="0" max="20" step="1" value="0"></div>
           <div class="slider-row"><label><span>Brightness</span><span id="bgv_imgBrightness">100</span></label><input type="range" id="bg_imgBrightness" min="20" max="200" step="5" value="100"></div>
           <div class="slider-row"><label><span>Contrast</span><span id="bgv_imgContrast">100</span></label><input type="range" id="bg_imgContrast" min="20" max="200" step="5" value="100"></div>
           <div class="slider-row"><label><span>Saturation</span><span id="bgv_imgSaturation">100</span></label><input type="range" id="bg_imgSaturation" min="0" max="200" step="5" value="100"></div>
@@ -295,34 +310,45 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
       </div>
     </div>
 
-    <div class="accordion-item">
-      <div class="accordion-header">Lampu Studio <span class="arrow">▼</span></div>
+    <div class="accordion-item open">
+      <div class="accordion-header">Lampu &amp; Bayang Studio <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="sub-title">Spotlight</div>
-        <div class="custom-color-wrapper" style="margin-top:0"><input type="color" id="bg_spotColor" value="#ffffff"><span>Warna</span></div>
+        <div class="sub-title">Spotlight (cahaya belakang baju)</div>
+        <div class="custom-color-wrapper" style="margin-top:0">
+          <input type="color" id="bg_spotColor" value="#ffffff">
+          <span>Warna Cahaya</span>
+        </div>
         <div class="slider-row" style="margin-top:10px"><label><span>Kekuatan</span><span id="bgv_spotIntensity">0%</span></label><input type="range" id="bg_spotIntensity" min="0" max="100" step="1" value="0"></div>
         <div class="slider-row"><label><span>Saiz</span><span id="bgv_spotSize">60%</span></label><input type="range" id="bg_spotSize" min="10" max="140" step="1" value="60"></div>
-        <div class="slider-row"><label><span>Y</span><span id="bgv_spotY">45%</span></label><input type="range" id="bg_spotY" min="0" max="100" step="1" value="45"></div>
-        <div class="sub-title">Bayang Lantai</div>
+        <div class="slider-row"><label><span>Kedudukan Atas/Bawah</span><span id="bgv_spotY">45%</span></label><input type="range" id="bg_spotY" min="0" max="100" step="1" value="45"></div>
+
+        <div class="sub-title">Bayang Lantai (contact shadow)</div>
         <div class="slider-row"><label><span>Kegelapan</span><span id="bgv_shadowOpacity">0%</span></label><input type="range" id="bg_shadowOpacity" min="0" max="100" step="1" value="0"></div>
         <div class="slider-row"><label><span>Lebar</span><span id="bgv_shadowWidth">60%</span></label><input type="range" id="bg_shadowWidth" min="20" max="130" step="1" value="60"></div>
-        <div class="slider-row"><label><span>Blur</span><span id="bgv_shadowBlur">60</span></label><input type="range" id="bg_shadowBlur" min="0" max="100" step="1" value="60"></div>
-        <div class="slider-row"><label><span>Y</span><span id="bgv_shadowY">84%</span></label><input type="range" id="bg_shadowY" min="50" max="98" step="1" value="84"></div>
-        <div class="sub-title">Lantai</div>
-        <div class="custom-color-wrapper" style="margin-top:0"><input type="color" id="bg_floorColor" value="#000000"><span>Warna</span></div>
-        <div class="slider-row" style="margin-top:10px"><label><span>Kekuatan</span><span id="bgv_floorOpacity">0%</span></label><input type="range" id="bg_floorOpacity" min="0" max="100" step="1" value="0"></div>
-        <div class="slider-row"><label><span>Ufuk</span><span id="bgv_floorHorizon">72%</span></label><input type="range" id="bg_floorHorizon" min="30" max="95" step="1" value="72"></div>
+        <div class="slider-row"><label><span>Kelembutan (Blur)</span><span id="bgv_shadowBlur">60</span></label><input type="range" id="bg_shadowBlur" min="0" max="100" step="1" value="60"></div>
+        <div class="slider-row"><label><span>Kedudukan Atas/Bawah</span><span id="bgv_shadowY">84%</span></label><input type="range" id="bg_shadowY" min="50" max="98" step="1" value="84"></div>
+
+        <div class="sub-title">Lantai Studio</div>
+        <div class="custom-color-wrapper" style="margin-top:0">
+          <input type="color" id="bg_floorColor" value="#000000">
+          <span>Warna Lantai</span>
+        </div>
+        <div class="slider-row" style="margin-top:10px"><label><span>Kekuatan Lantai</span><span id="bgv_floorOpacity">0%</span></label><input type="range" id="bg_floorOpacity" min="0" max="100" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Paras Ufuk</span><span id="bgv_floorHorizon">72%</span></label><input type="range" id="bg_floorHorizon" min="30" max="95" step="1" value="72"></div>
       </div>
     </div>
 
-    <div class="accordion-item">
-      <div class="accordion-header">Kesan Latar <span class="arrow">▼</span></div>
+    <div class="accordion-item open">
+      <div class="accordion-header">Kesan Pro Latar <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <div class="slider-row"><label><span>Vignette</span><span id="bgv_vignette">0%</span></label><input type="range" id="bg_vignette" min="0" max="100" step="1" value="0"></div>
-        <div class="custom-color-wrapper" style="margin-top:6px"><input type="color" id="bg_overlayColor" value="#000000"><span>Overlay</span></div>
+        <div class="custom-color-wrapper" style="margin-top:6px">
+          <input type="color" id="bg_overlayColor" value="#000000">
+          <span>Gradient Overlay (atas → bawah)</span>
+        </div>
         <div class="slider-row" style="margin-top:8px"><label><span>Overlay Opacity</span><span id="bgv_overlayOpacity">0%</span></label><input type="range" id="bg_overlayOpacity" min="0" max="100" step="1" value="0"></div>
-        <div class="slider-row"><label><span>Grain</span><span id="bgv_grain">0</span></label><input type="range" id="bg_grain" min="0" max="100" step="1" value="0"></div>
-        <button class="small-btn" id="bgResetBtn">↺ Reset</button>
+        <div class="slider-row"><label><span>Grain / Filem</span><span id="bgv_grain">0</span></label><input type="range" id="bg_grain" min="0" max="100" step="1" value="0"></div>
+        <button class="small-btn" id="bgResetBtn">↺ Reset Semua Latar</button>
       </div>
     </div>
 
@@ -345,6 +371,17 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
           <button class="fill-btn ratio-btn" data-ratio="9:16">9:16</button>
           <button class="fill-btn ratio-btn" data-ratio="16:9">16:9</button>
         </div>
+        <div class="slider-row" style="margin-top:12px">
+          <label><span>Pandangan Simpan</span></label>
+          <select id="saveViewSelect" class="prop-input">
+            <option value="current">Pandangan Semasa</option>
+            <option value="front">Hadapan Sahaja</option>
+            <option value="back">Belakang Sahaja</option>
+            <option value="left">Kiri Sahaja</option>
+            <option value="right">Kanan Sahaja</option>
+            <option value="all">Semua (Grid 2x2)</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -353,9 +390,25 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
       <div class="accordion-body">
         <div class="slider-row"><label><span>Kelajuan</span><span id="speedValue">1.0x</span></label><input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1"></div>
         <div class="slider-row"><label><span>Tempoh</span><span id="durationValue">6s</span></label><input type="range" id="durationSlider" min="4" max="12" step="1" value="6"></div>
-        <div class="slider-row"><label><span>Kualiti</span><span id="qualityValue">720p</span></label><input type="range" id="qualitySlider" min="0" max="1" step="1" value="0"></div>
-        <button class="preview-btn" id="btnPreview">▶ Preview</button>
+        <div class="slider-row"><label><span>Kualiti</span><span id="qualityValue">720p Portrait</span></label><input type="range" id="qualitySlider" min="0" max="1" step="1" value="0"></div>
+        <button class="preview-btn" id="btnPreview">▶ Mainkan Preview</button>
         <button class="video-btn" id="btnRenderVideo">🎥 Render Video</button>
+      </div>
+    </div>
+
+    <div class="gizmo-controls" id="gizmoControls">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:8px">Kawalan Logo (Photoshop style)</div>
+      <div style="font-size:11px;color:#a1a1aa;margin-bottom:8px;line-height:1.4">
+        Seret petak = gerak · Sudut = saiz · Bulat = putar
+      </div>
+      <div class="mode-buttons">
+        <button class="mode-btn free active" id="btnFree" style="grid-column:1/-1">✥ Free Transform</button>
+        <button class="mode-btn" id="btnTranslate" style="display:none">✥ Gerak 3D</button>
+        <button class="mode-btn" id="btnScale" style="display:none">⤢ Saiz 3D</button>
+      </div>
+      <div class="action-row">
+        <button class="action-btn" id="btnUndo">↶ Undo</button>
+        <button class="action-btn" id="btnRedo">↷ Redo</button>
       </div>
     </div>
 
@@ -366,10 +419,10 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
     <canvas id="bgCanvas"></canvas>
     <canvas id="fgCanvas"></canvas>
     <div id="loading">MEMUATKAN STUDIO...</div>
-    <div id="recording-overlay"><span>●</span> <span id="recordingText">Merakam...</span></div>
+    <div id="recording-overlay"><span>●</span> <span id="recordingText">Sedang merakam...</span></div>
     <div id="floating-controls">
       <button id="btnPausePlay">⏸ Jeda</button>
-      <button id="btnSnap" disabled>📸 Snap</button>
+      <button id="btnSnap" disabled>📸 Tangkap Gambar</button>
     </div>
     <div id="free-transform">
       <div class="ft-box" id="ftBox"></div>
@@ -381,14 +434,11 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
       <div class="ft-rotate-handle" id="ftRotateHandle"></div>
     </div>
     <div id="crop-overlay"><div id="crop-frame"></div></div>
-    <div class="multi-badge" id="multiBadge">🎭 <span id="multiBadgeText">0</span> Baju</div>
-    <div class="group-focus-hint" id="groupFocusHint">🎯 Fokus: <span id="focusGroupName">—</span></div>
     <div id="view-toggles">
       <button id="viewFront" class="active">Hadapan</button>
       <button id="viewBack">Belakang</button>
-      <button id="viewRight">Kanan</button>
-      <button id="viewLeft">Kiri</button>
-      <button id="viewResetAll">Reset Semua</button>
+      <button id="viewRight">Sisi Kanan</button>
+      <button id="viewLeft">Sisi Kiri</button>
     </div>
   </div>
 
@@ -396,13 +446,14 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
     <div id="layers-header"><h2>Senarai Layer</h2></div>
     <div id="layers-list"></div>
     <div id="properties-panel">
-      <h3>Properties Layer</h3>
+      <h3>Properties</h3>
       <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
       <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
       <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
       <div class="prop-row" id="curveRow">
-        <label>Lekung (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
+        <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
         <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
+        <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
       </div>
       <div class="align-row">
         <button class="align-btn" id="btnAlignCenterX">Center X</button>
@@ -410,17 +461,17 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
       </div>
       <button class="small-btn" id="btnDuplicate" style="margin-top:10px">Duplicate Layer</button>
       <div id="textProps" style="display:none;margin-top:12px">
-        <div class="prop-row"><label>Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
-        <div class="prop-row"><label>Warna</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
+        <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
+        <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
       </div>
       <div id="fxPanel" style="display:none">
-        <h3 style="margin-top:14px">Kesan Imej</h3>
+        <h3 style="margin-top:14px">Kesan Imej 3D</h3>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-          <button class="small-btn" id="fxPresetRaised" style="margin-top:0;background:#7c3aed;color:#fff">⬆ Timbul</button>
-          <button class="small-btn" id="fxPresetFlat" style="margin-top:0">Rata</button>
+          <button class="small-btn" id="fxPresetRaised" style="margin-top:0;background:#7c3aed;color:#fff">⬆ Timbul + Bayang</button>
+          <button class="small-btn" id="fxPresetFlat" style="margin-top:0">Rata (tiada bayang)</button>
         </div>
         <div class="fx-group">
-          <div class="fx-title">Overlay</div>
+          <div class="fx-title">Overlay Warna</div>
           <div class="fx-row">
             <input type="color" id="fxOverlayColor" value="#ff0000">
             <input type="range" id="fxOverlayOpacity" min="0" max="100" step="1" value="0">
@@ -428,7 +479,7 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
           </div>
         </div>
         <div class="fx-group">
-          <div class="fx-title">Stroke</div>
+          <div class="fx-title">Stroke (tepi)</div>
           <div class="fx-row">
             <input type="color" id="fxStrokeColor" value="#000000">
             <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
@@ -436,16 +487,24 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
           </div>
         </div>
         <div class="fx-group">
-          <div class="fx-title">Drop Shadow</div>
+          <div class="fx-title">Drop Shadow (bayang timbul)</div>
           <div class="fx-row">
             <input type="color" id="fxShadowColor" value="#000000">
             <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="10">
             <span class="fx-val" id="fxShadowBlurValue">10px</span>
           </div>
-          <div class="fx-row"><span class="fx-val" style="color:#a1a1aa;text-align:left">X</span><input type="range" id="fxShadowX" min="-40" max="40" step="1" value="4"><span class="fx-val" id="fxShadowXValue">4</span></div>
-          <div class="fx-row"><span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span><input type="range" id="fxShadowY" min="-40" max="40" step="1" value="6"><span class="fx-val" id="fxShadowYValue">6</span></div>
+          <div class="fx-row">
+            <span class="fx-val" style="color:#a1a1aa;text-align:left">X</span>
+            <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="4">
+            <span class="fx-val" id="fxShadowXValue">4</span>
+          </div>
+          <div class="fx-row">
+            <span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span>
+            <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="6">
+            <span class="fx-val" id="fxShadowYValue">6</span>
+          </div>
         </div>
-        <button class="small-btn" id="fxReset">↺ Reset</button>
+        <button class="small-btn" id="fxReset">↺ Reset Kesan</button>
       </div>
     </div>
   </div>
@@ -460,26 +519,19 @@ select,.prop-input{width:100%;padding:8px;border-radius:6px;border:1px solid #3f
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // ===== ACCORDION =====
-document.querySelectorAll('.accordion-header').forEach(h => h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
-
-// ===== UTILS =====
-function showToast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = isError ? 'error' : '';
-  t.style.display = 'block';
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => t.style.display = 'none', 2800);
-}
-async function ensureFontLoaded(font) { try { await document.fonts.load(`bold 120px "${font}"`); } catch (e) {} }
-['Inter','Roboto','Oswald','Playfair Display'].forEach(ensureFontLoaded);
+document.querySelectorAll('.accordion-header').forEach(header => {
+  header.addEventListener('click', () => {
+    header.parentElement.classList.toggle('open');
+  });
+});
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v7';
+const DB_NAME = 'ProDesigner3D_v5';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -538,18 +590,35 @@ function resizeDataURL(dataURL, max = 900, type = 'image/png', quality = 0.9) {
     img.src = dataURL;
   });
 }
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isError ? 'error' : '';
+  t.style.display = 'block';
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.style.display = 'none', 2800);
+}
+async function ensureFontLoaded(font) {
+  try { await document.fonts.load(`bold 120px "${font}"`); } catch (e) {}
+}
+ensureFontLoaded('Inter'); ensureFontLoaded('Roboto');
+ensureFontLoaded('Oswald'); ensureFontLoaded('Playfair Display');
 
 // ===== THREE SETUP =====
 const container = document.getElementById('viewer-container');
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 200);
-camera.position.set(0, 0, 8);
-const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true, powerPreference: "high-performance" });
+const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+camera.position.set(0, 0, 4.5);
+const renderer = new THREE.WebGLRenderer({
+  antialias: true, preserveDrawingBuffer: true, alpha: true,
+  powerPreference: "high-performance"
+});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// Latar belakang dilukis di lapisan 2D tetap — renderer sentiasa lutsinar
 renderer.setClearColor(0x000000, 0);
 renderer.domElement.style.position = 'relative';
 renderer.domElement.style.zIndex = '1';
@@ -565,16 +634,11 @@ mainLight.position.set(5, 10, 5);
 mainLight.castShadow = true;
 mainLight.shadow.mapSize.set(2048, 2048);
 mainLight.shadow.intensity = 1;
-mainLight.shadow.camera.left = -10;
-mainLight.shadow.camera.right = 10;
-mainLight.shadow.camera.top = 10;
-mainLight.shadow.camera.bottom = -10;
-mainLight.shadow.camera.far = 30;
 scene.add(mainLight);
 
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ opacity: 0.3 }));
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.ShadowMaterial({ opacity: 0.3 }));
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = -1.5;
+ground.position.y = -1.2;
 ground.receiveShadow = true;
 scene.add(ground);
 
@@ -582,8 +646,27 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = false;
-controls.minDistance = 2;
-controls.maxDistance = 30;
+controls.minDistance = 1.5;
+controls.maxDistance = 10;
+
+const transformControls = new TransformControls(camera, renderer.domElement);
+transformControls.setMode('translate');
+transformControls.setSize(1.2);
+transformControls.setSpace('local');
+const transformHelper = transformControls.getHelper();
+transformHelper.visible = false; // elak anak panah RGB 3D — guna petak Photoshop sahaja
+scene.add(transformHelper);
+
+let isDragging = false;
+transformControls.addEventListener('dragging-changed', e => {
+  controls.enabled = !e.value;
+  isDragging = e.value;
+  if (!e.value && activeDummy) {
+    // Lepas drag: bina warp penuh sekali sahaja
+    createDecalNow(activeDummy, true);
+    pushHistory();
+  }
+});
 
 // ===== STATE =====
 const shirtGroup = new THREE.Group();
@@ -606,6 +689,7 @@ let isHistoryProcessing = false;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
+const gizmoControlsUI = document.getElementById('gizmoControls');
 const propertiesPanel = document.getElementById('properties-panel');
 const btnUndo = document.getElementById('btnUndo');
 const btnRedo = document.getElementById('btnRedo');
@@ -622,20 +706,27 @@ let ftDragging = null, ftStartMouse = new THREE.Vector2(), ftStartScale = 1, ftS
 const floatingControls = document.getElementById('floating-controls');
 const btnPausePlay = document.getElementById('btnPausePlay');
 const btnSnap = document.getElementById('btnSnap');
-const gizmoControlsUI = { classList: { add(){}, remove(){}, toggle(){} } }; // dummy
 
-// ===== EFFECTS =====
+// ===== KESAN IMEJ =====
 function defaultEffects() {
-  return { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 10, shadowOffsetX: 4, shadowOffsetY: 6 };
+  // Default: timbul + bayang lembut (kelihatan 3D pada baju)
+  return {
+    overlayColor: '#ff0000', overlayOpacity: 0,
+    strokeColor: '#000000', strokeWidth: 0,
+    shadowColor: '#000000', shadowBlur: 10, shadowOffsetX: 4, shadowOffsetY: 6
+  };
 }
-function ensureEffects(d) {
-  if (!d.userData.effects) d.userData.effects = defaultEffects();
-  return d.userData.effects;
+function ensureEffects(dummy) {
+  if (!dummy.userData.effects) dummy.userData.effects = defaultEffects();
+  return dummy.userData.effects;
 }
 
 // =====================================================================
-// ===== LATAR BELAKANG =====
+// ===== LATAR BELAKANG PRO (lapisan 2D TETAP — tidak berpusing) =====
 // =====================================================================
+// Latar dilukis pada <canvas> 2D di belakang (bgCanvas) dan kesan atas
+// (vignette/overlay/grain) di fgCanvas. Kamera/baju berputar tanpa
+// menjejaskan latar. Fungsi yang sama digunakan semasa eksport & video.
 function defaultBg() {
   return {
     type: 'solid', color: '#09090b', color2: '#27272a', angle: 180,
@@ -648,8 +739,8 @@ function defaultBg() {
   };
 }
 let bg = defaultBg();
-let bgImg = null;
-let bgImageDataURL = null;
+let bgImg = null;            // HTMLImageElement
+let bgImageDataURL = null;   // disimpan dalam project
 let bgVersion = 0;
 const bgCache = new Map();
 const bgCanvasEl = document.getElementById('bgCanvas');
@@ -683,7 +774,7 @@ function getGrainTile() {
   const x = c.getContext('2d');
   const id = x.createImageData(256, 256);
   for (let i = 0; i < id.data.length; i += 4) {
-    const v = Math.random() < 0.5 ? 0 : 255;
+    const v = Math.random() < 0.5 ? 0 : 255; // hitam/putih seimbang = tiada tint
     id.data[i] = id.data[i + 1] = id.data[i + 2] = v;
     id.data[i + 3] = Math.random() * 255;
   }
@@ -701,7 +792,7 @@ function paintBgImage(ctx, w, h) {
   if (mode === 'stretch') { dw = w; dh = h; }
   else {
     const sCover = Math.max(w / iw, h / ih), sContain = Math.min(w / iw, h / ih);
-    const s = mode === 'cover' ? sCover : sContain;
+    const s = mode === 'cover' ? sCover : sContain; // free = contain + skala bebas
     dw = iw * s; dh = ih * s;
   }
   const pad = (bg.imgBlur > 0 && (mode === 'cover' || mode === 'stretch')) ? 1 + bg.imgBlur * 0.006 : 1;
@@ -735,6 +826,7 @@ function paintEllipseShadow(ctx, cx, cy, rx, ry, alpha, inner) {
 }
 
 function paintBackground(ctx, w, h) {
+  // 1) Asas: solid / gradient / radial
   if (bg.type === 'gradient') {
     const a = (bg.angle || 0) * Math.PI / 180;
     const vx = Math.sin(a), vy = -Math.cos(a);
@@ -748,7 +840,11 @@ function paintBackground(ctx, w, h) {
     ctx.fillStyle = g;
   } else ctx.fillStyle = bg.color;
   ctx.fillRect(0, 0, w, h);
+
+  // 2) Imej latar (tetap)
   if (bgImg) paintBgImage(ctx, w, h);
+
+  // 3) Spotlight di belakang baju
   if (bg.spotIntensity > 0) {
     const I = bg.spotIntensity / 100;
     const cx = w / 2, cy = h * bg.spotY / 100;
@@ -760,6 +856,8 @@ function paintBackground(ctx, w, h) {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   }
+
+  // 4) Lantai studio (ufuk lembut)
   if (bg.floorOpacity > 0) {
     const op = bg.floorOpacity / 100;
     const y0 = h * bg.floorHorizon / 100 - h * 0.05;
@@ -772,6 +870,8 @@ function paintBackground(ctx, w, h) {
       ctx.fillRect(0, y0, w, h - y0);
     }
   }
+
+  // 5) Bayang lantai (contact shadow, 2 lapis: lembut + teras gelap)
   if (bg.shadowOpacity > 0) {
     const op = bg.shadowOpacity / 100;
     const cx = w / 2, cy = h * bg.shadowY / 100;
@@ -828,6 +928,7 @@ function getLayerCanvas(kind, w, h, painter) {
   return c;
 }
 
+// Gabung: latar (bawah) + render 3D (tengah) + kesan atas
 function composeFrame(ctx, w, h, src, sx, sy, sw, sh) {
   if (!isTransparentBg) ctx.drawImage(getBgLayer(w, h), 0, 0, w, h);
   ctx.drawImage(src, sx, sy, sw, sh, 0, 0, w, h);
@@ -850,6 +951,7 @@ function renderLiveBg() {
   });
   const bctx = bgCanvasEl.getContext('2d');
   if (isTransparentBg) {
+    // papan semak (tanda lutsinar)
     const sq = Math.round(14 * dpr);
     for (let y = 0; y < H; y += sq) for (let x = 0; x < W; x += sq) {
       bctx.fillStyle = (((x / sq) + (y / sq)) & 1) ? '#2c2c31' : '#222226';
@@ -868,10 +970,21 @@ function scheduleBgRender() {
   bgRenderQueued = true;
   requestAnimationFrame(renderLiveBg);
 }
-function markBgDirty() { bgVersion++; bgCache.clear(); scheduleBgRender(); }
+function markBgDirty() {
+  bgVersion++;
+  bgCache.clear();
+  scheduleBgRender();
+}
 
 // ----- UI latar -----
-const BG_RANGE_SUFFIX = { angle:'°', spotIntensity:'%', spotSize:'%', spotY:'%', shadowOpacity:'%', shadowWidth:'%', shadowBlur:'', shadowY:'%', floorOpacity:'%', floorHorizon:'%', vignette:'%', overlayOpacity:'%', grain:'', imgScale:'', imgX:'%', imgY:'%', imgOpacity:'', imgBlur:'px', imgBrightness:'', imgContrast:'', imgSaturation:'' };
+const BG_RANGE_SUFFIX = {
+  angle:'°', spotIntensity:'%', spotSize:'%', spotY:'%',
+  shadowOpacity:'%', shadowWidth:'%', shadowBlur:'', shadowY:'%',
+  floorOpacity:'%', floorHorizon:'%',
+  vignette:'%', overlayOpacity:'%', grain:'',
+  imgScale:'', imgX:'%', imgY:'%', imgOpacity:'', imgBlur:'px',
+  imgBrightness:'', imgContrast:'', imgSaturation:''
+};
 const BG_COLOR_KEYS = ['color', 'color2', 'spotColor', 'floorColor', 'overlayColor'];
 function updateBgValueLabel(key) {
   const el = document.getElementById('bg_' + key), lab = document.getElementById('bgv_' + key);
@@ -906,8 +1019,14 @@ BG_COLOR_KEYS.forEach(key => {
   el.oninput = () => { bg[key] = el.value; markBgDirty(); };
   el.onchange = () => pushHistory();
 });
-document.getElementById('bg_type').onchange = e => { bg.type = e.target.value; syncBgUI(); markBgDirty(); pushHistory(); };
-document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.onclick = () => { bg.imgMode = b.dataset.mode; syncBgUI(); markBgDirty(); pushHistory(); });
+document.getElementById('bg_type').onchange = e => {
+  bg.type = e.target.value;
+  syncBgUI(); markBgDirty(); pushHistory();
+};
+document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.onclick = () => {
+  bg.imgMode = b.dataset.mode;
+  syncBgUI(); markBgDirty(); pushHistory();
+});
 document.querySelectorAll('.preset-btn').forEach(b => b.onclick = () => {
   const p = BG_PRESETS[b.dataset.preset];
   if (!p) return;
@@ -916,19 +1035,36 @@ document.querySelectorAll('.preset-btn').forEach(b => b.onclick = () => {
   bg = { ...defaultBg(), ...keep, ...p };
   isTransparentBg = false;
   syncBgUI(); markBgDirty(); pushHistory();
+  showToast('Preset latar digunakan');
 });
 document.getElementById('toggleTransparent').onclick = function () {
   isTransparentBg = !isTransparentBg;
   this.classList.toggle('active', isTransparentBg);
   scheduleBgRender(); pushHistory();
 };
-document.getElementById('bgResetBtn').onclick = () => { bg = defaultBg(); isTransparentBg = false; syncBgUI(); markBgDirty(); pushHistory(); };
+document.getElementById('bgResetBtn').onclick = () => {
+  bg = defaultBg();
+  isTransparentBg = false;
+  syncBgUI(); markBgDirty(); pushHistory();
+  showToast('Latar direset (imej dikekalkan)');
+};
+
 function loadBgImageFromDataURL(dataURL) {
   return new Promise(resolve => {
-    if (!dataURL) { bgImg = null; bgImageDataURL = null; bgImagePanel.style.display = 'none'; markBgDirty(); return resolve(); }
+    if (!dataURL) {
+      bgImg = null; bgImageDataURL = null;
+      bgImagePanel.style.display = 'none';
+      markBgDirty();
+      return resolve();
+    }
     if (dataURL === bgImageDataURL && bgImg) { bgImagePanel.style.display = 'block'; return resolve(); }
     const img = new Image();
-    img.onload = () => { bgImg = img; bgImageDataURL = dataURL; bgImagePanel.style.display = 'block'; markBgDirty(); resolve(); };
+    img.onload = () => {
+      bgImg = img; bgImageDataURL = dataURL;
+      bgImagePanel.style.display = 'block';
+      markBgDirty();
+      resolve();
+    };
     img.onerror = () => resolve();
     img.src = dataURL;
   });
@@ -943,12 +1079,16 @@ document.getElementById('bgImageUpload').onchange = e => {
     isTransparentBg = false;
     bg.imgMode = 'cover'; bg.imgScale = 1; bg.imgX = 0; bg.imgY = 0;
     syncBgUI(); markBgDirty(); pushHistory();
+    showToast('Imej latar ditetapkan (tidak bergerak)');
   };
   r.readAsDataURL(f); e.target.value = '';
 };
-document.getElementById('btnClearBgImage').onclick = async () => { await loadBgImageFromDataURL(null); syncBgUI(); pushHistory(); };
+document.getElementById('btnClearBgImage').onclick = async () => {
+  await loadBgImageFromDataURL(null);
+  syncBgUI(); pushHistory();
+};
 
-// ===== CROP PREVIEW =====
+// ===== CROP / RATIO =====
 function updateCropFrame() {
   const overlay = document.getElementById('crop-overlay');
   const frame = document.getElementById('crop-frame');
@@ -959,13 +1099,15 @@ function updateCropFrame() {
     return;
   }
   overlay.classList.add('active');
-  const cw = container.clientWidth, ch = container.clientHeight;
+  const cw = container.clientWidth;
+  const ch = container.clientHeight;
   let w, h;
   if (outputRatio === '1:1') { w = Math.min(cw, ch); h = w; }
   else if (outputRatio === '4:5') { w = Math.min(cw, ch * 4 / 5); h = w * 5 / 4; }
   else if (outputRatio === '9:16') { w = Math.min(cw, ch * 9 / 16); h = w * 16 / 9; }
   else if (outputRatio === '16:9') { w = Math.min(cw, ch * 16 / 9); h = w * 9 / 16; }
-  const x = Math.round((cw - w) / 2), y = Math.round((ch - h) / 2);
+  const x = Math.round((cw - w) / 2);
+  const y = Math.round((ch - h) / 2);
   frame.style.left = x + 'px'; frame.style.top = y + 'px';
   frame.style.width = w + 'px'; frame.style.height = h + 'px';
   cropRect = { x, y, w, h };
@@ -981,457 +1123,7 @@ document.querySelectorAll('.ratio-btn').forEach(btn => {
   };
 });
 
-// =====================================================================
-// ===== MODEL GROUP SYSTEM (MULTI MODEL) =====
-// =====================================================================
-const MODEL_NAMES = {
-  './T_shirt_gltf.gltf': 'T-Shirt Pendek',
-  './baju_baru.glb': 'Baju Baru',
-  './long_sleeve_t-_shirt.glb': 'Lengan Panjang',
-  './short_sleeve_polo.glb': 'Polo Shirt'
-};
-let modelGroups = [];
-let groupCounter = 0;
-let activeGroup = null;
-let focusedGroupId = null; // Group yang sedang diputar (orbit focus)
-const GROUP_DEFAULTS = () => ({ brightness: 100, contrast: 100, saturation: 100, hue: 0, opacity: 100, rotation: 0, scale: 1 });
-
-function createModelGroup(name, url) {
-  groupCounter++;
-  const gid = 'mg-' + Date.now() + '-' + groupCounter;
-  const group = new THREE.Group();
-  group.userData = {
-    groupId: gid, name: name || ('Baju #' + groupCounter),
-    url, effects: GROUP_DEFAULTS(), layers: [], isMultiGroup: true, meshes: [],
-    isMain: false
-  };
-  group.position.set(0, 0, 0);
-  scene.add(group);
-  const mg = {
-    id: gid, name: group.userData.name, url, group, layers: [],
-    effects: group.userData.effects, isMain: false
-  };
-  modelGroups.push(mg);
-  return mg;
-}
-
-async function loadModelIntoGroup(mg) {
-  return new Promise(resolve => {
-    new GLTFLoader().load(mg.url, gltf => {
-      const model = gltf.scene;
-      const box = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      model.scale.setScalar(1.8 / maxDim);
-      model.updateMatrixWorld(true);
-      box.setFromObject(model);
-      model.position.sub(box.getCenter(new THREE.Vector3()));
-      model.traverse(c => {
-        if (c.isMesh) {
-          c.castShadow = c.receiveShadow = true;
-          if (!c.material?.isMeshStandardMaterial) {
-            c.material = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
-          } else {
-            c.material.color.set(currentShirtColor);
-          }
-          c.material.userData = c.material.userData || {};
-          c.material.userData._baseColor = new THREE.Color(currentShirtColor);
-          mg.group.userData.meshes.push(c);
-        }
-      });
-      mg.group.add(model);
-      mg.group.userData.model = model;
-      applyGroupEffects(mg);
-      // Auto position: susun dalam bulatan
-      autoArrangeAll();
-      resolve();
-    }, undefined, () => {
-      const fb = createFallbackShirt();
-      fb.scale.setScalar(0.6);
-      fb.traverse(c => { if (c.isMesh) { c.castShadow = c.receiveShadow = true; c.material.userData = c.material.userData || {}; c.material.userData._baseColor = new THREE.Color(currentShirtColor); mg.group.userData.meshes.push(c); } });
-      mg.group.add(fb);
-      mg.group.userData.model = fb;
-      applyGroupEffects(mg);
-      autoArrangeAll();
-      resolve();
-    });
-  });
-}
-
-function autoArrangeAll() {
-  // Susun semua group: jika 1 group → tengah. Jika banyak → bulatan/grid
-  const total = modelGroups.length;
-  if (total === 0) return;
-  if (total === 1) {
-    modelGroups[0].group.position.set(0, 0, 0);
-    modelGroups[0].group.userData.homePos = [0, 0, 0];
-    return;
-  }
-  // Grid: 2 kolum kalau 2-4, 3 kalau lebih
-  const cols = total <= 4 ? 2 : 3;
-  const rows = Math.ceil(total / cols);
-  const gapX = 2.5, gapZ = 1.8;
-  modelGroups.forEach((mg, i) => {
-    const r = Math.floor(i / cols), c = i % cols;
-    const rowCount = (r === rows - 1) ? (total - r * cols) : cols;
-    const offsetX = (rowCount - 1) * gapX / 2;
-    const x = c * gapX - offsetX;
-    const z = r * gapZ - (rows - 1) * gapZ / 2;
-    // Simpan homePos, tetapi jangan overwrite jika user dah gerak manual (kecuali initial)
-    if (!mg.group.userData.homePos) {
-      mg.group.position.set(x, 0, z);
-      mg.group.userData.homePos = [x, 0, z];
-    } else {
-      // Update homePos untuk susunan baru
-      mg.group.userData.homePos = [x, 0, z];
-      // Jika belum pernah user gerak manual, update posisi
-      if (!mg.group.userData.userMoved) {
-        mg.group.position.set(x, 0, z);
-      }
-    }
-  });
-}
-
-function applyGroupEffects(mg) {
-  const e = mg.effects;
-  const opacity = (e.opacity || 100) / 100;
-  mg.group.userData.meshes?.forEach(mesh => {
-    const mat = mesh.material;
-    if (!mat) return;
-    if (!mat.userData._baseColor) mat.userData._baseColor = mat.color.clone();
-    const c = mat.userData._baseColor.clone();
-    const hsl = { h: 0, s: 0, l: 0 };
-    c.getHSL(hsl);
-    hsl.l = Math.max(0, Math.min(1, hsl.l * (e.brightness / 100)));
-    hsl.s = Math.max(0, Math.min(1, hsl.s * (e.saturation / 100)));
-    hsl.l = 0.5 + (hsl.l - 0.5) * (e.contrast / 100);
-    hsl.h += (e.hue || 0) / 360;
-    c.setHSL(((hsl.h % 1) + 1) % 1, hsl.s, Math.max(0, Math.min(1, hsl.l)));
-    mat.color.copy(c);
-    mat.transparent = opacity < 1;
-    mat.opacity = opacity;
-    mat.needsUpdate = true;
-  });
-  // Apply scale
-  if (mg.group.userData.model && e.scale) {
-    const s = e.scale;
-    // scale relatif pada base scale model (1.8/maxDim sudah ada)
-    // Kita guna group.scale untuk skala keseluruhan
-    mg.group.scale.setScalar(s);
-  }
-}
-
-function focusGroup(mg) {
-  focusedGroupId = mg.id;
-  activeGroup = mg;
-  // Highlight UI
-  document.querySelectorAll('.layer-group').forEach(el => {
-    el.classList.toggle('active', el.dataset.gid === mg.id);
-  });
-  // Set orbit target ke center group (untuk putar pada titik tengah group)
-  const center = new THREE.Vector3();
-  mg.group.getWorldPosition(center);
-  controls.target.copy(center);
-  controls.update();
-  // Update hint
-  const hint = document.getElementById('groupFocusHint');
-  document.getElementById('focusGroupName').textContent = mg.name;
-  hint.classList.add('active');
-  showToast(`🎯 Fokus "${mg.name}" — pusing kamera untuk putar baju ni sahaja`);
-}
-
-function unfocusGroup() {
-  focusedGroupId = null;
-  activeGroup = null;
-  document.querySelectorAll('.layer-group').forEach(el => el.classList.remove('active'));
-  document.getElementById('groupFocusHint').classList.remove('active');
-  controls.target.set(0, 0, 0);
-  controls.update();
-}
-
-function renderGroupListUI() {
-  document.querySelectorAll('.layer-group').forEach(el => el.remove());
-  const baseLayer = document.getElementById('layer-base');
-  // Susun UI dari belakang (index 0) ke depan
-  modelGroups.forEach((mg, idx) => {
-    const wrap = document.createElement('div');
-    wrap.className = 'layer-group open';
-    wrap.dataset.gid = mg.id;
-    if (focusedGroupId === mg.id) wrap.classList.add('active');
-
-    const header = document.createElement('div');
-    header.className = 'group-header';
-    header.innerHTML = `<span class="g-arrow">▶</span>
-      <span class="g-name">🎭 ${mg.name}</span>
-      <span class="g-badge">3D</span>
-      <span class="g-active-badge">FOKUS</span>`;
-    header.onclick = e => {
-      if (e.target.closest('.g-name') || e.target.closest('.g-badge')) {
-        focusGroup(mg);
-      } else {
-        wrap.classList.toggle('open');
-      }
-    };
-    wrap.appendChild(header);
-
-    const body = document.createElement('div');
-    body.className = 'group-body';
-    mg.layers.forEach(l => {
-      const sub = document.createElement('div');
-      sub.className = 'layer-item';
-      if (activeDummy === l) sub.classList.add('active');
-      const subInfo = document.createElement('div');
-      subInfo.className = 'layer-info';
-      subInfo.innerHTML = `<span>${l.userData.icon || '🖼️'}</span><span class="layer-name">${l.userData.name || 'Layer'}</span>`;
-      const subActions = document.createElement('div');
-      subActions.className = 'layer-actions';
-      const bDel = document.createElement('button');
-      bDel.className = 'del'; bDel.textContent = '✕';
-      bDel.onclick = ev => { ev.stopPropagation(); deleteLayer(l, sub); };
-      subActions.appendChild(bDel);
-      sub.appendChild(subInfo);
-      sub.appendChild(subActions);
-      sub.onclick = ev => { if (!ev.target.closest('.layer-actions')) selectLayer(l, sub); };
-      body.appendChild(sub);
-    });
-    if (mg.layers.length === 0) {
-      const empty = document.createElement('div');
-      empty.style.cssText = 'font-size:10px;color:#52525b;padding:8px;text-align:center;font-style:italic';
-      empty.textContent = 'Belum ada logo/teks';
-      body.appendChild(empty);
-    }
-    wrap.appendChild(body);
-
-    const tools = document.createElement('div');
-    tools.className = 'group-tools';
-    const bSettings = document.createElement('button'); bSettings.textContent = '⚙️ Tetapan';
-    const bFocus = document.createElement('button'); bFocus.textContent = '🎯 Fokus'; 
-    const bDelete = document.createElement('button'); bDelete.textContent = '✕'; bDelete.className = 'danger';
-    tools.appendChild(bSettings); tools.appendChild(bFocus); tools.appendChild(bDelete);
-    wrap.appendChild(tools);
-
-    // Settings panel — GROUP 3D settings
-    const settings = document.createElement('div');
-    settings.className = 'group-settings';
-    settings.innerHTML = `
-      <div class="gs-section">Posisi 3D (Frame)</div>
-      <div class="gs-row"><label>X (kiri-kanan)</label><input type="range" data-k="posX" min="-8" max="8" step="0.1" value="${mg.group.position.x}"><span class="gs-val" data-v="posX">${mg.group.position.x.toFixed(1)}</span></div>
-      <div class="gs-row"><label>Y (atas-bawah)</label><input type="range" data-k="posY" min="-4" max="4" step="0.1" value="${mg.group.position.y}"><span class="gs-val" data-v="posY">${mg.group.position.y.toFixed(1)}</span></div>
-      <div class="gs-row"><label>Z (depan-belakang)</label><input type="range" data-k="posZ" min="-8" max="8" step="0.1" value="${mg.group.position.z}"><span class="gs-val" data-v="posZ">${mg.group.position.z.toFixed(1)}</span></div>
-      <div class="gs-row"><label>Putaran</label><input type="range" data-k="rotation" min="0" max="360" step="1" value="${mg.effects.rotation}"><span class="gs-val" data-v="rotation">${mg.effects.rotation}°</span></div>
-      <div class="gs-row"><label>Saiz</label><input type="range" data-k="scale" min="0.3" max="2.5" step="0.05" value="${mg.effects.scale}"><span class="gs-val" data-v="scale">${mg.effects.scale.toFixed(2)}</span></div>
-      <div class="gs-section">Warna & Kesan</div>
-      <div class="gs-row"><label>Brightness</label><input type="range" data-k="brightness" min="20" max="200" step="1" value="${mg.effects.brightness}"><span class="gs-val" data-v="brightness">${mg.effects.brightness}</span></div>
-      <div class="gs-row"><label>Contrast</label><input type="range" data-k="contrast" min="20" max="200" step="1" value="${mg.effects.contrast}"><span class="gs-val" data-v="contrast">${mg.effects.contrast}</span></div>
-      <div class="gs-row"><label>Saturation</label><input type="range" data-k="saturation" min="0" max="200" step="1" value="${mg.effects.saturation}"><span class="gs-val" data-v="saturation">${mg.effects.saturation}</span></div>
-      <div class="gs-row"><label>Hue (°)</label><input type="range" data-k="hue" min="-180" max="180" step="1" value="${mg.effects.hue}"><span class="gs-val" data-v="hue">${mg.effects.hue}</span></div>
-      <div class="gs-row"><label>Opacity</label><input type="range" data-k="opacity" min="10" max="100" step="1" value="${mg.effects.opacity}"><span class="gs-val" data-v="opacity">${mg.effects.opacity}</span></div>
-      <div class="gs-section">Susunan Layer</div>
-      <div class="gs-btn-row">
-        <button data-act="back">⬇ Ke Belakang</button>
-        <button data-act="front">⬆ Ke Depan</button>
-      </div>
-      <div class="gs-btn-row">
-        <button data-act="home">🏠 Posisi Asal</button>
-        <button data-act="center" class="primary">⊙ Tengah Frame</button>
-      </div>
-    `;
-    wrap.appendChild(settings);
-
-    bSettings.onclick = e => { e.stopPropagation(); settings.classList.toggle('show'); wrap.classList.add('open'); };
-    bFocus.onclick = e => { e.stopPropagation(); focusGroup(mg); };
-    bDelete.onclick = e => { e.stopPropagation(); if (confirm(`Padam group "${mg.name}"?`)) removeModelGroup(mg); };
-
-    // Settings events
-    settings.querySelectorAll('input[type=range]').forEach(inp => {
-      inp.oninput = () => {
-        const k = inp.dataset.k;
-        const val = +inp.value;
-        const lbl = settings.querySelector(`[data-v="${k}"]`);
-        if (k === 'posX') { mg.group.position.x = val; mg.group.userData.userMoved = true; if (lbl) lbl.textContent = val.toFixed(1); }
-        else if (k === 'posY') { mg.group.position.y = val; mg.group.userData.userMoved = true; if (lbl) lbl.textContent = val.toFixed(1); }
-        else if (k === 'posZ') { mg.group.position.z = val; mg.group.userData.userMoved = true; if (lbl) lbl.textContent = val.toFixed(1); }
-        else if (k === 'rotation') { mg.effects.rotation = val; mg.group.rotation.y = val * Math.PI / 180; if (lbl) lbl.textContent = val + '°'; }
-        else if (k === 'scale') { mg.effects.scale = val; applyGroupEffects(mg); if (lbl) lbl.textContent = val.toFixed(2); }
-        else { mg.effects[k] = val; applyGroupEffects(mg); if (lbl) lbl.textContent = val; }
-        if (focusedGroupId === mg.id) {
-          const center = new THREE.Vector3();
-          mg.group.getWorldPosition(center);
-          controls.target.copy(center);
-          controls.update();
-        }
-      };
-      inp.onchange = () => pushHistory();
-    });
-    settings.querySelectorAll('[data-act]').forEach(btn => {
-      btn.onclick = () => {
-        const act = btn.dataset.act;
-        if (act === 'back') { // Ke belakang (Z negatif)
-          mg.group.position.z -= 1.5;
-          mg.group.userData.userMoved = true;
-        } else if (act === 'front') { // Ke depan (Z positif)
-          mg.group.position.z += 1.5;
-          mg.group.userData.userMoved = true;
-        } else if (act === 'home') {
-          const hp = mg.group.userData.homePos || [0, 0, 0];
-          mg.group.position.set(hp[0], hp[1], hp[2]);
-          mg.group.userData.userMoved = false;
-        } else if (act === 'center') {
-          mg.group.position.set(0, 0, 0);
-          mg.group.userData.userMoved = true;
-        }
-        // Update slider UI
-        settings.querySelector('[data-k="posX"]').value = mg.group.position.x;
-        settings.querySelector('[data-v="posX"]').textContent = mg.group.position.x.toFixed(1);
-        settings.querySelector('[data-k="posY"]').value = mg.group.position.y;
-        settings.querySelector('[data-v="posY"]').textContent = mg.group.position.y.toFixed(1);
-        settings.querySelector('[data-k="posZ"]').value = mg.group.position.z;
-        settings.querySelector('[data-v="posZ"]').textContent = mg.group.position.z.toFixed(1);
-        if (focusedGroupId === mg.id) {
-          const center = new THREE.Vector3();
-          mg.group.getWorldPosition(center);
-          controls.target.copy(center);
-          controls.update();
-        }
-        pushHistory();
-      };
-    });
-
-    if (baseLayer) layerListUI.insertBefore(wrap, baseLayer);
-    else layerListUI.appendChild(wrap);
-  });
-
-  // Badge
-  document.getElementById('multiBadgeText').textContent = modelGroups.length;
-  document.getElementById('multiBadge').classList.toggle('active', modelGroups.length >= 1);
-  const info = document.getElementById('modelGroupsInfo');
-  if (info) {
-    if (modelGroups.length === 0) info.textContent = 'Tiada baju tambahan. Klik butang di atas.';
-    else info.innerHTML = `<b style="color:#38bdf8">${modelGroups.length}</b> baju 3D dalam frame. Klik nama group untuk fokus & putar baju tu sahaja.`;
-  }
-}
-
-function removeModelGroup(mg) {
-  mg.layers.forEach(l => {
-    disposeDummyDecals(l);
-    disposeDummyTextures(l);
-    layers = layers.filter(x => x !== l);
-  });
-  mg.group.traverse(c => { c.geometry?.dispose?.(); c.material?.dispose?.(); });
-  scene.remove(mg.group);
-  modelGroups = modelGroups.filter(g => g !== mg);
-  if (activeGroup === mg) { activeGroup = null; unfocusGroup(); }
-  autoArrangeAll();
-  renderGroupListUI();
-  pushHistory();
-}
-
-document.getElementById('btnAddModel3D').onclick = async () => {
-  const url = document.getElementById('multiModelSelect').value;
-  const name = (MODEL_NAMES[url] || 'Baju') + ' #' + (modelGroups.length + 1);
-  const mg = createModelGroup(name, url);
-  renderGroupListUI();
-  showToast('Memuat model...');
-  await loadModelIntoGroup(mg);
-  renderGroupListUI();
-  focusGroup(mg);
-  showToast('✅ Baju ditambah. Klik "⚙️ Tetapan" untuk ubah posisi');
-  pushHistory();
-};
-
-// =====================================================================
-// ===== MAIN SHIRT (baju utama, sama macam group) =====
-// =====================================================================
-const MAIN_GROUP_ID = 'main-group';
-let mainGroupObj = null; // akan di-setup bila load
-
-function createMainGroup(url) {
-  const group = new THREE.Group();
-  group.userData = {
-    groupId: MAIN_GROUP_ID, name: 'Baju Utama',
-    url, effects: GROUP_DEFAULTS(), layers: [], isMultiGroup: true, meshes: [], isMain: true
-  };
-  scene.add(group);
-  const mg = {
-    id: MAIN_GROUP_ID, name: 'Baju Utama', url, group, layers: [],
-    effects: group.userData.effects, isMain: true
-  };
-  mainGroupObj = mg;
-  modelGroups = [mg, ...modelGroups]; // simpan sebagai group pertama
-  return mg;
-}
-
-function setupMainModel(model) {
-  const group = new THREE.Group();
-  group.userData = {
-    groupId: MAIN_GROUP_ID, name: 'Baju Utama',
-    url: currentModelUrl, effects: GROUP_DEFAULTS(), layers: [], isMultiGroup: true, meshes: [], isMain: true
-  };
-  const box = new THREE.Box3().setFromObject(model);
-  const size = box.getSize(new THREE.Vector3());
-  const maxDim = Math.max(size.x, size.y, size.z) || 1;
-  model.scale.setScalar(1.8 / maxDim);
-  model.updateMatrixWorld(true);
-  box.setFromObject(model);
-  model.position.sub(box.getCenter(new THREE.Vector3()));
-  model.traverse(c => {
-    if (c.isMesh) {
-      c.castShadow = c.receiveShadow = true;
-      if (!c.material?.isMeshStandardMaterial) {
-        c.material = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
-      } else {
-        c.material.color.set(currentShirtColor);
-      }
-      c.material.userData = c.material.userData || {};
-      c.material.userData._baseColor = new THREE.Color(currentShirtColor);
-      group.userData.meshes.push(c);
-      shirtMeshes.push(c);
-      shirtMaterials.push(c.material);
-    }
-  });
-  group.add(model);
-  group.userData.model = model;
-  group.position.set(0, 0, 0);
-  group.userData.homePos = [0, 0, 0];
-  scene.add(group);
-  const mg = {
-    id: MAIN_GROUP_ID, name: 'Baju Utama', url: currentModelUrl, group, layers: [],
-    effects: group.userData.effects, isMain: true
-  };
-  mainGroupObj = mg;
-  modelGroups = [mg, ...modelGroups];
-  // Set ground level
-  ground.position.y = box.min.y - 0.1;
-  return mg;
-}
-
-async function reloadMainModel(url) {
-  // Buang group utama lama
-  const oldMain = modelGroups.find(g => g.isMain);
-  if (oldMain) {
-    oldMain.group.traverse(c => { c.geometry?.dispose?.(); c.material?.dispose?.(); });
-    scene.remove(oldMain.group);
-    modelGroups = modelGroups.filter(g => !g.isMain);
-  }
-  shirtMeshes = []; shirtMaterials = [];
-  currentModelUrl = url;
-  await new Promise(resolve => {
-    new GLTFLoader().load(url, gltf => {
-      setupMainModel(gltf.scene);
-      resolve();
-    }, undefined, () => {
-      setupMainModel(createFallbackShirt());
-      resolve();
-    });
-  });
-  // Rebuild decals untuk layer yang dalam main group
-  const newMain = modelGroups.find(g => g.isMain);
-  if (newMain) {
-    newMain.layers.forEach(l => { buildGroupDecal(newMain, l); });
-  }
-  renderGroupListUI();
-}
-
+// ===== MODEL =====
 function createFallbackShirt() {
   const g = new THREE.Group();
   const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide });
@@ -1441,18 +1133,133 @@ function createFallbackShirt() {
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.25, 16), m); neck.position.y = 1.05; neck.castShadow = true; g.add(neck);
   return g;
 }
+function applyModelToScene(model) {
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  model.scale.setScalar(2.4 / maxDim);
+  model.updateMatrixWorld(true);
+  box.setFromObject(model);
+  model.position.sub(box.getCenter(new THREE.Vector3()));
+  model.updateMatrixWorld(true);
+  model.traverse(c => {
+    if (c.isMesh) {
+      c.castShadow = c.receiveShadow = true;
+      if (!c.material?.isMeshStandardMaterial) {
+        c.material = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
+      } else {
+        c.material.color.set(currentShirtColor);
+        c.material.roughness = 0.8;
+        c.material.metalness = 0.1;
+      }
+      shirtMaterials.push(c.material);
+      shirtMeshes.push(c);
+    }
+  });
+  shirtGroup.add(model);
+  ground.position.y = box.min.y - 0.1;
+}
+function loadShirtModel(url) {
+  return new Promise(resolve => {
+    new GLTFLoader().load(
+      url,
+      g => { applyModelToScene(g.scene); resolve(); },
+      undefined,
+      () => { console.warn('Model gagal load, guna fallback:', url); applyModelToScene(createFallbackShirt()); resolve(); }
+    );
+  });
+}
+function setupShirt(model) {
+  applyModelToScene(model);
+  const loadingEl = document.getElementById('loading');
+  if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
+  addBaseLayer();
+  loadProjectList().then(loadLastProject);
+  pushHistory();
+}
+async function switchShirtModelLive(url) {
+  if (url === currentModelUrl && shirtMeshes.length > 0) return;
+  layers.forEach(d => {
+    if (!d.userData.isCanvasGraphic) disposeDummyDecals(d);
+  });
+  const toRemove = shirtGroup.children.filter(c => !layers.includes(c));
+  toRemove.forEach(c => {
+    shirtGroup.remove(c);
+    c.traverse?.(n => { n.geometry?.dispose?.(); });
+  });
+  shirtMaterials.forEach(m => m.dispose?.());
+  shirtMeshes = [];
+  shirtMaterials = [];
+  currentModelUrl = url;
+  showToast('Memuat model baru...');
+  await loadShirtModel(url);
+  layers.forEach(d => {
+    if (!d.userData.isCanvasGraphic) createDecalNow(d);
+  });
+  if (currentMode === 'free' && activeDummy) updateFreeTransformHandles();
+  pushHistory();
+  showToast('✅ Model baju ditukar');
+}
+document.getElementById('modelSelect').onchange = async e => {
+  const url = e.target.value;
+  if (url === currentModelUrl) return;
+  await switchShirtModelLive(url);
+};
 
-// =====================================================================
-// ===== LAYERS SYSTEM =====
-// =====================================================================
+// Load awal
+new GLTFLoader().load('./T_shirt_gltf.gltf', g => setupShirt(g.scene), undefined, () => setupShirt(createFallbackShirt()));
+
+// ===== LAYERS =====
+function addBaseLayer() {
+  if (document.getElementById('layer-base')) return;
+  const el = document.createElement('div');
+  el.className = 'layer-item active'; el.id = 'layer-base';
+  el.innerHTML = `<div class="layer-info"><span>👕</span><span class="layer-name">Baju 3D (Asas)</span></div>`;
+  el.onclick = () => {
+    transformControls.detach(); activeDummy = null;
+    gizmoControlsUI.classList.remove('active'); hideFreeTransform();
+    propertiesPanel.classList.remove('active');
+    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  };
+  layerListUI.appendChild(el);
+}
+function addDesignLayer(dummy, name, icon) {
+  const id = 'layer-' + Date.now() + Math.random().toString(36).slice(2, 7);
+  dummy.userData.layerId = id;
+  dummy.userData.name = name;
+  dummy.userData.icon = icon;
+  dummy.userData.opacity = dummy.userData.opacity ?? 1;
+  dummy.userData.visible = true;
+  dummy.userData.locked = false;
+  dummy.userData.curve = dummy.userData.curve || 0;
+  ensureEffects(dummy);
+  const el = document.createElement('div');
+  el.className = 'layer-item'; el.id = id;
+  if (!dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
+  const info = document.createElement('div'); info.className = 'layer-info';
+  const ic = document.createElement('span'); ic.textContent = icon;
+  const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
+  info.appendChild(ic); info.appendChild(nm);
+  const actions = document.createElement('div'); actions.className = 'layer-actions';
+  const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.title = 'Visibility'; bVis.textContent = '👁️';
+  const bLock = document.createElement('button'); bLock.className = 'lock'; bLock.title = 'Lock'; bLock.textContent = '🔓';
+  const bDel = document.createElement('button'); bDel.className = 'del'; bDel.title = 'Padam'; bDel.textContent = '✕';
+  actions.appendChild(bVis); actions.appendChild(bLock); actions.appendChild(bDel);
+  el.appendChild(info); el.appendChild(actions);
+  el.onclick = e => { if (e.target.closest('.layer-actions')) return; selectLayer(dummy, el); };
+  bDel.onclick = e => { e.stopPropagation(); deleteLayer(dummy, el); };
+  bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
+  bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
+  layerListUI.prepend(el);
+  selectLayer(dummy, el);
+}
 function selectLayer(dummy, el) {
   if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-  if (el) el.classList.add('active');
+  el.classList.add('active');
   activeDummy = dummy;
-  // Kalau layer ni dalam group, fokus group tu
-  const parentGroup = modelGroups.find(mg => mg.layers.includes(dummy));
-  if (parentGroup) focusGroup(parentGroup);
+  gizmoControlsUI.classList.add('active');
   propertiesPanel.classList.add('active');
   ensureEffects(dummy);
   document.getElementById('propName').value = dummy.userData.name || '';
@@ -1461,8 +1268,9 @@ function selectLayer(dummy, el) {
   document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
   const curveRow = document.getElementById('curveRow');
-  if (dummy.userData.isCanvasGraphic) curveRow.style.display = 'none';
-  else {
+  if (dummy.userData.isCanvasGraphic) {
+    curveRow.style.display = 'none';
+  } else {
     curveRow.style.display = 'block';
     const c = dummy.userData.curve || 0;
     document.getElementById('propCurve').value = c;
@@ -1476,34 +1284,41 @@ function selectLayer(dummy, el) {
   } else textProps.style.display = 'none';
   document.getElementById('fxPanel').style.display = 'block';
   updateFxUI(dummy);
+  transformControls.setSpace('local');
+  // Gaya Photoshop: sentiasa petak + handle, tiada anak panah RGB 3D
+  transformControls.detach();
+  currentMode = 'free';
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btnFree').classList.add('active');
   showFreeTransform();
 }
-
-function addDesignLayer(dummy, name, icon) {
-  const id = 'layer-' + Date.now() + Math.random().toString(36).slice(2, 7);
-  dummy.userData.layerId = id;
-  dummy.userData.name = name;
-  dummy.userData.icon = icon;
-  dummy.userData.opacity = dummy.userData.opacity ?? 1;
-  dummy.userData.visible = true;
-  dummy.userData.locked = false;
-  dummy.userData.curve = dummy.userData.curve || 0;
-  ensureEffects(dummy);
-  renderGroupListUI();
-  return id;
-}
-
 function toggleVisibility(dummy, el) {
   dummy.userData.visible = !dummy.userData.visible;
-  if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = dummy.userData.visible);
-  if (dummy.userData.isCanvasGraphic) dummy.visible = dummy.userData.visible;
-  if (el) {
-    const btn = el.querySelector('.vis');
-    if (btn) btn.textContent = dummy.userData.visible ? '👁️' : '👁️‍🗨️';
+  const visBtn = el.querySelector('.vis');
+  if (dummy.userData.visible) {
+    visBtn.classList.remove('hidden'); visBtn.textContent = '👁️';
+    if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = true);
+    if (dummy.userData.isCanvasGraphic) dummy.visible = true;
+  } else {
+    visBtn.classList.add('hidden'); visBtn.textContent = '👁️‍🗨️';
+    if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = false);
+    if (dummy.userData.isCanvasGraphic) dummy.visible = false;
   }
 }
-
+function toggleLock(dummy, el) {
+  dummy.userData.locked = !dummy.userData.locked;
+  const lockBtn = el.querySelector('.lock');
+  if (dummy.userData.locked) {
+    lockBtn.textContent = '🔒'; el.classList.add('locked');
+    if (activeDummy === dummy) {
+      transformControls.detach(); hideFreeTransform();
+      gizmoControlsUI.classList.remove('active'); propertiesPanel.classList.remove('active');
+      activeDummy = null;
+    }
+  } else { lockBtn.textContent = '🔓'; el.classList.remove('locked'); }
+}
 function deleteLayer(dummy, el) {
+  transformControls.detach(); hideFreeTransform(); propertiesPanel.classList.remove('active');
   if (dummy.userData.isCanvasGraphic) {
     canvasGroup.remove(dummy);
     dummy.geometry?.dispose?.();
@@ -1511,26 +1326,18 @@ function deleteLayer(dummy, el) {
   } else {
     disposeDummyDecals(dummy);
     disposeDummyTextures(dummy);
-    dummy.parent?.remove(dummy);
+    shirtGroup.remove(dummy);
   }
-  modelGroups.forEach(mg => {
-    const idx = mg.layers.indexOf(dummy);
-    if (idx >= 0) mg.layers.splice(idx, 1);
-  });
+  el.remove();
   layers = layers.filter(l => l !== dummy);
-  if (activeDummy === dummy) {
-    activeDummy = null;
-    propertiesPanel.classList.remove('active');
-    hideFreeTransform();
-  }
-  renderGroupListUI();
+  gizmoControlsUI.classList.remove('active');
+  activeDummy = null;
   pushHistory();
 }
-
 function disposeDummyDecals(dummy) {
   if (!dummy.userData.decals) { dummy.userData.decals = []; return; }
   dummy.userData.decals.forEach(d => {
-    d.parent?.remove(d);
+    shirtGroup.remove(d);
     d.geometry?.dispose?.();
     d.material?.dispose?.();
   });
@@ -1560,22 +1367,27 @@ function applyLayerEffects(img, fx) {
   const base = document.createElement('canvas');
   base.width = bw; base.height = bh;
   const bctx = base.getContext('2d');
-  bctx.imageSmoothingEnabled = true; bctx.imageSmoothingQuality = 'high';
+  bctx.imageSmoothingEnabled = true;
+  bctx.imageSmoothingQuality = 'high';
   bctx.drawImage(img, 0, 0, bw, bh);
   const strokeW = Math.max(0, fx.strokeWidth || 0) * sc;
-  const blur = Math.max(0, fx.shadowBlur || 0) * sc;
-  const offX = (fx.shadowOffsetX || 0) * sc;
-  const offY = (fx.shadowOffsetY || 0) * sc;
-  const ovOp = Math.max(0, Math.min(1, fx.overlayOpacity || 0));
-  const hasStroke = strokeW > 0.5, hasShadow = blur > 0.5 || Math.abs(offX) > 0.5 || Math.abs(offY) > 0.5, hasOverlay = ovOp > 0.005;
+  const blur    = Math.max(0, fx.shadowBlur || 0) * sc;
+  const offX    = (fx.shadowOffsetX || 0) * sc;
+  const offY    = (fx.shadowOffsetY || 0) * sc;
+  const ovOp    = Math.max(0, Math.min(1, fx.overlayOpacity || 0));
+  const hasStroke  = strokeW > 0.5;
+  const hasShadow  = blur > 0.5 || Math.abs(offX) > 0.5 || Math.abs(offY) > 0.5;
+  const hasOverlay = ovOp > 0.005;
   if (!hasStroke && !hasShadow && !hasOverlay) return base;
   const padX = Math.ceil(strokeW + blur * 1.5 + Math.abs(offX)) + 2;
   const padY = Math.ceil(strokeW + blur * 1.5 + Math.abs(offY)) + 2;
-  const cw = bw + padX * 2, ch = bh + padY * 2;
+  const cw = bw + padX * 2;
+  const ch = bh + padY * 2;
   const out = document.createElement('canvas');
   out.width = cw; out.height = ch;
   const ctx = out.getContext('2d');
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   function makeSil(color) {
     const c = document.createElement('canvas');
     c.width = bw; c.height = bh;
@@ -1595,7 +1407,8 @@ function applyLayerEffects(img, fx) {
   }
   if (hasStroke) {
     const sil = makeSil(fx.strokeColor || '#000000');
-    const DIRS = 32, r = strokeW;
+    const DIRS = 32;
+    const r = strokeW;
     for (let i = 0; i < DIRS; i++) {
       const a = (i / DIRS) * Math.PI * 2;
       ctx.drawImage(sil, padX + Math.cos(a) * r, padY + Math.sin(a) * r);
@@ -1611,7 +1424,9 @@ function applyLayerEffects(img, fx) {
     tctx.fillStyle = fx.overlayColor || '#ff0000';
     tctx.fillRect(0, 0, bw, bh);
     ctx.drawImage(tinted, padX, padY);
-  } else ctx.drawImage(base, padX, padY);
+  } else {
+    ctx.drawImage(base, padX, padY);
+  }
   return out;
 }
 function getProcessedCanvas(dummy) {
@@ -1643,7 +1458,7 @@ function getDecalTexture(dummy, isBack) {
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = maxAnisotropy;
       t.wrapS = THREE.RepeatWrapping;
-      t.repeat.x = -1;
+      t.repeat.x = -1; // Mirror fix for back
       t.needsUpdate = true;
       dummy.userData._decalTexBack = t;
       dummy.userData._decalTexBackKey = key;
@@ -1667,79 +1482,12 @@ function getDecalAspect(dummy) {
   return dummy.userData.aspect || 1;
 }
 
-// =====================================================================
-// ===== GROUP DECAL SYSTEM (untuk setiap group meshes) =====
-// =====================================================================
-function buildGroupDecal(mg, dummy) {
-  const meshes = mg.group.userData.meshes;
-  if (!meshes?.length || !dummy.userData.texture) return;
-  disposeDummyDecals(dummy);
-  const tex = getDecalTexture(dummy, false);
-  if (!tex) return;
-  const aspect = getDecalAspect(dummy);
-  // Base size bergantung pada model scale
-  const baseScale = mg.group.userData.isMain ? 0.58 : (1.8 / 2.4) * 0.58; // simplify
-  const w = 0.5 * dummy.scale.x;
-  const h = (0.5 / aspect) * dummy.scale.y;
-  const size = new THREE.Vector3(w, h, 0.3);
-  meshes.forEach(mesh => {
-    try {
-      const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
-      if (geo.attributes.position?.count > 0) {
-        const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8, opacity: dummy.userData.opacity || 1 });
-        const m = new THREE.Mesh(geo, mat);
-        m.renderOrder = 2;
-        m.visible = dummy.userData.visible !== false;
-        mg.group.add(m);
-        dummy.userData.decals.push(m);
-      } else geo.dispose();
-    } catch (e) {}
-  });
-}
-
-function createDecalNow(dummy, highQuality = true) {
-  if (dummy.userData.isCanvasGraphic) {
-    const canvas = getProcessedCanvas(dummy);
-    if (canvas) {
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = maxAnisotropy;
-      dummy.material.map?.dispose();
-      dummy.material.map = tex;
-      dummy.material.needsUpdate = true;
-      dummy.userData.aspect = canvas.width / canvas.height;
-      dummy.geometry.dispose();
-      dummy.geometry = new THREE.PlaneGeometry(1, 1 / dummy.userData.aspect);
-    }
-    return;
-  }
-  // Cari group
-  const parentGroup = dummy.userData._inGroup || modelGroups.find(mg => mg.layers.includes(dummy));
-  if (parentGroup) buildGroupDecal(parentGroup, dummy);
-}
-
-// =====================================================================
-// ===== SMOOTH DECAL PREVIEW (simple) =====
-// =====================================================================
-let decalQueuedDummy = null, decalQueued = false, decalTimeout = null;
-function scheduleDecal(dummy, forceHQ = false) {
-  decalQueuedDummy = dummy;
-  if (decalQueued && !forceHQ) return;
-  decalQueued = true;
-  if (decalTimeout) clearTimeout(decalTimeout);
-  decalTimeout = setTimeout(() => {
-    decalQueued = false;
-    if (decalQueuedDummy) createDecalNow(decalQueuedDummy);
-    decalQueuedDummy = null;
-  }, 30);
-}
-
-// =====================================================================
-// ===== PROPERTIES PANEL =====
-// =====================================================================
+// Properties
 document.getElementById('propName').onchange = e => {
   if (!activeDummy) return;
   activeDummy.userData.name = e.target.value;
-  renderGroupListUI();
+  const el = document.getElementById(activeDummy.userData.layerId);
+  if (el) el.querySelector('.layer-name').textContent = e.target.value;
   pushHistory();
 };
 document.getElementById('propScale').oninput = e => {
@@ -1755,85 +1503,25 @@ document.getElementById('propOpacity').oninput = e => {
   const op = +e.target.value;
   activeDummy.userData.opacity = op;
   document.getElementById('propOpacityValue').textContent = op.toFixed(2);
-  if (activeDummy.userData.isCanvasGraphic) activeDummy.material.opacity = op;
-  else if (activeDummy.userData.decals) activeDummy.userData.decals.forEach(d => d.material.opacity = op);
+  if (activeDummy.userData.isCanvasGraphic) {
+    activeDummy.material.opacity = op;
+  } else {
+    if (activeDummy.userData.decals) activeDummy.userData.decals.forEach(d => d.material.opacity = op);
+  }
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
 document.getElementById('propCurve').oninput = e => {
   if (!activeDummy || activeDummy.userData.isCanvasGraphic) return;
-  activeDummy.userData.curve = +e.target.value;
-  document.getElementById('propCurveValue').textContent = (+e.target.value).toFixed(2);
+  const c = +e.target.value;
+  activeDummy.userData.curve = c;
+  document.getElementById('propCurveValue').textContent = c.toFixed(2);
+  const el = document.getElementById(activeDummy.userData.layerId);
+  if (el) el.classList.toggle('curve-active', c > 0.01);
+  scheduleDecal(activeDummy);
 };
 document.getElementById('propCurve').onchange = () => pushHistory();
 document.getElementById('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 document.getElementById('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
-document.getElementById('btnAlignCenterX').onclick = () => {
-  if (!activeDummy || activeDummy.userData.locked) return;
-  activeDummy.position.x = 0;
-  createDecalNow(activeDummy); pushHistory();
-};
-document.getElementById('btnAlignCenterY').onclick = () => {
-  if (!activeDummy || activeDummy.userData.locked) return;
-  activeDummy.position.y = 0.15;
-  createDecalNow(activeDummy); pushHistory();
-};
-document.getElementById('btnDuplicate').onclick = () => {
-  if (!activeDummy) return;
-  const src = activeDummy;
-  const tex = src.userData.texture.clone();
-  tex.needsUpdate = true;
-  const parentGroup = modelGroups.find(mg => mg.layers.includes(src));
-  if (src.userData.isCanvasGraphic) {
-    const geo = new THREE.PlaneGeometry(1, 1 / (src.userData.aspect || 1));
-    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: src.userData.opacity || 1 });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.copy(src.position); mesh.position.x += 0.2;
-    mesh.quaternion.copy(src.quaternion); mesh.scale.copy(src.scale);
-    mesh.userData = { texture: tex, aspect: src.userData.aspect, isText: src.userData.isText, dataURL: src.userData.dataURL, textContent: src.userData.textContent, textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize, opacity: src.userData.opacity, visible: true, locked: false, isCanvasGraphic: true, effects: { ...ensureEffects(src) }, decals: [] };
-    canvasGroup.add(mesh);
-    layers.push(mesh);
-    logoCount++;
-    addDesignLayer(mesh, (src.userData.name || 'Canvas') + ' Copy', src.userData.icon || '🖼️');
-  } else {
-    const dummy = new THREE.Object3D();
-    dummy.userData = { texture: tex, aspect: src.userData.aspect, isText: src.userData.isText, dataURL: src.userData.dataURL, textContent: src.userData.textContent, textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize, opacity: src.userData.opacity, visible: true, locked: false, curve: src.userData.curve || 0, effects: { ...ensureEffects(src) }, decals: [], _inGroup: parentGroup };
-    dummy.position.copy(src.position); dummy.position.x += 0.12;
-    dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
-    const parent = parentGroup ? parentGroup.group : shirtGroup;
-    parent.add(dummy);
-    layers.push(dummy);
-    if (parentGroup) { parentGroup.layers.push(dummy); buildGroupDecal(parentGroup, dummy); }
-    logoCount++;
-    addDesignLayer(dummy, (src.userData.name || 'Logo') + ' Copy', src.userData.icon || '🖼️');
-  }
-  pushHistory();
-};
-
-async function updateTextLayer(dummy) {
-  const text = document.getElementById('propTextContent').value.trim() || dummy.userData.textContent;
-  const color = document.getElementById('propTextColor').value;
-  const font = dummy.userData.font || 'Inter';
-  const size = dummy.userData.fontSize || 120;
-  await ensureFontLoaded(font);
-  const canvas = document.createElement('canvas');
-  canvas.width = 1024; canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, 1024, 256);
-  ctx.fillStyle = color;
-  ctx.font = `bold ${size}px "${font}",sans-serif`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(text, 512, 128);
-  disposeDummyTextures(dummy);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  dummy.userData.texture = tex;
-  dummy.userData.textContent = text;
-  dummy.userData.textColor = color;
-  dummy.userData.dataURL = canvas.toDataURL('image/png');
-  dummy.userData.aspect = 4;
-  createDecalNow(dummy);
-  pushHistory();
-}
 
 // FX UI
 function updateFxUI(dummy) {
@@ -1859,43 +1547,582 @@ function fxOnInput(key, value) {
   const fx = ensureEffects(activeDummy);
   fx[key] = value;
   scheduleDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
 }
-['fxOverlayColor','fxOverlayOpacity','fxStrokeColor','fxStrokeWidth','fxShadowColor','fxShadowBlur','fxShadowX','fxShadowY'].forEach(id => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.oninput = e => {
-    const map = { fxOverlayColor: 'overlayColor', fxOverlayOpacity: 'overlayOpacity', fxStrokeColor: 'strokeColor', fxStrokeWidth: 'strokeWidth', fxShadowColor: 'shadowColor', fxShadowBlur: 'shadowBlur', fxShadowX: 'shadowOffsetX', fxShadowY: 'shadowOffsetY' };
-    const key = map[id];
-    const val = key === 'overlayOpacity' ? (+e.target.value) / 100 : (+e.target.value || e.target.value);
-    const valStr = key === 'overlayOpacity' ? e.target.value + '%' : (key === 'strokeWidth' || key === 'shadowBlur') ? e.target.value + 'px' : e.target.value;
-    const labelMap = { fxOverlayOpacity: 'fxOverlayOpacityValue', fxStrokeWidth: 'fxStrokeWidthValue', fxShadowBlur: 'fxShadowBlurValue', fxShadowX: 'fxShadowXValue', fxShadowY: 'fxShadowYValue' };
-    if (labelMap[id]) document.getElementById(labelMap[id]).textContent = valStr;
-    fxOnInput(key, val);
-  };
-  el.onchange = () => pushHistory();
-});
+document.getElementById('fxOverlayColor').oninput = e => fxOnInput('overlayColor', e.target.value);
+document.getElementById('fxOverlayColor').onchange = () => pushHistory();
+document.getElementById('fxOverlayOpacity').oninput = e => {
+  document.getElementById('fxOverlayOpacityValue').textContent = e.target.value + '%';
+  fxOnInput('overlayOpacity', (+e.target.value) / 100);
+};
+document.getElementById('fxOverlayOpacity').onchange = () => pushHistory();
+document.getElementById('fxStrokeColor').oninput = e => fxOnInput('strokeColor', e.target.value);
+document.getElementById('fxStrokeColor').onchange = () => pushHistory();
+document.getElementById('fxStrokeWidth').oninput = e => {
+  document.getElementById('fxStrokeWidthValue').textContent = e.target.value + 'px';
+  fxOnInput('strokeWidth', +e.target.value);
+};
+document.getElementById('fxStrokeWidth').onchange = () => pushHistory();
+document.getElementById('fxShadowColor').oninput = e => fxOnInput('shadowColor', e.target.value);
+document.getElementById('fxShadowColor').onchange = () => pushHistory();
+document.getElementById('fxShadowBlur').oninput = e => {
+  document.getElementById('fxShadowBlurValue').textContent = e.target.value + 'px';
+  fxOnInput('shadowBlur', +e.target.value);
+};
+document.getElementById('fxShadowBlur').onchange = () => pushHistory();
+document.getElementById('fxShadowX').oninput = e => {
+  document.getElementById('fxShadowXValue').textContent = e.target.value;
+  fxOnInput('shadowOffsetX', +e.target.value);
+};
+document.getElementById('fxShadowX').onchange = () => pushHistory();
+document.getElementById('fxShadowY').oninput = e => {
+  document.getElementById('fxShadowYValue').textContent = e.target.value;
+  fxOnInput('shadowOffsetY', +e.target.value);
+};
+document.getElementById('fxShadowY').onchange = () => pushHistory();
 document.getElementById('fxReset').onclick = () => {
   if (!activeDummy) return;
   activeDummy.userData.effects = defaultEffects();
-  updateFxUI(activeDummy); scheduleDecal(activeDummy);
+  updateFxUI(activeDummy);
+  scheduleDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
   pushHistory();
+  showToast('Kesan: timbul + bayang');
 };
 document.getElementById('fxPresetRaised').onclick = () => {
   if (!activeDummy) return;
-  activeDummy.userData.effects = { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 14, shadowOffsetX: 5, shadowOffsetY: 8 };
-  updateFxUI(activeDummy); scheduleDecal(activeDummy);
+  activeDummy.userData.effects = {
+    overlayColor: '#ff0000', overlayOpacity: 0,
+    strokeColor: '#000000', strokeWidth: 0,
+    shadowColor: '#000000', shadowBlur: 14, shadowOffsetX: 5, shadowOffsetY: 8
+  };
+  updateFxUI(activeDummy);
+  scheduleDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
   pushHistory();
+  showToast('⬆ Timbul + bayang diaktifkan');
 };
 document.getElementById('fxPresetFlat').onclick = () => {
   if (!activeDummy) return;
-  activeDummy.userData.effects = { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
-  updateFxUI(activeDummy); scheduleDecal(activeDummy);
+  activeDummy.userData.effects = {
+    overlayColor: '#ff0000', overlayOpacity: 0,
+    strokeColor: '#000000', strokeWidth: 0,
+    shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0
+  };
+  updateFxUI(activeDummy);
+  scheduleDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
   pushHistory();
+  showToast('Logo rata (tiada bayang)');
 };
 
-// =====================================================================
-// ===== FREE TRANSFORM =====
-// =====================================================================
+// Alignment
+document.getElementById('btnAlignCenterX').onclick = () => {
+  if (!activeDummy || activeDummy.userData.locked) return;
+  activeDummy.position.x = 0;
+  createDecalNow(activeDummy); pushHistory(); showToast('Center X');
+};
+document.getElementById('btnAlignCenterY').onclick = () => {
+  if (!activeDummy || activeDummy.userData.locked) return;
+  activeDummy.position.y = 0.15;
+  createDecalNow(activeDummy); pushHistory(); showToast('Center Y');
+};
+
+// Duplicate
+document.getElementById('btnDuplicate').onclick = () => {
+  if (!activeDummy) return;
+  const src = activeDummy;
+  const tex = src.userData.texture.clone();
+  tex.needsUpdate = true;
+  if (src.userData.isCanvasGraphic) {
+    const geo = new THREE.PlaneGeometry(1, 1 / (src.userData.aspect || 1));
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: src.userData.opacity || 1 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(src.position); mesh.position.x += 0.2;
+    mesh.quaternion.copy(src.quaternion); mesh.scale.copy(src.scale);
+    mesh.userData = {
+      texture: tex, aspect: src.userData.aspect, isText: src.userData.isText,
+      dataURL: src.userData.dataURL, textContent: src.userData.textContent,
+      textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
+      opacity: src.userData.opacity, visible: true, locked: false, isCanvasGraphic: true,
+      effects: { ...ensureEffects(src) }, decals: []
+    };
+    canvasGroup.add(mesh);
+    layers.push(mesh);
+    logoCount++;
+    addDesignLayer(mesh, (src.userData.name || 'Canvas') + ' Copy', src.userData.icon || '🖼️');
+  } else {
+    const dummy = new THREE.Object3D();
+    dummy.userData = {
+      texture: tex, aspect: src.userData.aspect, isText: src.userData.isText,
+      dataURL: src.userData.dataURL, textContent: src.userData.textContent,
+      textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
+      opacity: src.userData.opacity, visible: true, locked: false,
+      curve: src.userData.curve || 0,
+      effects: { ...ensureEffects(src) }, decals: []
+    };
+    dummy.position.copy(src.position); dummy.position.x += 0.12;
+    dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
+    shirtGroup.add(dummy);
+    createDecalNow(dummy);
+    layers.push(dummy);
+    logoCount++;
+    addDesignLayer(dummy, (src.userData.name || 'Logo') + ' Copy', src.userData.icon || '🖼️');
+  }
+  pushHistory(); showToast('Layer diduplicate');
+};
+
+async function updateTextLayer(dummy) {
+  const text = document.getElementById('propTextContent').value.trim() || dummy.userData.textContent;
+  const color = document.getElementById('propTextColor').value;
+  const font = dummy.userData.font || 'Inter';
+  const size = dummy.userData.fontSize || 120;
+  await ensureFontLoaded(font);
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024; canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 1024, 256);
+  ctx.fillStyle = color;
+  ctx.font = `bold ${size}px "${font}",sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, 512, 128);
+  disposeDummyTextures(dummy);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  dummy.userData.texture = tex;
+  dummy.userData.textContent = text;
+  dummy.userData.textColor = color;
+  dummy.userData.dataURL = canvas.toDataURL('image/png');
+  dummy.userData.aspect = 4;
+  if (dummy.userData.isCanvasGraphic) {
+    const newTex = getProcessedCanvas(dummy);
+    if (newTex) {
+      const t = new THREE.CanvasTexture(newTex);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = maxAnisotropy;
+      dummy.material.map?.dispose();
+      dummy.material.map = t;
+      dummy.material.needsUpdate = true;
+    }
+  } else {
+    createDecalNow(dummy);
+  }
+  pushHistory();
+}
+
+// ===== DECAL SYSTEM =====
+const SHIRT_BASE_SIZE = 0.58;
+const SLEEVE_BASE_SIZE = 0.92;
+
+// ===== AUTO-DETECT CURVATURE =====
+const AUTO_CURVATURE_MODELS = new Set([
+  './baju_baru.glb',
+  './long_sleeve_t-_shirt.glb',
+  './short_sleeve_polo.glb'
+]);
+const _autoRayc = new THREE.Raycaster();
+
+function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
+  dummy.updateMatrixWorld(true);
+  const wq = new THREE.Quaternion();
+  dummy.getWorldQuaternion(wq);
+  const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(wq);
+  const up     = new THREE.Vector3(0, 1, 0).applyQuaternion(wq);
+  const right  = new THREE.Vector3(1, 0, 0).applyQuaternion(wq);
+  const worldPos = new THREE.Vector3();
+  dummy.getWorldPosition(worldPos);
+
+  const steps = 7; // 7x7 = 49 sampel
+  let maxOffset = 0;
+  let minDistToBack = Infinity;
+  const tmpP = new THREE.Vector3();
+
+  for (let i = 0; i < steps; i++) {
+    for (let j = 0; j < steps; j++) {
+      const u = (i / (steps - 1)) - 0.5;
+      const v = (j / (steps - 1)) - 0.5;
+
+      tmpP.copy(worldPos)
+        .addScaledVector(right, u * w)
+        .addScaledVector(up,    v * h);
+
+      // Tembak depan (+normal) untuk cari lengkung ke dalam
+      _autoRayc.set(tmpP, normal);
+      let hits = _autoRayc.intersectObjects(shirtMeshes, true);
+      if (hits.length && hits[0].distance < 0.8) {
+        const hit = hits[0];
+        const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
+        if (!fn || fn.dot(normal) > -0.2) {
+          if (hit.distance > maxOffset) maxOffset = hit.distance;
+        }
+      }
+
+      // Tembak belakang (-normal) untuk cari ketebalan baju
+      const nn = normal.clone().negate();
+      _autoRayc.set(tmpP, nn);
+      let hitsBack = _autoRayc.intersectObjects(shirtMeshes, true);
+      if (hitsBack.length && hitsBack[0].distance < 0.8) {
+         const hitB = hitsBack[0];
+         const fnB = hitB.face ? hitB.face.normal.clone().transformDirection(hitB.object.matrixWorld) : null;
+         if (!fnB || fnB.dot(normal) < 0.2) {
+             if (hitB.distance < minDistToBack) minDistToBack = hitB.distance;
+         }
+      }
+    }
+  }
+
+  let requiredDepth = maxOffset * 2 + 0.15;
+  let curve = 0;
+  const onSleeve = isOnSleeve(dummy);
+
+  if (onSleeve && AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
+      let sagitta = Math.max(0.02, maxOffset); 
+      let R = (w * w) / (8 * sagitta) + (sagitta / 2);
+      let maxAngle = Math.asin(Math.min(1, (w / 2) / R));
+      curve = maxAngle / (Math.PI / 2);
+      // Hadkan curve supaya tak melengkung membulat
+      curve = Math.max(0.35, Math.min(0.85, curve)); 
+      requiredDepth = baseDepth;
+  } else if (minDistToBack !== Infinity && requiredDepth >= minDistToBack * 0.85) {
+      const sagitta = Math.max(0.01, maxOffset);
+      const R = (w * w) / (8 * sagitta) + (sagitta / 2);
+      const halfW = w / 2;
+      const maxAngle = Math.asin(Math.min(1, halfW / R));
+      curve = maxAngle / (Math.PI / 2);
+      curve = Math.max(0.1, Math.min(1.0, curve));
+      requiredDepth = baseDepth;
+  }
+
+  return {
+    depth: Math.max(baseDepth, requiredDepth),
+    curve: curve
+  };
+}
+
+function isOnSleeve(d) {
+  if (!d || d.userData?.isCanvasGraphic) return false;
+  const px = Math.abs(d.position.x);
+  // Threshold asal untuk T_shirt_gltf.gltf
+  if (px > 0.34) return true;
+
+  // Adaptive berdasarkan bounding box model (baju_baru, polo, long sleeve)
+  if (shirtMeshes.length) {
+    const box = new THREE.Box3();
+    shirtMeshes.forEach(m => box.expandByObject(m));
+    const sizeX = box.max.x - box.min.x;
+    const halfX = Math.max(0.45, sizeX * 0.5);
+    // Lengan biasanya di luar ~38–45% dari separuh lebar badan
+    if (px > halfX * 0.38) return true;
+    // Lebih longgar jika model sangat sempit (polo pendek)
+    if (px > halfX * 0.32 && px > 0.22) return true;
+  }
+
+  // Fallback normal: permukaan sisi (lengan) menghadap lebih ke X
+  const n = new THREE.Vector3(0, 0, 1).applyQuaternion(d.quaternion);
+  if (Math.abs(n.x) > 0.48 && px > 0.16) return true;
+  // Normal hampir horizontal + jauh dari tengah
+  if (Math.abs(n.z) < 0.55 && Math.abs(n.x) > 0.35 && px > 0.20) return true;
+
+  return false;
+}
+
+let decalQueuedDummy = null;
+let decalQueued = false;
+let decalTimeout = null;
+function scheduleDecal(dummy, forceHQ = false) {
+  decalQueuedDummy = dummy;
+  // Semasa drag: throttle lebih lama + preview ringan
+  const delay = (isDragging || ftDragging) ? 90 : 35;
+  if (decalQueued && !forceHQ) return;
+  decalQueued = true;
+  if (decalTimeout) clearTimeout(decalTimeout);
+  decalTimeout = setTimeout(() => {
+    decalQueued = false;
+    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ || !(isDragging || ftDragging));
+    decalQueuedDummy = null;
+  }, delay);
+}
+
+function createDecalNow(dummy, highQuality = true) {
+  if (dummy.userData.isCanvasGraphic) {
+    const canvas = getProcessedCanvas(dummy);
+    if (canvas) {
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = maxAnisotropy;
+      dummy.material.map?.dispose();
+      dummy.material.map = tex;
+      dummy.material.needsUpdate = true;
+      dummy.userData.aspect = canvas.width / canvas.height;
+      dummy.geometry.dispose();
+      dummy.geometry = new THREE.PlaneGeometry(1, 1 / dummy.userData.aspect);
+    }
+    return;
+  }
+  if (!shirtMeshes.length || !dummy.userData.texture) return;
+  disposeDummyDecals(dummy);
+
+  // Auto-aktifkan lekung lengan jika dikesan di lengan & curve masih 0
+  let curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
+  const onSleeve = isOnSleeve(dummy);
+  if (onSleeve && curve < 0.05) {
+    curve = AUTO_CURVATURE_MODELS.has(currentModelUrl) ? 0.65 : 0.7;
+    dummy.userData.curve = curve;
+  }
+
+  // Semasa drag: guna preview ringan (tak raycast padat) supaya tak tersekat
+  if (!highQuality && (isDragging || ftDragging)) {
+    if (curve > 0.01) createLightCurvedDecal(dummy, curve);
+    else createFlatDecal(dummy);
+    return;
+  }
+
+  if (curve > 0.01) createCurvedDecal(dummy, curve);
+  else createFlatDecal(dummy);
+}
+
+// Preview ringan semasa drag — silinder mudah, tiada raycast
+function createLightCurvedDecal(dummy, curve) {
+  const onSleeve = isOnSleeve(dummy);
+  const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
+  dummy.updateMatrixWorld(true);
+  const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).normalize();
+  const isBack = !onSleeve && dummyNormal.z < 0;
+  const tex = getDecalTexture(dummy, isBack);
+  if (!tex) return;
+  const aspect = getDecalAspect(dummy);
+  const w = base * dummy.scale.x;
+  const h = (base / aspect) * dummy.scale.y;
+
+  let orientQuat = dummy.quaternion.clone();
+  if (onSleeve) {
+    const ln = dummyNormal;
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    let right = new THREE.Vector3().crossVectors(worldUp, ln);
+    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+    right.normalize();
+    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+    orientQuat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+  }
+
+  const segX = 12, segY = 4; // sangat ringan
+  const geo = new THREE.PlaneGeometry(w, h, segX, segY);
+  const pos = geo.attributes.position;
+  const halfW = Math.max(0.001, w * 0.5);
+  const maxAngleX = (Math.PI / 2) * Math.max(0.2, Math.min(1, curve));
+  const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const u = x / halfW;
+    const angleX = u * maxAngleX;
+    pos.setX(i, Math.sin(angleX) * Rx);
+    pos.setZ(i, (Math.cos(angleX) - 1) * Rx);
+  }
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex, transparent: true, depthTest: true, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: -6, roughness: 0.85,
+    opacity: dummy.userData.opacity || 1, side: THREE.DoubleSide
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(dummy.position).add(dummyNormal.clone().multiplyScalar(0.015));
+  mesh.quaternion.copy(orientQuat);
+  mesh.renderOrder = 2;
+  mesh.visible = dummy.userData.visible !== false;
+  shirtGroup.add(mesh);
+  dummy.userData.decals.push(mesh);
+}
+
+function createFlatDecal(dummy) {
+  const onSleeve = isOnSleeve(dummy);
+  const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
+  const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < 0;
+  const tex = getDecalTexture(dummy, isBack);
+  if (!tex) return;
+  const aspect = getDecalAspect(dummy);
+  const w = base * dummy.scale.x;
+  const h = (base / aspect) * dummy.scale.y;
+
+  // Base depth: deep for back to prevent cut-off, normal for front
+  const baseDepth = onSleeve ? 0.38 : (isBack ? 0.6 : 0.22);
+  let depth = baseDepth;
+  let autoCurve = 0;
+
+  // ONLY apply autoCurve for sleeves, NOT for the back
+  if (onSleeve && AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
+    const result = computeAutoDepthAndCurve(dummy, w, h, baseDepth);
+    depth = result.depth;
+    autoCurve = result.curve;
+  }
+
+  if (autoCurve > 0.05) {
+    createCurvedDecal(dummy, autoCurve);
+    return;
+  }
+
+  const size = new THREE.Vector3(w, h, depth);
+  shirtMeshes.forEach(mesh => {
+    try {
+      const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
+      if (geo.attributes.position?.count > 0) {
+        const mat = new THREE.MeshStandardMaterial({
+          map: tex, transparent: true, depthTest: true, depthWrite: false,
+          polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
+          opacity: dummy.userData.opacity || 1
+        });
+        const m = new THREE.Mesh(geo, mat);
+        m.renderOrder = 2;
+        m.visible = dummy.userData.visible !== false;
+        shirtGroup.add(m);
+        dummy.userData.decals.push(m);
+      } else geo.dispose();
+    } catch (e) {}
+  });
+}
+
+function createCurvedDecal(dummy, curve) {
+  const onSleeve = isOnSleeve(dummy);
+  const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
+  dummy.updateMatrixWorld(true);
+  const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).normalize();
+  const isBack = !onSleeve && dummyNormal.z < 0;
+  const tex = getDecalTexture(dummy, isBack);
+  if (!tex) return;
+  const aspect = getDecalAspect(dummy);
+  const w = base * dummy.scale.x;
+  const h = (base / aspect) * dummy.scale.y;
+
+  // Orientasi: world-up supaya lengkung kiri-kanan membalut lengan
+  let right = new THREE.Vector3(1, 0, 0).applyQuaternion(dummy.quaternion).normalize();
+  let up = new THREE.Vector3(0, 1, 0).applyQuaternion(dummy.quaternion).normalize();
+  if (onSleeve) {
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    right = new THREE.Vector3().crossVectors(worldUp, dummyNormal);
+    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+    right.normalize();
+    up = new THREE.Vector3().crossVectors(dummyNormal, right).normalize();
+  }
+
+  // Grid sederhana — cukup tepat, lebih laju (elak tersekat)
+  const segX = Math.max(14, Math.min(32, Math.round(16 * Math.max(1, w * 1.8))));
+  const segY = Math.max(8, Math.min(16, Math.round(10 * Math.max(1, h * 1.5))));
+  const geo = new THREE.PlaneGeometry(w, h, segX, segY);
+  const pos = geo.attributes.position;
+
+  const worldPos = new THREE.Vector3();
+  dummy.getWorldPosition(worldPos);
+  shirtGroup.updateMatrixWorld(true);
+  const invShirt = new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert();
+
+  const ray = new THREE.Raycaster();
+  const rayDir = dummyNormal.clone().negate(); // tembak ke dalam permukaan
+  const lift = 0.008; // offset kecil keluar (elak z-fight)
+  const maxRay = 1.0;
+  let hitCount = 0;
+  const tmpWorld = new THREE.Vector3();
+
+  for (let i = 0; i < pos.count; i++) {
+    const lx = pos.getX(i);
+    const ly = pos.getY(i);
+
+    // Mula dari luar permukaan logo
+    tmpWorld.copy(worldPos)
+      .addScaledVector(right, lx)
+      .addScaledVector(up, ly)
+      .addScaledVector(dummyNormal, 0.35);
+
+    ray.set(tmpWorld, rayDir);
+    const hits = ray.intersectObjects(shirtMeshes, true);
+
+    if (hits.length && hits[0].distance < maxRay) {
+      // Titik kena + angkat sedikit sepanjang normal muka
+      const faceN = hits[0].face
+        ? hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld).normalize()
+        : dummyNormal.clone();
+      const hitWorld = hits[0].point.clone().addScaledVector(faceN, lift);
+      const hitLocal = hitWorld.applyMatrix4(invShirt);
+      pos.setXYZ(i, hitLocal.x, hitLocal.y, hitLocal.z);
+      hitCount++;
+    } else {
+      // Fallback silinder jika ray terlepas
+      const halfW = Math.max(0.001, w * 0.5);
+      const maxAngleX = (Math.PI / 2) * Math.max(0.25, Math.min(1, curve || 0.65));
+      const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+      const u = lx / halfW;
+      const angleX = u * maxAngleX;
+      const cx = Math.sin(angleX) * Rx;
+      const cz = (Math.cos(angleX) - 1) * Rx;
+      const fbWorld = worldPos.clone()
+        .addScaledVector(right, cx)
+        .addScaledVector(up, ly)
+        .addScaledVector(dummyNormal, cz + lift);
+      const fbLocal = fbWorld.applyMatrix4(invShirt);
+      pos.setXYZ(i, fbLocal.x, fbLocal.y, fbLocal.z);
+    }
+  }
+
+  // Jika hampir semua ray miss → guna DecalGeometry biasa
+  if (hitCount < pos.count * 0.2) {
+    geo.dispose();
+    createFlatDecal(dummy);
+    return;
+  }
+
+  geo.computeVertexNormals();
+
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex, transparent: true, depthTest: true, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8,
+    roughness: 0.85, opacity: dummy.userData.opacity || 1,
+    side: THREE.DoubleSide
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  // Vertex sudah dalam local space shirtGroup
+  mesh.position.set(0, 0, 0);
+  mesh.quaternion.identity();
+  mesh.renderOrder = 2;
+  mesh.visible = dummy.userData.visible !== false;
+  shirtGroup.add(mesh);
+  dummy.userData.decals.push(mesh);
+}
+
+transformControls.addEventListener('objectChange', () => {
+  if (!activeDummy || activeDummy.userData.locked) return;
+  if (transformControls.getMode() === 'scale') {
+    const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
+    activeDummy.scale.setScalar(Math.max(0.12, Math.min(s, 4.5)));
+    document.getElementById('propScale').value = activeDummy.scale.x;
+    document.getElementById('propScaleValue').textContent = activeDummy.scale.x.toFixed(2);
+  }
+  if (transformControls.getMode() === 'translate') {
+    if (!activeDummy.userData.isCanvasGraphic) {
+      activeDummy.updateMatrixWorld();
+      const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
+      raycaster.set(camera.position, worldPos.clone().sub(camera.position).normalize());
+      const hits = raycaster.intersectObjects(shirtMeshes, true);
+      if (hits.length) {
+        const hit = hits[0];
+        activeDummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+        if (isDragging) {
+          const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+          const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+          const up = new THREE.Vector3(0, 1, 0);
+          let right = new THREE.Vector3().crossVectors(up, ln);
+          if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+          right.normalize();
+          const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+          activeDummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+        }
+      }
+    }
+  }
+  scheduleDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
+});
+
+// ===== FREE TRANSFORM (gaya Photoshop: petak + handle, tiada RGB gizmo) =====
+let ftStartScaleX = 1, ftStartScaleY = 1, ftStartPos = null, ftMovePlane = null;
+
 function showFreeTransform() {
   if (activeDummy && !activeDummy.userData.locked) {
     ftEl.classList.add('active');
@@ -1906,51 +2133,115 @@ function hideFreeTransform() { ftEl.classList.remove('active'); ftDragging = nul
 
 function worldToScreen(p) {
   const v = p.clone().project(camera);
-  return new THREE.Vector2((v.x * 0.5 + 0.5) * container.clientWidth, (-v.y * 0.5 + 0.5) * container.clientHeight);
+  return new THREE.Vector2(
+    (v.x * 0.5 + 0.5) * container.clientWidth,
+    (-v.y * 0.5 + 0.5) * container.clientHeight
+  );
 }
+
+// Sudut teoritikal (fallback)
+function getLogoCornersTheoretical(d) {
+  if (d.userData.isCanvasGraphic) {
+    const b = new THREE.Box3().setFromObject(d);
+    return [
+      new THREE.Vector3(b.min.x, b.max.y, b.min.z),
+      new THREE.Vector3(b.max.x, b.max.y, b.min.z),
+      new THREE.Vector3(b.max.x, b.min.y, b.min.z),
+      new THREE.Vector3(b.min.x, b.min.y, b.min.z)
+    ];
+  }
+  const base = isOnSleeve(d) ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
+  const aspect = Math.max(0.05, getDecalAspect(d));
+  // Guna scale.x untuk lebar, scale.y untuk tinggi (jika seragam, sama)
+  const sx = d.scale.x, sy = d.scale.y || sx;
+  const hw = base * sx * 0.5;
+  const hh = (base / aspect) * sy * 0.5;
+  const cs = [
+    new THREE.Vector3(-hw, hh, 0),
+    new THREE.Vector3(hw, hh, 0),
+    new THREE.Vector3(hw, -hh, 0),
+    new THREE.Vector3(-hw, -hh, 0)
+  ];
+  d.updateMatrixWorld(true);
+  return cs.map(c => c.applyMatrix4(d.matrixWorld));
+}
+
+// Petak ikut mesh sebenar yang dipaparkan (fit tepat dengan logo)
 function getLogoScreenCorners(d) {
   const screenPts = [];
+
+  // 1) Dari decal mesh sebenar (paling tepat)
   const decals = (d.userData.decals || []).filter(m => m && m.visible !== false);
-  const tmp = new THREE.Vector3();
-  decals.forEach(m => {
-    m.updateMatrixWorld(true);
-    const pos = m.geometry && m.geometry.attributes && m.geometry.attributes.position;
-    if (pos && pos.count > 0) {
-      const step = Math.max(1, Math.floor(pos.count / 48));
-      for (let i = 0; i < pos.count; i += step) {
-        tmp.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
-        screenPts.push(worldToScreen(tmp));
+  if (decals.length) {
+    const tmp = new THREE.Vector3();
+    decals.forEach(m => {
+      m.updateMatrixWorld(true);
+      const pos = m.geometry && m.geometry.attributes && m.geometry.attributes.position;
+      if (pos && pos.count > 0) {
+        // Sampel vertex (max ~48) supaya laju
+        const step = Math.max(1, Math.floor(pos.count / 48));
+        for (let i = 0; i < pos.count; i += step) {
+          tmp.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+          screenPts.push(worldToScreen(tmp));
+        }
+      } else {
+        const box = new THREE.Box3().setFromObject(m);
+        if (!box.isEmpty()) {
+          const corners = [
+            new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+            new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+            new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+            new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+            new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+            new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+            new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+            new THREE.Vector3(box.max.x, box.max.y, box.max.z)
+          ];
+          corners.forEach(c => screenPts.push(worldToScreen(c)));
+        }
       }
-    }
-  });
-  if (screenPts.length < 4) {
-    // Fallback teoritikal
-    const base = 0.58;
-    const aspect = getDecalAspect(d) || 1;
-    const sx = d.scale.x, sy = d.scale.y || sx;
-    const hw = base * sx * 0.5, hh = (base / aspect) * sy * 0.5;
-    const cs = [new THREE.Vector3(-hw, hh, 0), new THREE.Vector3(hw, hh, 0), new THREE.Vector3(hw, -hh, 0), new THREE.Vector3(-hw, -hh, 0)];
-    d.updateMatrixWorld(true);
-    cs.forEach(c => { c.applyMatrix4(d.matrixWorld); screenPts.push(worldToScreen(c)); });
+    });
   }
+
+  // 2) Fallback teoritikal
+  if (screenPts.length < 4) {
+    getLogoCornersTheoretical(d).forEach(c => screenPts.push(worldToScreen(c)));
+  }
+
   return screenPts;
 }
+
 function updateFreeTransformHandles() {
   if (!activeDummy || currentMode !== 'free') return;
   const sc = getLogoScreenCorners(activeDummy);
   if (!sc.length) return;
+
   const xs = sc.map(p => p.x), ys = sc.map(p => p.y);
   let minX = Math.min(...xs), maxX = Math.max(...xs);
   let minY = Math.min(...ys), maxY = Math.max(...ys);
+
+  // Padding kecil supaya handle tak potong tepi logo
   const pad = 2;
   minX -= pad; maxX += pad; minY -= pad; maxY += pad;
+
+  // Elak petak sifar
   if (maxX - minX < 8) { const c = (minX + maxX) / 2; minX = c - 4; maxX = c + 4; }
   if (maxY - minY < 8) { const c = (minY + maxY) / 2; minY = c - 4; maxY = c + 4; }
+
   ftBox.style.cssText = `left:${minX}px;top:${minY}px;width:${maxX - minX}px;height:${maxY - minY}px;cursor:move;pointer-events:auto`;
-  [{ k: 'nw', x: minX, y: minY }, { k: 'ne', x: maxX, y: minY }, { k: 'se', x: maxX, y: maxY }, { k: 'sw', x: minX, y: maxY }].forEach(({ k, x, y }) => {
+
+  // Handle di 4 sudut petak skrin (bukan sudut 3D) — lebih stabil
+  const corners = [
+    { k: 'nw', x: minX, y: minY },
+    { k: 'ne', x: maxX, y: minY },
+    { k: 'se', x: maxX, y: maxY },
+    { k: 'sw', x: minX, y: maxY }
+  ];
+  corners.forEach(({ k, x, y }) => {
     const h = ftEl.querySelector(`.ft-handle.${k}`);
     if (h) { h.style.left = x + 'px'; h.style.top = y + 'px'; }
   });
+
   const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
   ftCenterScreen.set(cx, cy);
   ftRotateHandle.style.left = cx + 'px';
@@ -1959,6 +2250,8 @@ function updateFreeTransformHandles() {
   ftRotateLine.style.top = (minY - 28) + 'px';
   ftRotateLine.style.height = Math.abs(cy - (minY - 28)) + 'px';
 }
+
+// Drag petak = gerak logo (seperti Photoshop move)
 ftBox.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
   if (!activeDummy || activeDummy.userData.locked) return;
@@ -1969,6 +2262,8 @@ ftBox.onpointerdown = e => {
   controls.enabled = false;
   ftBox.setPointerCapture(e.pointerId);
 };
+
+// Sudut = scale (panjang/lebar)
 ftEl.querySelectorAll('.ft-handle').forEach(h => {
   h.onpointerdown = e => {
     e.preventDefault(); e.stopPropagation();
@@ -1976,10 +2271,14 @@ ftEl.querySelectorAll('.ft-handle').forEach(h => {
     ftDragging = 'scale';
     ftStartMouse.set(e.clientX, e.clientY);
     ftStartScale = activeDummy.scale.x;
+    ftStartScaleX = activeDummy.scale.x;
+    ftStartScaleY = activeDummy.scale.y;
     controls.enabled = false;
     h.setPointerCapture(e.pointerId);
   };
 });
+
+// Handle atas = rotate
 ftRotateHandle.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
   if (!activeDummy || activeDummy.userData.locked) return;
@@ -1988,65 +2287,85 @@ ftRotateHandle.onpointerdown = e => {
   controls.enabled = false;
   ftRotateHandle.setPointerCapture(e.pointerId);
 };
+
 window.addEventListener('pointermove', e => {
   if (!ftDragging || !activeDummy) return;
+
+  // --- MOVE: seret petak ---
   if (ftDragging === 'move') {
-    const parentGroup = modelGroups.find(mg => mg.layers.includes(activeDummy));
-    const targets = parentGroup ? parentGroup.group.userData.meshes : shirtMeshes;
     const rect = container.getBoundingClientRect();
-    const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    const ndc = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
     raycaster.setFromCamera(ndc, camera);
-    const hits = raycaster.intersectObjects(targets, true);
-    if (hits.length) {
-      const hit = hits[0];
-      const parent = parentGroup ? parentGroup.group : shirtGroup;
-      parent.updateMatrixWorld(true);
-      activeDummy.position.copy(parent.worldToLocal(hit.point.clone()));
-      const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-      const ln = n.clone().transformDirection(new THREE.Matrix4().copy(parent.matrixWorld).invert()).normalize();
-      const worldUp = new THREE.Vector3(0, 1, 0);
-      let right = new THREE.Vector3().crossVectors(worldUp, ln);
-      if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-      right.normalize();
-      const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
-      activeDummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+    if (!activeDummy.userData.isCanvasGraphic) {
+      const hits = raycaster.intersectObjects(shirtMeshes, true);
+      if (hits.length) {
+        const hit = hits[0];
+        activeDummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+        // Align ke permukaan (world-up). Putar semula dengan handle bulat jika perlu.
+        const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+        const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+        const worldUp = new THREE.Vector3(0, 1, 0);
+        let right = new THREE.Vector3().crossVectors(worldUp, ln);
+        if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+        right.normalize();
+        const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+        activeDummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+      }
+    } else {
+      const dx = (e.clientX - ftStartMouse.x) * 0.004;
+      const dy = -(e.clientY - ftStartMouse.y) * 0.004;
+      activeDummy.position.x = ftStartPos.x + dx;
+      activeDummy.position.y = ftStartPos.y + dy;
     }
     scheduleDecal(activeDummy);
     updateFreeTransformHandles();
     return;
   }
+
+  // --- SCALE: sudut petak ---
   if (ftDragging === 'scale') {
     const dist = Math.hypot(e.clientX - ftCenterScreen.x, e.clientY - ftCenterScreen.y);
     const startDist = Math.hypot(ftStartMouse.x - ftCenterScreen.x, ftStartMouse.y - ftCenterScreen.y) || 1;
-    const ns = Math.max(0.12, Math.min(ftStartScale * (dist / startDist), 8));
+    let ns = Math.max(0.12, Math.min(ftStartScale * (dist / startDist), 8));
     document.getElementById('propScale').value = ns;
     document.getElementById('propScaleValue').textContent = ns.toFixed(2);
-    activeDummy.scale.setScalar(ns);
-    scheduleDecal(activeDummy);
+    if (activeDummy.userData.isCanvasGraphic) {
+      activeDummy.scale.set(ns, ns / (activeDummy.userData.aspect || 1), 1);
+    } else {
+      activeDummy.scale.setScalar(ns);
+      scheduleDecal(activeDummy);
+    }
     updateFreeTransformHandles();
     return;
   }
+
+  // --- ROTATE: handle bulat ---
   if (ftDragging === 'rotate') {
     const ang = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
     const delta = ang - ftStartAngle;
-    activeDummy.quaternion.multiplyQuaternions(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), delta), activeDummy.quaternion);
+    activeDummy.quaternion.multiplyQuaternions(
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), delta),
+      activeDummy.quaternion
+    );
     ftStartAngle = ang;
     scheduleDecal(activeDummy);
     updateFreeTransformHandles();
   }
 });
+
 window.addEventListener('pointerup', () => {
   if (ftDragging) {
     ftDragging = null;
     controls.enabled = true;
-    if (activeDummy) createDecalNow(activeDummy);
+    if (activeDummy) createDecalNow(activeDummy, true);
     pushHistory();
   }
 });
 
-// =====================================================================
 // ===== ADD LOGO / TEXT =====
-// =====================================================================
 document.getElementById('logoUpload').onchange = e => {
   [...e.target.files].forEach(file => {
     const r = new FileReader();
@@ -2105,62 +2424,73 @@ document.getElementById('addCanvasTextBtn').onclick = async () => {
   if (!text) return;
   const color = document.getElementById('canvasTextColor').value;
   const font = document.getElementById('canvasTextFont').value;
+  const size = 120;
   await ensureFontLoaded(font);
   const canvas = document.createElement('canvas');
   canvas.width = 1024; canvas.height = 256;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, 1024, 256);
   ctx.fillStyle = color;
-  ctx.font = `bold 120px "${font}",sans-serif`;
+  ctx.font = `bold ${size}px "${font}",sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(text, 512, 128);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, 120, true);
+  addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, size, true);
   document.getElementById('canvasTextInput').value = '';
 };
-
-function addLogoToScene(texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, isCanvas) {
+function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
   if (isCanvas) {
     const geo = new THREE.PlaneGeometry(1, 1 / aspect);
     const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(-1.2, 0, 0.8);
-    mesh.userData = { texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, opacity: 1, visible: true, locked: false, isCanvasGraphic: true, effects: defaultEffects(), decals: [] };
+    mesh.userData = {
+      texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
+      opacity: 1, visible: true, locked: false, isCanvasGraphic: true,
+      effects: defaultEffects(), decals: []
+    };
     canvasGroup.add(mesh);
     layers.push(mesh);
     logoCount++;
     addDesignLayer(mesh, isText ? `Teks Canvas ${logoCount}` : `Logo Canvas ${logoCount}`, isText ? '📝' : '🖼️');
     pushHistory();
+    showToast('Grafik Canvas ditambah');
     return;
   }
-
-  // Kalau ada group aktif → masuk group tu. Kalau tak → masuk main group
-  let targetGroup = activeGroup;
-  if (!targetGroup) targetGroup = modelGroups.find(g => g.isMain);
-  if (!targetGroup) { showToast('Tiada baju. Tambah baju dulu.', true); return; }
-
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
     opacity: 1, visible: true, locked: false, curve: 0,
-    effects: defaultEffects(), decals: [], _inGroup: targetGroup
+    effects: defaultEffects(), decals: []
   };
-  targetGroup.group.add(dummy);
-  // Letak di depan baju
-  dummy.position.set(0, 0.1, 0.32);
-  targetGroup.layers.push(dummy);
-  layers.push(dummy);
+  shirtGroup.add(dummy);
+  const ox = logoCount % 2 === 0 ? 0.12 : -0.12;
+  const oy = Math.floor(logoCount / 2) * -0.18;
+  raycaster.setFromCamera(new THREE.Vector2(ox, oy), camera);
+  const hits = raycaster.intersectObjects(shirtMeshes, true);
+  if (hits.length) {
+    const hit = hits[0];
+    dummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
+    const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
+    const up = new THREE.Vector3(0, 1, 0);
+    let right = new THREE.Vector3().crossVectors(up, ln);
+    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+    right.normalize();
+    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+    dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+  } else dummy.position.set(0, 0.1, 0.4);
+  dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
   logoCount++;
-  buildGroupDecal(targetGroup, dummy);
+  createDecalNow(dummy);
+  layers.push(dummy);
   addDesignLayer(dummy, isText ? `Teks ${logoCount}` : `Logo ${logoCount}`, isText ? '📝' : '🖼️');
   pushHistory();
-  showToast(`✅ ${isText ? 'Teks' : 'Logo'} masuk group "${targetGroup.name}"`);
+  if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
 }
 
-// =====================================================================
 // ===== LIGHT =====
-// =====================================================================
 document.getElementById('ambientSlider').oninput = e => { ambientLight.intensity = +e.target.value; document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2); };
 document.getElementById('ambientSlider').onchange = () => pushHistory();
 document.getElementById('dirSlider').oninput = e => { mainLight.intensity = +e.target.value; document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2); };
@@ -2171,15 +2501,12 @@ document.getElementById('shadowSlider').oninput = e => {
 };
 document.getElementById('shadowSlider').onchange = () => pushHistory();
 
-// =====================================================================
-// ===== HISTORY =====
-// =====================================================================
+// ===== PROJECT =====
 async function getStateForSave() {
   const processed = [];
   for (const d of layers) {
     let dataURL = d.userData.dataURL;
     if (dataURL) dataURL = await resizeDataURL(dataURL, 900);
-    const parentGroup = modelGroups.find(mg => mg.layers.includes(d));
     processed.push({
       position: d.position.toArray(), quaternion: d.quaternion.toArray(), scale: d.scale.toArray(),
       aspect: d.userData.aspect, isText: !!d.userData.isText, dataURL,
@@ -2187,185 +2514,22 @@ async function getStateForSave() {
       font: d.userData.font || 'Inter', fontSize: d.userData.fontSize || 120,
       name: d.userData.name || 'Logo', icon: d.userData.icon || '🖼️',
       opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked,
-      curve: d.userData.curve || 0, isCanvasGraphic: !!d.userData.isCanvasGraphic,
-      effects: { ...ensureEffects(d) },
-      groupId: parentGroup ? parentGroup.id : null
+      curve: d.userData.curve || 0,
+      isCanvasGraphic: !!d.userData.isCanvasGraphic,
+      effects: { ...ensureEffects(d) }
     });
   }
-  const groupsData = modelGroups.map(mg => ({
-    id: mg.id, name: mg.name, url: mg.url, isMain: !!mg.isMain,
-    effects: { ...mg.effects },
-    position: mg.group.position.toArray(),
-    rotation: mg.group.rotation.y,
-    userMoved: !!mg.group.userData.userMoved,
-    homePos: mg.group.userData.homePos || [0, 0, 0]
-  }));
   return {
-    color: currentShirtColor, isTransparentBg, bg: { ...bg },
+    color: currentShirtColor,
+    isTransparentBg,
+    bg: { ...bg },
     bgImage: bgImageDataURL ? { dataURL: bgImageDataURL } : null,
     ambient: ambientLight.intensity, directional: mainLight.intensity, shadow: mainLight.shadow.intensity,
-    outputRatio, modelUrl: currentModelUrl, layers: processed, modelGroups: groupsData,
-    focusedGroupId
+    outputRatio,
+    modelUrl: currentModelUrl,
+    layers: processed
   };
 }
-async function pushHistory() {
-  if (isHistoryProcessing) return;
-  isHistoryProcessing = true;
-  if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
-  const s = await getStateForSave();
-  history.push(s);
-  if (history.length > 40) history.shift();
-  historyIndex = history.length - 1;
-  updateUndoRedoButtons();
-  isHistoryProcessing = false;
-}
-function updateUndoRedoButtons() {
-  if (btnUndo) btnUndo.disabled = historyIndex <= 0;
-  if (btnRedo) btnRedo.disabled = historyIndex >= history.length - 1;
-}
-
-function clearAllGroups() {
-  modelGroups.forEach(mg => {
-    mg.layers.forEach(l => { disposeDummyDecals(l); disposeDummyTextures(l); });
-    mg.group.traverse(c => { c.geometry?.dispose?.(); c.material?.dispose?.(); });
-    scene.remove(mg.group);
-  });
-  modelGroups = [];
-  layers = [];
-  logoCount = 0;
-  activeGroup = null;
-  focusedGroupId = null;
-  shirtMeshes = [];
-  shirtMaterials = [];
-  [...layerListUI.children].forEach(el => {
-    if (el.id !== 'layer-base') el.remove();
-  });
-  document.getElementById('groupFocusHint').classList.remove('active');
-}
-
-async function restoreState(state) {
-  clearAllGroups();
-  hideFreeTransform();
-  propertiesPanel.classList.remove('active');
-
-  const targetModelUrl = state.modelUrl || './T_shirt_gltf.gltf';
-  currentModelUrl = targetModelUrl;
-  // Load main model
-  await new Promise(resolve => {
-    new GLTFLoader().load(targetModelUrl, gltf => {
-      setupMainModel(gltf.scene);
-      resolve();
-    }, undefined, () => { setupMainModel(createFallbackShirt()); resolve(); });
-  });
-
-  currentShirtColor = state.color || '#ffffff';
-  shirtMaterials.forEach(m => { m.color.set(currentShirtColor); if (m.userData._baseColor) m.userData._baseColor.set(currentShirtColor); });
-  document.getElementById('customColor').value = currentShirtColor;
-
-  // Restore extra groups
-  const extraGroups = (state.modelGroups || []).filter(g => !g.isMain);
-  for (const gd of extraGroups) {
-    const mg = createModelGroup(gd.name, gd.url);
-    mg.effects = { ...GROUP_DEFAULTS(), ...gd.effects };
-    mg.group.userData.userMoved = !!gd.userMoved;
-    mg.group.userData.homePos = gd.homePos || [0, 0, 0];
-    await loadModelIntoGroup(mg);
-    if (gd.position) mg.group.position.fromArray(gd.position);
-    if (gd.rotation) mg.group.rotation.y = gd.rotation;
-    applyGroupEffects(mg);
-  }
-
-  // Restore main group settings
-  const mainMg = modelGroups.find(g => g.isMain);
-  const mainData = (state.modelGroups || []).find(g => g.isMain);
-  if (mainMg && mainData) {
-    mainMg.effects = { ...GROUP_DEFAULTS(), ...mainData.effects };
-    if (mainData.position) mainMg.group.position.fromArray(mainData.position);
-    if (mainData.rotation) mainMg.group.rotation.y = mainData.rotation;
-    mainMg.group.userData.userMoved = !!mainData.userMoved;
-    mainMg.group.userData.homePos = mainData.homePos || [0, 0, 0];
-    applyGroupEffects(mainMg);
-  }
-
-  isTransparentBg = !!state.isTransparentBg;
-  outputRatio = state.outputRatio || 'auto';
-  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === outputRatio));
-  updateCropFrame();
-
-  if (state.bg) bg = { ...defaultBg(), ...state.bg };
-  await loadBgImageFromDataURL(state.bgImage?.dataURL || null);
-  syncBgUI(); markBgDirty();
-
-  ambientLight.intensity = state.ambient ?? 0.5;
-  mainLight.intensity = state.directional ?? 2;
-  mainLight.shadow.intensity = state.shadow ?? 1;
-  ground.material.opacity = 0.3 * (state.shadow ?? 1);
-  document.getElementById('ambientSlider').value = ambientLight.intensity;
-  document.getElementById('dirSlider').value = mainLight.intensity;
-  document.getElementById('shadowSlider').value = mainLight.shadow.intensity;
-  document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2);
-  document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2);
-  document.getElementById('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
-
-  // Restore layers (gambar/teks)
-  for (const ldata of (state.layers || [])) {
-    if (!ldata.dataURL) continue;
-    await new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => {
-        try {
-          const tex = new THREE.Texture(img);
-          tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
-          tex.anisotropy = maxAnisotropy;
-          if (ldata.isCanvasGraphic) {
-            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: ldata.opacity || 1 });
-            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1 / (ldata.aspect || 1)), mat);
-            mesh.userData = { texture: tex, aspect: ldata.aspect || 1, isText: !!ldata.isText, dataURL: ldata.dataURL, textContent: ldata.textContent || '', textColor: ldata.textColor || '#000', font: ldata.font || 'Inter', fontSize: ldata.fontSize || 120, name: ldata.name || 'Canvas', icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1, visible: ldata.visible !== false, locked: !!ldata.locked, isCanvasGraphic: true, effects: { ...defaultEffects(), ...(ldata.effects || {}) }, decals: [] };
-            mesh.position.fromArray(ldata.position || [0, 0, 0]);
-            mesh.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
-            mesh.scale.fromArray(ldata.scale || [1, 1, 1]);
-            canvasGroup.add(mesh);
-            layers.push(mesh); logoCount++;
-            addDesignLayer(mesh, mesh.userData.name, mesh.userData.icon);
-          } else {
-            // Cari group dari groupId
-            const inGroup = modelGroups.find(g => g.id === ldata.groupId) || modelGroups.find(g => g.isMain);
-            if (!inGroup) return resolve();
-            const dummy = new THREE.Object3D();
-            dummy.userData = { texture: tex, aspect: ldata.aspect || 1, isText: !!ldata.isText, dataURL: ldata.dataURL, textContent: ldata.textContent || '', textColor: ldata.textColor || '#000', font: ldata.font || 'Inter', fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo', icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1, visible: ldata.visible !== false, locked: !!ldata.locked, curve: ldata.curve || 0, effects: { ...defaultEffects(), ...(ldata.effects || {}) }, decals: [], _inGroup: inGroup };
-            dummy.position.fromArray(ldata.position || [0, 0, 0.32]);
-            dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
-            const s = Math.max(...(ldata.scale || [1, 1, 1]));
-            dummy.scale.setScalar(Math.max(0.12, s));
-            inGroup.group.add(dummy);
-            inGroup.layers.push(dummy);
-            layers.push(dummy); logoCount++;
-            buildGroupDecal(inGroup, dummy);
-            addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
-          }
-        } catch (e) { console.warn(e); }
-        resolve();
-      };
-      img.onerror = () => resolve();
-      img.src = ldata.dataURL;
-    });
-  }
-
-  renderGroupListUI();
-  if (state.focusedGroupId) {
-    const fg = modelGroups.find(g => g.id === state.focusedGroupId);
-    if (fg) focusGroup(fg);
-  }
-  document.getElementById('layer-base')?.classList.add('active');
-}
-
-function undo() { if (historyIndex <= 0) return; historyIndex--; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
-function redo() { if (historyIndex >= history.length - 1) return; historyIndex++; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
-btnUndo.onclick = undo; btnRedo.onclick = redo;
-
-// =====================================================================
-// ===== PROJECT SAVE/LOAD =====
-// =====================================================================
 async function loadProjectList() {
   const list = document.getElementById('projectList');
   list.innerHTML = '';
@@ -2385,7 +2549,7 @@ async function loadProjectList() {
       e.stopPropagation();
       if (confirm(`Padam "${p.name}"?`)) {
         await dbDelete(p.id);
-        if (currentProjectId === p.id) { currentProjectId = null; }
+        if (currentProjectId === p.id) { currentProjectId = null; document.getElementById('projectNameInput').value = 'Design Baru'; }
         loadProjectList();
       }
     };
@@ -2416,6 +2580,7 @@ document.getElementById('btnSaveProject').onclick = async () => {
   currentProjectName = name;
   try {
     const state = await getStateForSave();
+    transformHelper.visible = false;
     renderer.render(scene, camera);
     const thumbCanvas = document.createElement('canvas');
     thumbCanvas.width = 320;
@@ -2423,26 +2588,30 @@ document.getElementById('btnSaveProject').onclick = async () => {
     const tctx = thumbCanvas.getContext('2d');
     drawCropped(tctx, thumbCanvas.width, thumbCanvas.height);
     const thumb = thumbCanvas.toDataURL('image/jpeg', 0.4);
-    const project = currentProjectId != null
+    transformHelper.visible = true;
+    let project = currentProjectId != null
       ? { id: currentProjectId, name, state, thumb, updated: Date.now() }
       : { name, state, thumb, updated: Date.now() };
     const id = await dbSave(project);
     currentProjectId = id;
     await loadProjectList();
-    showToast('✅ Project disimpan');
-  } catch (err) { console.error(err); showToast('❌ Gagal simpan', true); }
+    showToast('✅ Project berjaya disimpan');
+  } catch (err) { console.error(err); showToast('❌ Gagal simpan project', true); }
 };
 document.getElementById('btnExportProject').onclick = async () => {
   try {
     const state = await getStateForSave();
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const dataStr = JSON.stringify(state, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.download = `${document.getElementById('projectNameInput').value.trim() || 'design'}.json`;
-    a.href = url; a.click();
+    const name = document.getElementById('projectNameInput').value.trim() || 'design';
+    a.download = `${name}.json`;
+    a.href = url;
+    a.click();
     URL.revokeObjectURL(url);
-    showToast('✅ Fail dieksport');
-  } catch (err) { console.error(err); showToast('❌ Gagal eksport', true); }
+    showToast('✅ Fail projek berjaya dieksport');
+  } catch (err) { console.error(err); showToast('❌ Gagal eksport fail', true); }
 };
 document.getElementById('importProjectFile').onchange = e => {
   const file = e.target.files[0];
@@ -2451,44 +2620,218 @@ document.getElementById('importProjectFile').onchange = e => {
   reader.onload = async ev => {
     try {
       const state = JSON.parse(ev.target.result);
-      if (!state.modelGroups && !state.layers) throw new Error("Format tidak sah");
+      if (!state.layers) throw new Error("Format tidak sah");
       await restoreState(state);
       history = [await getStateForSave()];
       historyIndex = 0;
       updateUndoRedoButtons();
       document.getElementById('projectNameInput').value = file.name.replace('.json', '');
       currentProjectId = null;
-      showToast('✅ Fail diimport');
-    } catch (err) { console.error(err); showToast('❌ Fail tidak sah', true); }
+      showToast('✅ Fail projek berjaya diimport');
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Fail tidak sah atau rosak', true);
+    }
   };
   reader.readAsText(file);
   e.target.value = '';
 };
 document.getElementById('btnNewProject').onclick = async () => {
-  if (!confirm('Buat project baru?')) return;
-  await reloadMainModel('./T_shirt_gltf.gltf');
-  clearAllGroups();
-  await new Promise(resolve => {
-    new GLTFLoader().load('./T_shirt_gltf.gltf', gltf => { setupMainModel(gltf.scene); resolve(); }, undefined, () => { setupMainModel(createFallbackShirt()); resolve(); });
-  });
-  currentProjectId = null;
+  if (!confirm('Buat project baru? Design semasa akan dikosongkan.')) return;
+  clearAllLayers();
+  currentProjectId = null; currentProjectName = 'Design Baru';
   document.getElementById('projectNameInput').value = 'Design Baru';
   currentShirtColor = '#ffffff';
+  shirtMaterials.forEach(m => m.color.set(0xffffff));
+  document.getElementById('customColor').value = '#ffffff';
   bg = defaultBg();
   isTransparentBg = false;
   await loadBgImageFromDataURL(null);
-  syncBgUI(); markBgDirty();
+  syncBgUI();
+  markBgDirty();
   history = []; historyIndex = -1;
   pushHistory();
   loadProjectList();
-  renderGroupListUI();
 };
 
-// =====================================================================
-// ===== SAVE IMAGE HD =====
-// =====================================================================
-document.getElementById('saveBtn').onclick = () => {
+// ===== HISTORY =====
+async function pushHistory() {
+  if (isHistoryProcessing) return;
+  isHistoryProcessing = true;
+  if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
+  const s = await getStateForSave();
+  history.push(s);
+  if (history.length > 40) history.shift();
+  historyIndex = history.length - 1;
+  updateUndoRedoButtons();
+  isHistoryProcessing = false;
+}
+function clearAllLayers() {
+  [...layers].forEach(d => {
+    if (d.userData.isCanvasGraphic) {
+      canvasGroup.remove(d);
+      d.geometry?.dispose?.();
+      d.material?.dispose?.();
+    } else {
+      disposeDummyDecals(d);
+      disposeDummyTextures(d);
+      shirtGroup.remove(d);
+    }
+  });
+  layers = [];
+  logoCount = 0;
+  [...layerListUI.children].forEach(el => {
+    if (el.id !== 'layer-base') el.remove();
+  });
+}
+async function restoreState(state) {
+  clearAllLayers();
+  hideFreeTransform();
+  propertiesPanel.classList.remove('active');
+
+  const targetModelUrl = state.modelUrl || './T_shirt_gltf.gltf';
+  if (targetModelUrl !== currentModelUrl || shirtMeshes.length === 0) {
+    const toRemove = [...shirtGroup.children];
+    toRemove.forEach(c => {
+      shirtGroup.remove(c);
+      c.traverse?.(n => { n.geometry?.dispose?.(); });
+    });
+    shirtMaterials.forEach(m => m.dispose?.());
+    shirtMeshes = [];
+    shirtMaterials = [];
+    currentModelUrl = targetModelUrl;
+    await loadShirtModel(targetModelUrl);
+  }
+  document.getElementById('modelSelect').value = currentModelUrl;
+
+  currentShirtColor = state.color || '#ffffff';
+  shirtMaterials.forEach(m => m.color.set(currentShirtColor));
+  document.getElementById('customColor').value = currentShirtColor;
+  isTransparentBg = !!state.isTransparentBg;
+  outputRatio = state.outputRatio || 'auto';
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === outputRatio));
+  updateCropFrame();
+
+  // ---- Latar belakang ----
+  if (state.bg) {
+    bg = { ...defaultBg(), ...state.bg };
+  } else {
+    // migrasi project lama
+    const e = state.bgEffects || {};
+    bg = defaultBg();
+    bg.color = state.bgColor || '#09090b';
+    bg.vignette = e.vignette || 0;
+    bg.shadowOpacity = e.shadowBg || 0;
+    bg.overlayColor = e.gradientColor || '#000000';
+    bg.overlayOpacity = e.gradientOpacity || 0;
+    bg.imgBlur = e.blur || 0;
+    bg.imgBrightness = e.brightness ?? 100;
+    bg.imgContrast = e.contrast ?? 100;
+    bg.imgSaturation = e.saturation ?? 100;
+    bg.imgOpacity = state.bgOpacity ?? 1;
+    bg.imgMode = state.bgFillMode || 'cover';
+  }
+  await loadBgImageFromDataURL(state.bgImage?.dataURL || null);
+  syncBgUI();
+  markBgDirty();
+
+  ambientLight.intensity = state.ambient ?? 0.5;
+  mainLight.intensity = state.directional ?? 2;
+  mainLight.shadow.intensity = state.shadow ?? 1;
+  ground.material.opacity = 0.3 * (state.shadow ?? 1);
+  document.getElementById('ambientSlider').value = ambientLight.intensity;
+  document.getElementById('dirSlider').value = mainLight.intensity;
+  document.getElementById('shadowSlider').value = mainLight.shadow.intensity;
+  document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2);
+  document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2);
+  document.getElementById('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
+
+  for (const ldata of (state.layers || [])) {
+    if (!ldata.dataURL) continue;
+    await new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const tex = new THREE.Texture(img);
+          tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
+          tex.anisotropy = maxAnisotropy;
+          if (ldata.isCanvasGraphic) {
+            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: ldata.opacity || 1 });
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1 / (ldata.aspect || 1)), mat);
+            mesh.userData = {
+              texture: tex, aspect: ldata.aspect || 1, isText: !!ldata.isText,
+              dataURL: ldata.dataURL, textContent: ldata.textContent || '',
+              textColor: ldata.textColor || '#000', font: ldata.font || 'Inter',
+              fontSize: ldata.fontSize || 120, name: ldata.name || 'Canvas',
+              icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
+              visible: ldata.visible !== false, locked: !!ldata.locked, isCanvasGraphic: true,
+              effects: { ...defaultEffects(), ...(ldata.effects || {}) },
+              decals: []
+            };
+            mesh.position.fromArray(ldata.position || [0, 0, 0]);
+            mesh.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
+            mesh.scale.fromArray(ldata.scale || [1, 1, 1]);
+            canvasGroup.add(mesh);
+            layers.push(mesh);
+            logoCount++;
+            addDesignLayer(mesh, mesh.userData.name, mesh.userData.icon);
+            const el = document.getElementById(mesh.userData.layerId);
+            if (el) {
+              if (!mesh.userData.visible) { el.querySelector('.vis').classList.add('hidden'); el.querySelector('.vis').textContent = '👁️‍🗨️'; }
+              if (mesh.userData.locked) { el.querySelector('.lock').textContent = '🔒'; el.classList.add('locked'); }
+            }
+            createDecalNow(mesh);
+          } else {
+            const dummy = new THREE.Object3D();
+            dummy.userData = {
+              texture: tex, aspect: ldata.aspect || 1, isText: !!ldata.isText,
+              dataURL: ldata.dataURL, textContent: ldata.textContent || '',
+              textColor: ldata.textColor || '#000', font: ldata.font || 'Inter',
+              fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
+              icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
+              visible: ldata.visible !== false, locked: !!ldata.locked,
+              curve: ldata.curve || 0,
+              effects: { ...defaultEffects(), ...(ldata.effects || {}) },
+              decals: []
+            };
+            dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
+            dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
+            const s = Math.max(...(ldata.scale || [1, 1, 1]));
+            dummy.scale.setScalar(Math.max(0.12, s));
+            shirtGroup.add(dummy);
+            createDecalNow(dummy);
+            layers.push(dummy);
+            logoCount++;
+            addDesignLayer(dummy, dummy.userData.name, dummy.userData.icon);
+            const el = document.getElementById(dummy.userData.layerId);
+            if (el) {
+              if (!dummy.userData.visible) { el.querySelector('.vis').classList.add('hidden'); el.querySelector('.vis').textContent = '👁️‍🗨️'; }
+              if (dummy.userData.locked) { el.querySelector('.lock').textContent = '🔒'; el.classList.add('locked'); }
+            }
+          }
+        } catch (e) { console.warn(e); }
+        resolve();
+      };
+      img.onerror = () => resolve();
+      img.src = ldata.dataURL;
+    });
+  }
+  transformControls.detach(); activeDummy = null;
+  gizmoControlsUI.classList.remove('active');
+  document.getElementById('layer-base')?.classList.add('active');
+}
+function undo() { if (historyIndex <= 0) return; historyIndex--; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
+function redo() { if (historyIndex >= history.length - 1) return; historyIndex++; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
+function updateUndoRedoButtons() {
+  btnUndo.disabled = historyIndex <= 0;
+  btnRedo.disabled = historyIndex >= history.length - 1;
+}
+btnUndo.onclick = undo; btnRedo.onclick = redo;
+
+// ===== IMAGE SAVE =====
+function captureImage(view = 'current') {
   isExporting = true;
+  transformHelper.visible = false;
   hideFreeTransform();
   controls.enabled = false;
   const origPos = camera.position.clone();
@@ -2505,15 +2848,43 @@ document.getElementById('saveBtn').onclick = () => {
   camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
   layers.forEach(d => createDecalNow(d));
-  renderer.render(scene, camera);
-  const c = document.createElement('canvas');
-  c.width = outW; c.height = outH;
-  const ctx = c.getContext('2d');
-  composeFrame(ctx, outW, outH, renderer.domElement, 0, 0, renderer.domElement.width, renderer.domElement.height);
-  const a = document.createElement('a');
-  a.download = `design-hd-${Date.now()}.png`;
-  a.href = c.toDataURL('image/png');
-  a.click();
+  function renderAndExtract(posX, posY, posZ) {
+    camera.position.set(posX, posY, posZ);
+    controls.target.set(0, 0.05, 0);
+    camera.lookAt(controls.target);
+    renderer.render(scene, camera);
+    const c = document.createElement('canvas');
+    c.width = outW; c.height = outH;
+    const ctx = c.getContext('2d');
+    // Latar tetap (bawah) + baju 3D + kesan atas
+    composeFrame(ctx, outW, outH, renderer.domElement, 0, 0, renderer.domElement.width, renderer.domElement.height);
+    return c;
+  }
+  if (view === 'all') {
+    const gridCanvas = document.createElement('canvas');
+    gridCanvas.width = outW * 2;
+    gridCanvas.height = outH * 2;
+    const ctx = gridCanvas.getContext('2d');
+    ctx.drawImage(renderAndExtract(0, 0.15, 5.2), 0, 0);
+    ctx.drawImage(renderAndExtract(5.2, 0.15, 0), outW, 0);
+    ctx.drawImage(renderAndExtract(-5.2, 0.15, 0), 0, outH);
+    ctx.drawImage(renderAndExtract(0, 0.15, -5.2), outW, outH);
+    const a = document.createElement('a');
+    a.download = 'design-all-views.png';
+    a.href = gridCanvas.toDataURL('image/png');
+    a.click();
+  } else {
+    let px = origPos.x, py = origPos.y, pz = origPos.z;
+    if (view === 'front') { px = 0; py = 0.15; pz = 5.2; }
+    else if (view === 'back') { px = 0; py = 0.15; pz = -5.2; }
+    else if (view === 'left') { px = -5.2; py = 0.15; pz = 0; }
+    else if (view === 'right') { px = 5.2; py = 0.15; pz = 0; }
+    const c = renderAndExtract(px, py, pz);
+    const a = document.createElement('a');
+    a.download = `design-${view}.png`;
+    a.href = c.toDataURL('image/png');
+    a.click();
+  }
   isExporting = false;
   camera.clearViewOffset();
   camera.position.copy(origPos);
@@ -2522,44 +2893,46 @@ document.getElementById('saveBtn').onclick = () => {
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(oldPR);
   renderer.setSize(oldSize.x, oldSize.y, false);
+  transformHelper.visible = true;
   controls.enabled = true;
   layers.forEach(d => createDecalNow(d));
-  bgCache.clear();
+  bgCache.clear(); // bebaskan memori lapisan resolusi tinggi
   scheduleBgRender();
   if (currentMode === 'free' && activeDummy) showFreeTransform();
   controls.update();
   renderer.render(scene, camera);
-  showToast('✅ Imej HD disimpan');
+  showToast('✅ Imej HD berjaya disimpan');
+}
+document.getElementById('saveBtn').onclick = () => {
+  const view = document.getElementById('saveViewSelect').value;
+  captureImage(view);
 };
 
-// =====================================================================
 // ===== VIDEO =====
-// =====================================================================
 document.getElementById('speedSlider').oninput = e => { rotationSpeed = +e.target.value; document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 document.getElementById('durationSlider').oninput = e => { recordDuration = +e.target.value; document.getElementById('durationValue').textContent = recordDuration + 's'; };
-document.getElementById('qualitySlider').oninput = e => { recordQuality = +e.target.value; document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p' : '1080p'; };
+document.getElementById('qualitySlider').oninput = e => { recordQuality = +e.target.value; document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait'; };
 btnPreview.onclick = () => { if (isRecording) return; isPreviewing ? stopPreview() : startPreview(); };
 
 function startPreview() {
   if (isPreviewing || isRecording) return;
-  isPreviewing = true; isPaused = false;
-  btnPreview.classList.add('playing'); btnPreview.textContent = '⏹ Stop';
-  btnRenderVideo.disabled = true; hideFreeTransform(); controls.enabled = false;
+  isPreviewing = true;
+  isPaused = false;
+  btnPreview.classList.add('playing'); btnPreview.textContent = '⏹ Stop Preview';
+  btnRenderVideo.disabled = true; transformHelper.visible = false; hideFreeTransform(); controls.enabled = false;
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
+  camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
+  shirtGroup.rotation.y = 0;
   animStartTime = performance.now();
   currentP = 0;
   recordingOverlay.classList.add('active');
-  // Simpan rotation asal
-  const origRotations = modelGroups.map(mg => mg.group.rotation.y);
   function loop(now) {
     if (!isPreviewing) return;
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
-      modelGroups.forEach((mg, i) => {
-        mg.group.rotation.y = origRotations[i] + currentP * Math.PI * 2 * rotationSpeed;
-      });
+      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
       recordingText.textContent = `Preview... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
       if (currentP >= 1) { stopPreview(); return; }
     }
@@ -2569,21 +2942,20 @@ function startPreview() {
   previewAnimationId = requestAnimationFrame(loop);
 }
 function stopPreview() {
-  isPreviewing = false; isPaused = false;
+  isPreviewing = false;
+  isPaused = false;
   if (previewAnimationId) cancelAnimationFrame(previewAnimationId);
-  btnPreview.classList.remove('playing'); btnPreview.textContent = '▶ Preview';
+  btnPreview.classList.remove('playing'); btnPreview.textContent = '▶ Mainkan Preview';
   btnRenderVideo.disabled = false; recordingOverlay.classList.remove('active');
   floatingControls.style.display = 'none';
-  // Reset rotation ke nilai effects
-  modelGroups.forEach(mg => { mg.group.rotation.y = (mg.effects.rotation || 0) * Math.PI / 180; });
-  controls.enabled = true;
+  shirtGroup.rotation.y = 0; transformHelper.visible = true; controls.enabled = true;
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
 
 async function startVideoRecord() {
   if (isRecording) return;
   isExporting = true;
-  hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
+  transformHelper.visible = false; hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
   layers.forEach(d => createDecalNow(d));
   let targetRes = recordQuality === 0 ? 1080 : 1920;
   let scale = targetRes / Math.max(cropRect.w, cropRect.h);
@@ -2599,8 +2971,10 @@ async function startVideoRecord() {
   const tw = container.clientWidth, th = container.clientHeight;
   renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   camera.aspect = tw / th; camera.updateProjectionMatrix();
-  for (let i = 0; i < 5; i++) {
-    renderer.render(scene, camera);
+  camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
+  // Papar bingkai pemanas (bg di-cache sekali, sangat laju)
+  for (let i = 0; i < 8; i++) {
+    renderer.clear(); renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
     drawCropped(rctx, recW, recH);
   }
@@ -2614,44 +2988,42 @@ async function startVideoRecord() {
   mediaRecorder.onstop = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
-    a.download = `design-${Date.now()}.webm`; a.click();
+    a.download = `design-portrait-${Date.now()}.webm`; a.click();
     isExporting = false;
     layers.forEach(d => createDecalNow(d));
     renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
     camera.aspect = oldSize.x / oldSize.y; camera.updateProjectionMatrix();
-    controls.enabled = true;
+    transformHelper.visible = true; controls.enabled = true;
     isRecording = false; btnRenderVideo.disabled = false; btnPreview.disabled = false;
     btnRenderVideo.classList.remove('recording'); btnRenderVideo.textContent = '🎥 Render Video';
-    recordingOverlay.classList.remove('active');
-    modelGroups.forEach(mg => { mg.group.rotation.y = (mg.effects.rotation || 0) * Math.PI / 180; });
+    recordingOverlay.classList.remove('active'); shirtGroup.rotation.y = 0;
     floatingControls.style.display = 'none';
     bgCache.clear(); scheduleBgRender();
   };
   isRecording = true; isPaused = false;
   btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
-  btnRenderVideo.textContent = '⏹ Merakam...'; recordingOverlay.classList.add('active');
+  btnRenderVideo.textContent = '⏹ Sedang Merakam...'; recordingOverlay.classList.add('active');
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
-  const origRotations = modelGroups.map(mg => mg.group.rotation.y);
-  mediaRecorder.start(100);
+  mediaRecorder.start(100); shirtGroup.rotation.y = 0;
   animStartTime = performance.now();
   currentP = 0;
   function loop(now) {
     if (!isRecording) return;
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
-      modelGroups.forEach((mg, i) => {
-        mg.group.rotation.y = origRotations[i] + currentP * Math.PI * 2 * rotationSpeed;
-      });
-      recordingText.textContent = `Merakam... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
+      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
+      recordingText.textContent = `Sedang merakam... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
     }
     renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
-    drawCropped(rctx, recW, recH);
+    drawCropped(rctx, recW, recH); // latar kekal tetap, hanya baju berputar
     if (currentP >= 1) {
       setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
-    } else requestAnimationFrame(loop);
+    } else {
+      requestAnimationFrame(loop);
+    }
   }
   requestAnimationFrame(loop);
 }
@@ -2661,77 +3033,54 @@ btnPausePlay.onclick = () => {
   if (isPaused) {
     btnPausePlay.textContent = '▶ Sambung';
     btnSnap.disabled = false;
+    if (isPreviewing) recordingText.textContent = `Preview Dijeda`;
+    if (isRecording) recordingText.textContent = `Rakaman Dijeda`;
   } else {
     btnPausePlay.textContent = '⏸ Jeda';
     btnSnap.disabled = true;
     animStartTime = performance.now() - (currentP * recordDuration * 1000);
   }
 };
-btnSnap.onclick = () => document.getElementById('saveBtn').click();
+btnSnap.onclick = () => {
+  const view = document.getElementById('saveViewSelect').value;
+  if (view === 'current') captureImage('current');
+  else showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
+};
 
-// =====================================================================
-// ===== MAIN UI =====
-// =====================================================================
+// ===== UI =====
+function setMode(m) {
+  // Paksa gaya Photoshop — elak gizmo RGB 3D
+  currentMode = 'free';
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btnFree').classList.add('active');
+  transformControls.detach();
+  if (activeDummy) showFreeTransform();
+}
+document.getElementById('btnTranslate').onclick = () => setMode('free');
+document.getElementById('btnScale').onclick = () => setMode('free');
+document.getElementById('btnFree').onclick = () => setMode('free');
+
 ['#ffffff','#171717','#64748b','#dc2626','#2563eb','#16a34a','#ca8a04','#9333ea'].forEach((hex, i) => {
   const b = document.createElement('button');
   b.className = 'color-btn' + (i === 0 ? ' active' : '');
   b.style.background = hex;
   b.onclick = () => {
     document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    currentShirtColor = hex;
-    // Apply ke group aktif atau semua group
-    const targets = activeGroup ? [activeGroup] : modelGroups;
-    targets.forEach(mg => {
-      mg.group.userData.meshes?.forEach(mesh => {
-        if (mesh.material) {
-          mesh.material.userData = mesh.material.userData || {};
-          mesh.material.userData._baseColor = new THREE.Color(hex);
-        }
-      });
-      applyGroupEffects(mg);
-    });
-    pushHistory();
+    b.classList.add('active'); currentShirtColor = hex;
+    shirtMaterials.forEach(m => m.color.set(hex)); pushHistory();
   };
   document.getElementById('colorGrid').appendChild(b);
 });
 document.getElementById('customColor').oninput = e => {
   document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
-  currentShirtColor = e.target.value;
-  const targets = activeGroup ? [activeGroup] : modelGroups;
-  targets.forEach(mg => {
-    mg.group.userData.meshes?.forEach(mesh => {
-      if (mesh.material) {
-        mesh.material.userData = mesh.material.userData || {};
-        mesh.material.userData._baseColor = new THREE.Color(e.target.value);
-      }
-    });
-    applyGroupEffects(mg);
-  });
+  currentShirtColor = e.target.value; shirtMaterials.forEach(m => m.color.set(e.target.value));
 };
 document.getElementById('customColor').onchange = () => pushHistory();
-
-// Main model change
-document.getElementById('modelSelect') && (document.getElementById('modelSelect').onchange = async e => {
-  const url = e.target.value;
-  if (url === currentModelUrl) return;
-  await reloadMainModel(url);
-  pushHistory();
-});
-
-document.getElementById('viewFront').onclick = () => { camera.position.set(0, 0, 8); controls.target.set(0, 0, 0); setActive('viewFront'); if (focusedGroupId) unfocusGroup(); };
-document.getElementById('viewBack').onclick = () => { camera.position.set(0, 0, -8); controls.target.set(0, 0, 0); setActive('viewBack'); if (focusedGroupId) unfocusGroup(); };
-document.getElementById('viewRight').onclick = () => { camera.position.set(8, 0, 0); controls.target.set(0, 0, 0); setActive('viewRight'); if (focusedGroupId) unfocusGroup(); };
-document.getElementById('viewLeft').onclick = () => { camera.position.set(-8, 0, 0); controls.target.set(0, 0, 0); setActive('viewLeft'); if (focusedGroupId) unfocusGroup(); };
-document.getElementById('viewResetAll').onclick = () => {
-  unfocusGroup();
-  camera.position.set(0, 0, 10);
-  controls.target.set(0, 0, 0);
-  controls.update();
-  showToast('Kamera reset');
-};
+document.getElementById('viewFront').onclick = () => { camera.position.set(0,0,4.5); controls.target.set(0,0,0); setActive('viewFront'); };
+document.getElementById('viewBack').onclick = () => { camera.position.set(0,0,-4.5); controls.target.set(0,0,0); setActive('viewBack'); };
+document.getElementById('viewRight').onclick = () => { camera.position.set(4.5,0,0); controls.target.set(0,0,0); setActive('viewRight'); };
+document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5,0,0); controls.target.set(0,0,0); setActive('viewLeft'); };
 function setActive(id) { document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-
 window.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
   const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
@@ -2739,17 +3088,19 @@ window.addEventListener('keydown', e => {
     if (e.key === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
     if (e.key === 'y') { e.preventDefault(); redo(); }
     if (e.key === 's') { e.preventDefault(); document.getElementById('btnSaveProject').click(); }
+    if (e.key === 't') { e.preventDefault(); if (activeDummy) setMode('free'); }
     if (e.key === 'd') { e.preventDefault(); if (activeDummy) document.getElementById('btnDuplicate').click(); }
     return;
   }
   if (isEditing) return;
   if ((e.key === 'Delete' || e.key === 'Backspace') && activeDummy) {
     e.preventDefault();
-    deleteLayer(activeDummy, null);
+    const el = document.getElementById(activeDummy.userData.layerId);
+    if (el) deleteLayer(activeDummy, el);
   }
   if (e.key === 'Escape') {
-    hideFreeTransform();
-    activeDummy = null;
+    transformControls.detach(); hideFreeTransform();
+    activeDummy = null; gizmoControlsUI.classList.remove('active');
     propertiesPanel.classList.remove('active');
   }
 });
@@ -2769,27 +3120,9 @@ window.addEventListener('resize', () => {
   camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
   updateCropFrame();
 });
-
-// ===== INIT =====
 syncBgUI();
 updateCropFrame();
 markBgDirty();
-
-// Load main model kemudian setup
-new GLTFLoader().load('./T_shirt_gltf.gltf', gltf => {
-  setupMainModel(gltf.scene);
-  const loadingEl = document.getElementById('loading');
-  if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
-  renderGroupListUI();
-  loadProjectList().then(loadLastProject);
-  pushHistory();
-}, undefined, () => {
-  setupMainModel(createFallbackShirt());
-  const loadingEl = document.getElementById('loading');
-  if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
-  renderGroupListUI();
-  pushHistory();
-});
 </script>
 </body>
 </html>
