@@ -1610,7 +1610,7 @@ function createCurvedDecal(dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   dummy.updateMatrixWorld(true);
-  const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
+  const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).normalize();
   const isBack = !onSleeve && dummyNormal.z < 0;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
@@ -1618,53 +1618,94 @@ function createCurvedDecal(dummy, curve) {
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
 
-  // Pada lengan: pastikan paksi lengkung = kiri-kanan (membalut silinder lengan)
-  // Guna world-up supaya lengkung sentiasa horizontal mengelilingi lengan, bukan dari atas
-  let orientQuat = dummy.quaternion.clone();
+  // Orientasi: world-up supaya lengkung kiri-kanan membalut lengan
+  let right = new THREE.Vector3(1, 0, 0).applyQuaternion(dummy.quaternion).normalize();
+  let up = new THREE.Vector3(0, 1, 0).applyQuaternion(dummy.quaternion).normalize();
   if (onSleeve) {
-    const ln = dummyNormal.clone().normalize();
     const worldUp = new THREE.Vector3(0, 1, 0);
-    let right = new THREE.Vector3().crossVectors(worldUp, ln);
+    right = new THREE.Vector3().crossVectors(worldUp, dummyNormal);
     if (right.lengthSq() < 0.001) right.set(1, 0, 0);
     right.normalize();
-    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
-    orientQuat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+    up = new THREE.Vector3().crossVectors(dummyNormal, right).normalize();
   }
 
-  // Geometri silinder — melengkung pada paksi X (kiri ↔ kanan) sahaja
-  const segX = Math.max(28, Math.min(72, Math.round(36 * Math.max(1, w * 2))));
-  const segY = 10;
+  // Grid padat untuk warp tepat ke permukaan mesh baju
+  const segX = Math.max(24, Math.min(56, Math.round(28 * Math.max(1, w * 2.2))));
+  const segY = Math.max(12, Math.min(28, Math.round(14 * Math.max(1, h * 2))));
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
-  const halfW = w / 2;
 
-  // curve 0..1 → sudut max (≈ 0..90°) supaya membalut permukaan lengan
-  const maxAngleX = (Math.PI / 2) * Math.max(0.15, Math.min(1, curve));
-  const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+  const worldPos = new THREE.Vector3();
+  dummy.getWorldPosition(worldPos);
+  shirtGroup.updateMatrixWorld(true);
+  const invShirt = new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert();
+
+  const ray = new THREE.Raycaster();
+  const rayDir = dummyNormal.clone().negate(); // tembak ke dalam permukaan
+  const lift = 0.008; // offset kecil keluar (elak z-fight)
+  const maxRay = 1.0;
+  let hitCount = 0;
+  const tmpWorld = new THREE.Vector3();
 
   for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    const u = x / halfW; // -1 .. +1
-    const angleX = u * maxAngleX;
-    // Lekung kiri-kanan: X & Z berubah, Y kekal (lurus sepanjang lengan)
-    const newX = Math.sin(angleX) * Rx;
-    const newZ = (Math.cos(angleX) - 1) * Rx;
-    pos.setX(i, newX);
-    pos.setZ(i, newZ);
+    const lx = pos.getX(i);
+    const ly = pos.getY(i);
+
+    // Mula dari luar permukaan logo
+    tmpWorld.copy(worldPos)
+      .addScaledVector(right, lx)
+      .addScaledVector(up, ly)
+      .addScaledVector(dummyNormal, 0.35);
+
+    ray.set(tmpWorld, rayDir);
+    const hits = ray.intersectObjects(shirtMeshes, true);
+
+    if (hits.length && hits[0].distance < maxRay) {
+      // Titik kena + angkat sedikit sepanjang normal muka
+      const faceN = hits[0].face
+        ? hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld).normalize()
+        : dummyNormal.clone();
+      const hitWorld = hits[0].point.clone().addScaledVector(faceN, lift);
+      const hitLocal = hitWorld.applyMatrix4(invShirt);
+      pos.setXYZ(i, hitLocal.x, hitLocal.y, hitLocal.z);
+      hitCount++;
+    } else {
+      // Fallback silinder jika ray terlepas
+      const halfW = Math.max(0.001, w * 0.5);
+      const maxAngleX = (Math.PI / 2) * Math.max(0.25, Math.min(1, curve || 0.65));
+      const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+      const u = lx / halfW;
+      const angleX = u * maxAngleX;
+      const cx = Math.sin(angleX) * Rx;
+      const cz = (Math.cos(angleX) - 1) * Rx;
+      const fbWorld = worldPos.clone()
+        .addScaledVector(right, cx)
+        .addScaledVector(up, ly)
+        .addScaledVector(dummyNormal, cz + lift);
+      const fbLocal = fbWorld.applyMatrix4(invShirt);
+      pos.setXYZ(i, fbLocal.x, fbLocal.y, fbLocal.z);
+    }
   }
+
+  // Jika hampir semua ray miss → guna DecalGeometry biasa
+  if (hitCount < pos.count * 0.2) {
+    geo.dispose();
+    createFlatDecal(dummy);
+    return;
+  }
+
   geo.computeVertexNormals();
 
   const mat = new THREE.MeshStandardMaterial({
     map: tex, transparent: true, depthTest: true, depthWrite: false,
-    polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10,
-    roughness: 0.8, opacity: dummy.userData.opacity || 1,
-    side: THREE.FrontSide
+    polygonOffset: true, polygonOffsetFactor: -8, polygonOffsetUnits: -8,
+    roughness: 0.85, opacity: dummy.userData.opacity || 1,
+    side: THREE.DoubleSide
   });
   const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.copy(dummy.position);
-  // Tolak keluar sedikit dari permukaan baju supaya tak clip
-  mesh.position.add(dummyNormal.clone().multiplyScalar(0.018));
-  mesh.quaternion.copy(orientQuat);
+  // Vertex sudah dalam local space shirtGroup
+  mesh.position.set(0, 0, 0);
+  mesh.quaternion.identity();
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
   shirtGroup.add(mesh);
