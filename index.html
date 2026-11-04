@@ -109,6 +109,8 @@
     #layers-header{padding:16px 16px 10px;border-bottom:1px solid #27272a}
     #layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
     #layers-list{flex:1;overflow-y:auto;max-height:45%; padding:10px}
+    
+    /* ==== LAYER GROUPING STYLES ==== */
     .layer-group { margin-bottom: 8px; border: 1px solid #3f3f46; border-radius: 6px; overflow: hidden; }
     .group-header { background: #27272a; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; color: #e4e4e7; }
     .group-header:hover { background: #3f3f46; }
@@ -118,6 +120,7 @@
     .layer-group.collapsed .group-header .arrow { transform: rotate(-90deg); }
     .group-items { padding: 4px; border-left: 2px solid #38bdf8; margin-left: 12px; display: flex; flex-direction: column; gap: 2px; }
     .layer-group.collapsed .group-items { display: none; }
+    
     .layer-item{padding:8px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px;background:#1f1f23;margin-bottom:2px}
     .layer-item:hover{background:#27272a}
     .layer-item.active{background:rgba(56,189,248,.15);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
@@ -128,6 +131,7 @@
     .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7; color: white}
     .layer-actions button:hover{opacity:1}
     .layer-actions .vis.hidden{opacity:.35}
+    
     #properties-panel{border-top:1px solid #27272a;padding:14px 16px;overflow-y:auto;flex:1;display:none}
     #properties-panel.active{display:block}
     #properties-panel h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:12px}
@@ -146,20 +150,29 @@
     .fx-row input[type=color]{width:34px;height:30px;border:none;background:#1f1f23;border-radius:6px;cursor:pointer;padding:0;flex-shrink:0}
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
+
+    /* ==== CROP MODAL ==== */
     #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
     #crop-container { position: relative; display: inline-block; background: #000; }
     #crop-image { display: block; max-width: 90vw; max-height: 80vh; }
+    
+    /* Kotak Crop */
     #crop-box { position: absolute; border: 2px dashed #38bdf8; background: rgba(56,189,248,0.1); cursor: move; box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); box-sizing: border-box; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    /* Bucu (Corners) */
     .crop-handle { position: absolute; width: 14px; height: 14px; background: #fff; border: 2px solid #38bdf8; border-radius: 50%; z-index: 10; }
     .crop-handle.tl { top: -7px; left: -7px; cursor: nwse-resize; }
     .crop-handle.tr { top: -7px; right: -7px; cursor: nesw-resize; }
     .crop-handle.bl { bottom: -7px; left: -7px; cursor: nesw-resize; }
     .crop-handle.br { bottom: -7px; right: -7px; cursor: nwse-resize; }
+    
+    /* Tepi (Edges) */
     .crop-edge { position: absolute; z-index: 9; }
     .crop-edge.top { top: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
     .crop-edge.bottom { bottom: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
     .crop-edge.left { top: 14px; bottom: 14px; left: -4px; width: 8px; cursor: ew-resize; }
     .crop-edge.right { top: 14px; bottom: 14px; right: -4px; width: 8px; cursor: ew-resize; }
+
     #crop-controls { margin-top: 20px; display: flex; gap: 10px; }
     #crop-controls button { padding: 12px 24px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
     #crop-save { background: #10b981; color: white; }
@@ -398,18 +411,17 @@
     <div id="layers-list"></div>
     <div id="properties-panel">
       <h3 id="propTitle">Properties</h3>
+      
+      <!-- Decal Properties -->
       <div id="decalProps">
         <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
         <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
         <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
-        
-        <!-- ARC SLIDER -1 HINGGA 1 -->
         <div class="prop-row" id="curveRow">
-          <label>Lekung (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
-          <input type="range" id="propCurve" min="-1" max="1" step="0.05" value="0">
-          <div style="font-size:10px;color:#71717a;margin-top:4px">-1 = cekung · 0 = rata · +1 = cembung</div>
+          <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
+          <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
+          <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
         </div>
-
         <div class="align-row">
           <button class="align-btn" id="btnAlignCenterX">Center X</button>
           <button class="align-btn" id="btnAlignCenterY">Center Y</button>
@@ -419,6 +431,7 @@
           <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
           <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
         </div>
+        
         <div id="fxPanel" style="display:none">
           <h3 style="margin-top:14px">Kesan Imej</h3>
           <div class="fx-group">
@@ -471,25 +484,32 @@
           <button class="small-btn" id="fxReset">↺ Reset Kesan (0)</button>
         </div>
       </div>
+
+      <!-- Model Properties -->
       <div id="modelProps" style="display:none; margin-top:12px;">
         <div class="prop-row"><label>Warna Baju</label><input type="color" id="modelColor" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
         <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
         <div class="prop-row"><label>Contrast <span id="modelContrastValue">100</span>%</label><input type="range" id="modelContrast" min="20" max="200" step="5" value="100"></div>
+        
         <button class="small-btn" id="btnMoveModel" style="background:#0ea5e9; color:white; margin-top:10px;">✥ Gerakkan Baju (Mouse)</button>
       </div>
+
     </div>
   </div>
 </div>
 <div id="toast"></div>
 
+<!-- CROP MODAL -->
 <div id="crop-modal">
   <div id="crop-container">
     <canvas id="crop-image"></canvas>
     <div id="crop-box">
+      <!-- Bucu -->
       <div class="crop-handle tl" data-corner="tl"></div>
       <div class="crop-handle tr" data-corner="tr"></div>
       <div class="crop-handle bl" data-corner="bl"></div>
       <div class="crop-handle br" data-corner="br"></div>
+      <!-- Tepi -->
       <div class="crop-edge top" data-edge="top"></div>
       <div class="crop-edge bottom" data-edge="bottom"></div>
       <div class="crop-edge left" data-edge="left"></div>
@@ -679,46 +699,6 @@ function defaultBgEffects() {
 let bgEffects = defaultBgEffects();
 let bgImageSource = null;
 
-// ===== RASTER MOUSE TRACKING =====
-let lastMousePos = null;
-renderer.domElement.addEventListener('pointermove', (e) => {
-  const rect = renderer.domElement.getBoundingClientRect();
-  lastMousePos = new THREE.Vector2(e.clientX - rect.left, e.clientY - rect.top);
-});
-renderer.domElement.addEventListener('pointerleave', () => { lastMousePos = null; });
-
-// Klik pada model 3D untuk pilih
-let _pointerDownPos = null;
-renderer.domElement.addEventListener('pointerdown', (e) => {
-  if (e.button === 0) _pointerDownPos = { x: e.clientX, y: e.clientY };
-});
-renderer.domElement.addEventListener('pointerup', (e) => {
-  if (e.button !== 0 || !_pointerDownPos) return;
-  const dx = e.clientX - _pointerDownPos.x;
-  const dy = e.clientY - _pointerDownPos.y;
-  const wasClick = (dx*dx + dy*dy) < 25;
-  _pointerDownPos = null;
-  if (!wasClick) return;
-  if (isPreviewing || isRecording || isDragging) return;
-
-  const rect = renderer.domElement.getBoundingClientRect();
-  const mouse = new THREE.Vector2(
-    ((e.clientX - rect.left) / rect.width) * 2 - 1,
-    -((e.clientY - rect.top) / rect.height) * 2 + 1
-  );
-  const ray = new THREE.Raycaster();
-  ray.setFromCamera(mouse, camera);
-  const hits = ray.intersectObjects(loadedModelContainers, true);
-  if (hits.length > 0) {
-    let hc = hits[0].object;
-    while (hc.parent && hc.parent !== shirtGroup) hc = hc.parent;
-    if (hc !== activeModelContainer) {
-      const groupEl = document.getElementById(hc.userData.layerId);
-      if (groupEl) selectModelGroup(hc, groupEl);
-    }
-  }
-});
-
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
 const gizmoControlsUI = document.getElementById('gizmoControls');
@@ -898,10 +878,15 @@ function applyModelColorAndEffects(container) {
   const base = new THREE.Color(container.userData.baseColor || '#ffffff');
   const b = (container.userData.brightness ?? 100) / 100;
   const c = (container.userData.contrast ?? 100) / 100;
-  base.r *= b; base.g *= b; base.b *= b;
+  
+  base.r *= b;
+  base.g *= b;
+  base.b *= b;
+  
   base.r = Math.max(0, Math.min(1, (base.r - 0.5) * c + 0.5));
   base.g = Math.max(0, Math.min(1, (base.g - 0.5) * c + 0.5));
   base.b = Math.max(0, Math.min(1, (base.b - 0.5) * c + 0.5));
+  
   container.traverse(child => {
     if (child.isMesh && child.material && !child.userData.isDecal) {
       if (Array.isArray(child.material)) {
@@ -917,6 +902,7 @@ function loadShirtModel(url, config = {}) {
   return new Promise((resolve) => {
     new GLTFLoader().load(url, (g) => {
       const model = g.scene;
+      
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
@@ -938,7 +924,7 @@ function loadShirtModel(url, config = {}) {
         if (c.isMesh) {
           c.castShadow = c.receiveShadow = true;
           if (!c.material?.isMeshStandardMaterial) {
-            c.material = new THREE.MeshStandardMaterial({ roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide });
+            c.material = new THREE.MeshStandardMaterial({ roughness: 0.8, metalness: 0.1 });
           } else {
             c.material.roughness = 0.8;
             c.material.metalness = 0.1;
@@ -946,18 +932,21 @@ function loadShirtModel(url, config = {}) {
           shirtMaterials.push(c.material);
         }
       });
+      
       applyModelColorAndEffects(container);
 
       if (!config.position) {
         const xOffset = loadedModelContainers.length * 2.2;
         container.position.set(xOffset, 0, 0);
       }
+      
       shirtGroup.add(container);
       loadedModelContainers.push(container);
       addModelGroup(container, url);
 
       const newBox = new THREE.Box3().setFromObject(container);
       ground.position.y = newBox.min.y - 0.1;
+
       resolve();
     }, undefined, () => {
       const fallback = createFallbackShirt();
@@ -970,6 +959,7 @@ function loadShirtModel(url, config = {}) {
       container.add(fallback);
       fallback.traverse(c => { if(c.isMesh) shirtMaterials.push(c.material); });
       applyModelColorAndEffects(container);
+      
       if (!config.position) container.position.set(loadedModelContainers.length * 2.2, 0, 0);
       shirtGroup.add(container);
       loadedModelContainers.push(container);
@@ -982,6 +972,7 @@ function loadShirtModel(url, config = {}) {
 function addModelGroup(container, url) {
   const id = 'group-' + Date.now() + Math.random().toString(36).slice(2, 7);
   container.userData.layerId = id;
+  
   let name = 'Model 3D';
   if (url.includes('long_sleeve')) name = 'Lengan Panjang';
   else if (url.includes('polo')) name = 'Polo Shirt';
@@ -991,8 +982,10 @@ function addModelGroup(container, url) {
   const groupEl = document.createElement('div');
   groupEl.className = 'layer-group';
   groupEl.id = id;
+  
   const headerEl = document.createElement('div');
   headerEl.className = 'group-header';
+  
   const titleEl = document.createElement('div');
   titleEl.className = 'group-title';
   titleEl.innerHTML = `<span>👕 ${name}</span>`;
@@ -1000,6 +993,7 @@ function addModelGroup(container, url) {
     e.stopPropagation();
     selectModelGroup(container, groupEl);
   };
+
   const arrowEl = document.createElement('span');
   arrowEl.className = 'arrow';
   arrowEl.textContent = '▼';
@@ -1007,18 +1001,27 @@ function addModelGroup(container, url) {
     e.stopPropagation();
     groupEl.classList.toggle('collapsed');
   };
+  
   const actionsEl = document.createElement('div');
   actionsEl.style.display = 'flex';
   actionsEl.style.gap = '4px';
   const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.textContent = '👁️'; bVis.style.background='none'; bVis.style.border='none'; bVis.style.cursor='pointer'; bVis.style.fontSize='13px';
   const bDel = document.createElement('button'); bDel.className = 'del'; bDel.textContent = '✕'; bDel.style.background='none'; bDel.style.border='none'; bDel.style.cursor='pointer'; bDel.style.color='#ef4444'; bDel.style.fontSize='13px';
-  actionsEl.appendChild(bVis); actionsEl.appendChild(bDel);
-  headerEl.appendChild(titleEl); headerEl.appendChild(actionsEl); headerEl.appendChild(arrowEl);
+  actionsEl.appendChild(bVis);
+  actionsEl.appendChild(bDel);
+  
+  headerEl.appendChild(titleEl);
+  headerEl.appendChild(actionsEl);
+  headerEl.appendChild(arrowEl);
+
   const itemsEl = document.createElement('div');
   itemsEl.className = 'group-items';
   itemsEl.id = 'items-' + id;
-  groupEl.appendChild(headerEl); groupEl.appendChild(itemsEl);
+
+  groupEl.appendChild(headerEl);
+  groupEl.appendChild(itemsEl);
   layerListUI.prepend(groupEl);
+  
   layerGroups.set(id, { el: groupEl, items: itemsEl, header: headerEl });
 
   bDel.onclick = (e) => {
@@ -1029,11 +1032,13 @@ function addModelGroup(container, url) {
       loadedModelContainers = loadedModelContainers.filter(c => c !== container);
       groupEl.remove();
       layerGroups.delete(id);
+      
       if (activeModelContainer === container) {
         activeModelContainer = null;
         document.getElementById('properties-panel').classList.remove('active');
         document.getElementById('modelProps').style.display = 'none';
       }
+      
       layers.forEach(d => {
         if (d.userData.targetContainer === container) {
           const lEl = document.getElementById(d.userData.layerId);
@@ -1044,6 +1049,7 @@ function addModelGroup(container, url) {
       pushHistory();
     }
   };
+  
   bVis.onclick = (e) => {
     e.stopPropagation();
     container.visible = !container.visible;
@@ -1074,15 +1080,20 @@ function selectModelGroup(container, groupEl) {
   activeDummy = null;
   gizmoControlsUI.classList.remove('active');
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+  
   document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
   const header = groupEl.querySelector('.group-header');
   if (header) header.classList.add('active');
+
   activeModelContainer = container;
   propertiesPanel.classList.add('active');
+  
   focusCameraOn(container);
+  
   document.getElementById('decalProps').style.display = 'none';
   document.getElementById('modelProps').style.display = 'block';
   document.getElementById('propTitle').textContent = 'Model 3D Properties';
+
   document.getElementById('modelColor').value = container.userData.baseColor || '#ffffff';
   document.getElementById('modelBrightness').value = container.userData.brightness ?? 100;
   document.getElementById('modelBrightnessValue').textContent = container.userData.brightness ?? 100;
@@ -1107,11 +1118,13 @@ function fitCameraToModels() {
   const box = new THREE.Box3().setFromObject(shirtGroup);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
+  
   controls.target.copy(center);
   const maxDim = Math.max(size.x, size.y);
   const fov = camera.fov * (Math.PI / 180);
   let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
   cameraZ *= 1.8;
+  
   camera.position.set(center.x, center.y, center.z + cameraZ);
   camera.updateProjectionMatrix();
   controls.update();
@@ -1122,10 +1135,12 @@ function fitCameraForRender(zoomMult) {
   const box = new THREE.Box3().setFromObject(shirtGroup);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
+  
   const maxDim = Math.max(size.x, size.y);
   const fov = camera.fov * (Math.PI / 180);
   let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
   cameraZ *= 1.2 * zoomMult;
+  
   camera.position.set(center.x, center.y, center.z + cameraZ);
   controls.target.copy(center);
   camera.updateProjectionMatrix();
@@ -1185,36 +1200,54 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.locked = false;
   dummy.userData.curve = dummy.userData.curve || 0;
   ensureEffects(dummy);
+  
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
-  if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve !== 0) el.classList.add('curve-active');
+  if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
   const info = document.createElement('div'); info.className = 'layer-info';
   const ic = document.createElement('span'); ic.textContent = icon;
   const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
   info.appendChild(ic); info.appendChild(nm);
+  
   const actions = document.createElement('div'); actions.className = 'layer-actions';
   const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.title = 'Visibility'; bVis.textContent = '👁️';
   const bLock = document.createElement('button'); bLock.className = 'lock'; bLock.title = 'Lock'; bLock.textContent = '🔓';
+  
   const bUp = document.createElement('button'); bUp.title = 'Naikkan'; bUp.textContent = '▲';
   const bDown = document.createElement('button'); bDown.title = 'Turunkan'; bDown.textContent = '▼';
+  
   const bDel = document.createElement('button'); bDel.className = 'del'; bDel.title = 'Padam'; bDel.textContent = '✕';
+  
   actions.appendChild(bUp); actions.appendChild(bDown);
   actions.appendChild(bVis); actions.appendChild(bLock); actions.appendChild(bDel);
+  
   el.appendChild(info); el.appendChild(actions);
   el.onclick = e => { if (e.target.closest('.layer-actions')) return; selectLayer(dummy, el); };
+  
   bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
+  
   bUp.onclick = e => {
     e.stopPropagation();
     const prev = el.previousElementSibling;
-    if (prev) { el.parentNode.insertBefore(el, prev); updateLayerZIndex(); pushHistory(); }
+    if (prev) {
+      el.parentNode.insertBefore(el, prev);
+      updateLayerZIndex();
+      pushHistory();
+    }
   };
+  
   bDown.onclick = e => {
     e.stopPropagation();
     const next = el.nextElementSibling;
-    if (next) { el.parentNode.insertBefore(next, el); updateLayerZIndex(); pushHistory(); }
+    if (next) {
+      el.parentNode.insertBefore(next, el);
+      updateLayerZIndex();
+      pushHistory();
+    }
   };
+  
   if (dummy.userData.isCanvasGraphic) {
     layerListUI.prepend(el); 
   } else if (dummy.userData.targetContainer && layerGroups.has(dummy.userData.targetContainer.userData.layerId)) {
@@ -1223,6 +1256,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   } else {
     layerListUI.prepend(el); 
   }
+  
   selectLayer(dummy, el);
 }
 
@@ -1240,18 +1274,22 @@ function updateLayerZIndex() {
 
 function selectLayer(dummy, el) {
   if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
+  
   activeModelContainer = null;
   transformControls.detach();
   document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
+
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   activeDummy = dummy;
   gizmoControlsUI.classList.add('active');
   propertiesPanel.classList.add('active');
   ensureEffects(dummy);
+  
   document.getElementById('decalProps').style.display = 'block';
   document.getElementById('modelProps').style.display = 'none';
   document.getElementById('propTitle').textContent = 'Layer Properties';
+
   document.getElementById('propName').value = dummy.userData.name || '';
   document.getElementById('propScale').value = dummy.scale.x;
   document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
@@ -1279,7 +1317,11 @@ function selectLayer(dummy, el) {
     fxPanel.style.display = 'block';
     updateFxUI(dummy);
   }
-  if (dummy.userData.targetContainer) focusCameraOn(dummy.userData.targetContainer);
+  
+  if (dummy.userData.targetContainer) {
+    focusCameraOn(dummy.userData.targetContainer);
+  }
+
   transformControls.setSpace(dummy.userData.isBg ? 'world' : 'local');
   if (currentMode === 'free') { transformControls.detach(); showFreeTransform(); }
   else { hideFreeTransform(); transformControls.attach(dummy); transformControls.setMode(currentMode === 'scale' ? 'scale' : 'translate'); }
@@ -1364,8 +1406,10 @@ function applyLayerEffects(img, fx) {
   const bctx = base.getContext('2d');
   bctx.imageSmoothingEnabled = true;
   bctx.imageSmoothingQuality = 'high';
+  
   bctx.filter = `brightness(${fx.brightness}%) contrast(${fx.contrast}%)`;
   bctx.drawImage(img, 0, 0, bw, bh);
+  
   const strokeW = Math.max(0, fx.strokeWidth || 0) * sc;
   const blur    = Math.max(0, fx.shadowBlur || 0) * sc;
   const offX    = (fx.shadowOffsetX || 0) * sc;
@@ -1520,14 +1564,14 @@ document.getElementById('propCurve').oninput = e => {
   activeDummy.userData.curve = c;
   document.getElementById('propCurveValue').textContent = c.toFixed(2);
   const el = document.getElementById(activeDummy.userData.layerId);
-  if (el) el.classList.toggle('curve-active', c !== 0);
+  if (el) el.classList.toggle('curve-active', c > 0.01);
   scheduleDecal(activeDummy);
 };
 document.getElementById('propCurve').onchange = () => pushHistory();
 document.getElementById('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 document.getElementById('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
-// Model Properties
+// Model Properties (Color, Brightness, Contrast)
 document.getElementById('modelColor').oninput = e => {
   if (!activeModelContainer) return;
   activeModelContainer.userData.baseColor = e.target.value;
@@ -1535,6 +1579,7 @@ document.getElementById('modelColor').oninput = e => {
   currentShirtColor = e.target.value;
 };
 document.getElementById('modelColor').onchange = () => pushHistory();
+
 document.getElementById('modelBrightness').oninput = e => {
   if (!activeModelContainer) return;
   activeModelContainer.userData.brightness = +e.target.value;
@@ -1542,6 +1587,7 @@ document.getElementById('modelBrightness').oninput = e => {
   applyModelColorAndEffects(activeModelContainer);
 };
 document.getElementById('modelBrightness').onchange = () => pushHistory();
+
 document.getElementById('modelContrast').oninput = e => {
   if (!activeModelContainer) return;
   activeModelContainer.userData.contrast = +e.target.value;
@@ -1559,6 +1605,7 @@ document.getElementById('modelContrast').onchange = () => pushHistory();
     document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
     b.classList.add('active'); 
     currentShirtColor = hex;
+    
     if (activeModelContainer) {
       activeModelContainer.userData.baseColor = hex;
       applyModelColorAndEffects(activeModelContainer);
@@ -1577,6 +1624,7 @@ document.getElementById('modelContrast').onchange = () => pushHistory();
 document.getElementById('customColor').oninput = e => {
   document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
   currentShirtColor = e.target.value; 
+  
   if (activeModelContainer) {
     activeModelContainer.userData.baseColor = e.target.value;
     applyModelColorAndEffects(activeModelContainer);
@@ -1590,15 +1638,18 @@ document.getElementById('customColor').oninput = e => {
 };
 document.getElementById('customColor').onchange = () => pushHistory();
 
-// FX UI
+
+// FX UI (Decal)
 function updateFxUI(dummy) {
   if (!dummy) return;
   const fx = ensureEffects(dummy);
   const g = id => document.getElementById(id);
+  
   g('fxBrightness').value = fx.brightness;
   g('fxBrightnessValue').textContent = fx.brightness + '%';
   g('fxContrast').value = fx.contrast;
   g('fxContrastValue').textContent = fx.contrast + '%';
+  
   g('fxOverlayColor').value = fx.overlayColor;
   g('fxOverlayOpacity').value = Math.round(fx.overlayOpacity * 100);
   g('fxOverlayOpacityValue').textContent = Math.round(fx.overlayOpacity * 100) + '%';
@@ -1630,6 +1681,7 @@ document.getElementById('fxContrast').oninput = e => {
   fxOnInput('contrast', +e.target.value);
 };
 document.getElementById('fxContrast').onchange = () => pushHistory();
+
 document.getElementById('fxOverlayColor').oninput = e => fxOnInput('overlayColor', e.target.value);
 document.getElementById('fxOverlayColor').onchange = () => pushHistory();
 document.getElementById('fxOverlayOpacity').oninput = e => {
@@ -1731,7 +1783,11 @@ document.getElementById('bgResetBtn').onclick = () => {
 // Alignment
 document.getElementById('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
-  activeDummy.position.x = 0;
+  if (activeDummy.userData.targetContainer) {
+    activeDummy.position.x = 0;
+  } else {
+    activeDummy.position.x = 0;
+  }
   createDecalNow(activeDummy); pushHistory(); showToast('Center X');
 };
 document.getElementById('btnAlignCenterY').onclick = () => {
@@ -1773,6 +1829,7 @@ document.getElementById('btnDuplicate').onclick = () => {
       curve: src.userData.curve || 0, targetContainer: src.userData.targetContainer,
       effects: { ...ensureEffects(src) }, decals: []
     };
+    
     if (dummy.userData.targetContainer) {
         dummy.userData.targetContainer.add(dummy);
         dummy.position.copy(src.position); dummy.position.x += 0.12;
@@ -1782,6 +1839,7 @@ document.getElementById('btnDuplicate').onclick = () => {
         dummy.position.copy(src.position); dummy.position.x += 0.12;
         dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
     }
+    
     createDecalNow(dummy);
     layers.push(dummy);
     logoCount++;
@@ -1832,15 +1890,8 @@ async function updateTextLayer(dummy) {
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 
-// Kira isOnSleeve berdasarkan bounding box model, bukan nilai hardcoded (0.34)
 function isOnSleeve(d) {
-  if (!d.userData.targetContainer) return false;
-  const box = new THREE.Box3().setFromObject(d.userData.targetContainer);
-  const center = box.getCenter(new THREE.Vector3());
-  const size = box.getSize(new THREE.Vector3());
-  const worldPos = d.getWorldPosition(new THREE.Vector3());
-  const relX = (worldPos.x - center.x) / (size.x / 2);
-  return Math.abs(relX) > 0.45;
+  return Math.abs(d.position.x) > 0.34;
 }
 
 let decalQueuedDummy = null;
@@ -1876,92 +1927,51 @@ function createDecalNow(dummy) {
   }
   if (loadedModelContainers.length === 0 || dummy.userData.isBg || !dummy.userData.texture) return;
   disposeDummyDecals(dummy);
-  const curve = dummy.userData.curve || 0;
-  if (Math.abs(curve) > 0.01) createCurvedDecal(dummy, curve);
+  const curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
+  if (curve > 0.01) createCurvedDecal(dummy, curve);
   else createFlatDecal(dummy);
 }
 
-// ✅ PEMBAIKAN UTAMA: Decal sekarang membalut (wrap) mengikut bentuk fizikal baju
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-  const depth = onSleeve ? 0.35 : 0.15; // Kedalaman sinar untuk kesan 3D
+  const depth = onSleeve ? 0.38 : 0.22;
   const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
+  const size = new THREE.Vector3(w, h, depth);
 
   let meshesToProject = [];
   const target = dummy.userData.targetContainer;
   if (target) {
-    target.traverse(c => { if (c.isMesh && !c.userData.isDecal) meshesToProject.push(c); });
+    target.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
   }
 
-  // 1. Sediakan grid untuk menembak sinar (Barycentric Projection)
-  const segX = 32; // Ketumpatan grid untuk membalut bentuk baju
-  const segY = 32;
-  const localGeo = new THREE.PlaneGeometry(w, h, segX, segY);
-  const localPos = localGeo.attributes.position;
-  const newPositions = [];
-  const newUVs = localGeo.attributes.uv.array;
-  const rayOrigin = new THREE.Vector3();
-
-  dummy.updateMatrixWorld(true);
-  const dummyWorldMat = dummy.matrixWorld;
-  const dummyInverseWorldMat = new THREE.Matrix4().copy(dummyWorldMat).invert();
-
-  // 2. Tembak sinar untuk setiap titik grid
-  for (let i = 0; i < localPos.count; i++) {
-    const x = localPos.getX(i);
-    const y = localPos.getY(i);
-
-    // Titik pada satah rata (dummy)
-    const pLocal = new THREE.Vector3(x, y, 0);
-    const pWorld = pLocal.clone().applyMatrix4(dummyWorldMat);
-    
-    // Arah sinar menembak masuk ke dalam baju
-    const rayDir = new THREE.Vector3(0, 0, -1).transformDirection(dummyWorldMat);
-    rayOrigin.copy(pWorld).addScaledVector(rayDir, 0.5); // Mula sedikit di luar baju
-
-    const raycaster = new THREE.Raycaster(rayOrigin, rayDir, 0, depth + 0.5);
-    const hits = raycaster.intersectObjects(meshesToProject, false);
-
-    if (hits.length > 0) {
-      const hit = hits[0];
-      // Tukar titik hentaman ke koordinat tempatan dummy (untuk mesh baharu)
-      const hitPointLocal = hit.point.clone().applyMatrix4(dummyInverseWorldMat);
-      newPositions.push(hitPointLocal.x, hitPointLocal.y, hitPointLocal.z);
-    } else {
-      // Jika tiada hentaman, kekalkan posisi rata asal
-      newPositions.push(x, y, 0);
-    }
-  }
-
-  // 3. Bina geometri baharu berdasarkan titik yang ditemui
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-  geo.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
-  geo.setIndex(localGeo.index);
-  geo.computeVertexNormals();
-
-  const mat = new THREE.MeshStandardMaterial({
-    map: tex, transparent: true, depthTest: true, depthWrite: false,
-    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
-    roughness: 0.8, color: 0xffffff,
-    opacity: dummy.userData.opacity || 1,
-    side: THREE.DoubleSide
+  meshesToProject.forEach(mesh => {
+    try {
+      const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
+      if (geo.attributes.position?.count > 0) {
+        const mat = new THREE.MeshStandardMaterial({
+          map: tex, transparent: true, depthTest: true, depthWrite: false,
+          polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
+          color: 0xffffff, // Set to pure white so the texture isn't tinted
+          opacity: dummy.userData.opacity || 1
+        });
+        const m = new THREE.Mesh(geo, mat);
+        m.renderOrder = 2;
+        m.visible = dummy.userData.visible !== false;
+        m.userData.isDecal = true; // Tag as decal
+        
+        if (target) target.add(m);
+        else shirtGroup.add(m);
+        
+        dummy.userData.decals.push(m);
+      } else geo.dispose();
+    } catch (e) {}
   });
-  const m = new THREE.Mesh(geo, mat);
-  m.renderOrder = 2;
-  m.visible = dummy.userData.visible !== false;
-  m.userData.isDecal = true;
-  
-  if (target) target.add(m);
-  else shirtGroup.add(m);
-  
-  dummy.userData.decals.push(m);
 }
 
 function createCurvedDecal(dummy, curve) {
@@ -1980,16 +1990,14 @@ function createCurvedDecal(dummy, curve) {
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const halfW = w / 2;
-  const maxAngle = (Math.PI / 2) * Math.abs(curve);
+  const maxAngle = (Math.PI / 2) * curve;
   const R = halfW / Math.max(0.001, Math.sin(maxAngle));
-  const sign = curve >= 0 ? 1 : -1;
-
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const u = x / halfW;
     const angle = u * maxAngle;
     const newX = Math.sin(angle) * R;
-    const newZ = (Math.cos(angle) - 1) * R * sign;
+    const newZ = (Math.cos(angle) - 1) * R;
     pos.setX(i, newX);
     pos.setZ(i, newZ);
   }
@@ -2007,15 +2015,21 @@ function createCurvedDecal(dummy, curve) {
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
-  mesh.userData.isDecal = true;
+  mesh.userData.isDecal = true; // Tag as decal
+  
   if (dummy.userData.targetContainer) dummy.userData.targetContainer.add(mesh);
   else shirtGroup.add(mesh);
+  
   dummy.userData.decals.push(mesh);
 }
 
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy && !activeModelContainer) return;
-  if (activeModelContainer) return;
+  
+  if (activeModelContainer) {
+    return; 
+  }
+
   if (activeDummy.userData.locked) return;
   if (activeDummy.userData.isBg) {
     document.getElementById('bgScaleSlider').value = activeDummy.scale.x;
@@ -2039,15 +2053,21 @@ transformControls.addEventListener('objectChange', () => {
       if (hits.length) {
         const hit = hits[0];
         let hitContainer = hit.object;
-        while (hitContainer.parent && hitContainer.parent !== shirtGroup) hitContainer = hitContainer.parent;
+        while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
+          hitContainer = hitContainer.parent;
+        }
+        
         if (activeDummy.userData.targetContainer !== hitContainer) {
           activeDummy.userData.targetContainer = hitContainer;
+          
           const el = document.getElementById(activeDummy.userData.layerId);
           if (el && layerGroups.has(hitContainer.userData.layerId)) {
              layerGroups.get(hitContainer.userData.layerId).items.appendChild(el);
           }
         }
+        
         activeDummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
+        
         if (isDragging) {
           const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
           const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
@@ -2217,7 +2237,6 @@ document.getElementById('addCanvasTextBtn').onclick = async () => {
   addLogoToScene(tex, 4, true, canvas.toDataURL('image/png'), text, color, font, size, true);
   document.getElementById('canvasTextInput').value = '';
 };
-
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
   if (isCanvas) {
     const geo = new THREE.PlaneGeometry(1, 1 / aspect);
@@ -2237,82 +2256,49 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     showToast('Grafik Canvas ditambah');
     return;
   }
-
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
     opacity: 1, visible: true, locked: false, curve: 0,
     effects: defaultEffects(), decals: []
   };
-
-  const testRay = new THREE.Raycaster();
-  let hits = [];
-  if (lastMousePos) {
-    const ndc = new THREE.Vector2(
-      (lastMousePos.x / container.clientWidth) * 2 - 1,
-      -(lastMousePos.y / container.clientHeight) * 2 + 1
-    );
-    testRay.setFromCamera(ndc, camera);
-    hits = testRay.intersectObjects(loadedModelContainers, true);
-  }
-  if (hits.length === 0) {
-    testRay.setFromCamera(new THREE.Vector2(0, 0), camera);
-    hits = testRay.intersectObjects(loadedModelContainers, true);
-  }
+  
+  let hits = raycaster.intersectObjects(loadedModelContainers, true);
+  
   if (hits.length === 0 && loadedModelContainers.length > 0) {
-    const target = activeModelContainer || loadedModelContainers[0];
-    const box = new THREE.Box3().setFromObject(target);
-    const center = box.getCenter(new THREE.Vector3());
-    const dir = center.clone().sub(camera.position).normalize();
-    const r2 = new THREE.Raycaster(camera.position.clone(), dir);
-    hits = r2.intersectObject(target, true);
-  }
-
-  let targetContainer = null;
-  let hitPoint = null;
-  if (hits.length > 0) {
+    dummy.userData.targetContainer = loadedModelContainers[0];
+    dummy.userData.targetContainer.add(dummy);
+    dummy.position.set(0, 0.1, 0.4);
+  } else if (hits.length > 0) {
     const hit = hits[0];
-    let hc = hit.object;
-    while (hc.parent && hc.parent !== shirtGroup) hc = hc.parent;
-    targetContainer = hc;
-    hitPoint = hit.point.clone();
-  }
-
-  if (targetContainer && hitPoint) {
-    dummy.userData.targetContainer = targetContainer;
-    targetContainer.add(dummy);
-    dummy.position.copy(targetContainer.worldToLocal(hitPoint.clone()));
-
-    const camDir = hitPoint.clone().sub(camera.position).normalize();
-    const invMat = new THREE.Matrix4().copy(targetContainer.matrixWorld).invert();
-    const localCamDir = camDir.clone().transformDirection(invMat).normalize();
+    let hitContainer = hit.object;
+    while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
+      hitContainer = hitContainer.parent;
+    }
+    dummy.userData.targetContainer = hitContainer;
+    hitContainer.add(dummy);
+    dummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
     
+    const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
     const up = new THREE.Vector3(0, 1, 0);
-    let right = new THREE.Vector3().crossVectors(up, localCamDir);
+    let right = new THREE.Vector3().crossVectors(up, ln);
     if (right.lengthSq() < 0.001) right.set(1, 0, 0);
     right.normalize();
-    const actualUp = new THREE.Vector3().crossVectors(localCamDir, right).normalize();
-    
-    dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, localCamDir));
+    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+    dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
   } else {
-    const target = activeModelContainer || loadedModelContainers[0];
-    if (target) {
-      dummy.userData.targetContainer = target;
-      target.add(dummy);
-      dummy.position.set(0, 0.1, 0.4);
-    } else {
-      shirtGroup.add(dummy);
-      dummy.position.set(0, 0.1, 0.4);
-    }
+    shirtGroup.add(dummy);
+    dummy.position.set(0, 0.1, 0.4);
   }
-
+  
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
   logoCount++;
   createDecalNow(dummy);
   layers.push(dummy);
   addDesignLayer(dummy, isText ? `Teks ${logoCount}` : `Logo ${logoCount}`, isText ? '📝' : '🖼️');
   pushHistory();
-  if (Math.abs(dummy.userData.curve) > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
+  if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
 }
 
 // ===== BACKGROUND =====
@@ -2424,11 +2410,13 @@ async function getStateForSave() {
   for (const d of layers.filter(l => !l.userData.isBg)) {
     let dataURL = d.userData.dataURL;
     if (dataURL) dataURL = await resizeDataURL(dataURL, 900);
+    
     let containerIdx = -1;
     if (d.userData.targetContainer) {
       containerIdx = loadedModelContainers.indexOf(d.userData.targetContainer);
       if (containerIdx === -1) containerIdx = 0;
     }
+    
     processed.push({
       position: d.position.toArray(), quaternion: d.quaternion.toArray(), scale: d.scale.toArray(),
       aspect: d.userData.aspect, isText: !!d.userData.isText, dataURL,
@@ -2577,8 +2565,10 @@ document.getElementById('btnNewProject').onclick = async () => {
   updateBgEffectsUI();
   updateBgOverlayStyles();
   applySolidBackground();
+  
   await loadShirtModel('./T_shirt_gltf.gltf');
   fitCameraToModels();
+  
   history = []; historyIndex = -1;
   pushHistory();
   loadProjectList();
@@ -2620,7 +2610,9 @@ async function restoreState(state) {
   hideFreeTransform();
   propertiesPanel.classList.remove('active');
   activeModelContainer = null;
+
   clearAllModels();
+  
   const modelsToLoad = state.models || (state.modelUrl ? [{url: state.modelUrl}] : [{url: './T_shirt_gltf.gltf'}]);
   for (const m of modelsToLoad) {
     const url = typeof m === 'string' ? m : m.url;
@@ -2628,6 +2620,7 @@ async function restoreState(state) {
     await loadShirtModel(url, config);
   }
   fitCameraToModels();
+  
   currentShirtColor = state.color || '#ffffff';
   document.getElementById('customColor').value = currentShirtColor;
   currentBgColor = state.bgColor || '#09090b';
@@ -2701,6 +2694,7 @@ async function restoreState(state) {
               effects: { ...defaultEffects(), ...(ldata.effects || {}) },
               decals: []
             };
+            
             if (ldata.containerIndex !== undefined && loadedModelContainers[ldata.containerIndex]) {
               dummy.userData.targetContainer = loadedModelContainers[ldata.containerIndex];
               dummy.userData.targetContainer.add(dummy);
@@ -2710,6 +2704,7 @@ async function restoreState(state) {
             } else {
               shirtGroup.add(dummy);
             }
+            
             dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
             dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
             const s = Math.max(...(ldata.scale || [1, 1, 1]));
@@ -2742,39 +2737,50 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
-// ===== IMAGE SAVE WITH CROP =====
+// ===== IMAGE SAVE WITH CROP MODAL =====
 document.getElementById('saveBtn').onclick = () => {
   isExporting = true;
   transformHelper.visible = false;
   hideFreeTransform();
   controls.enabled = false;
+  
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
+  
   const targetRes = 3840;
   const scale = targetRes / Math.max(container.clientWidth, container.clientHeight);
   const outW = Math.round(container.clientWidth * scale);
   const outH = Math.round(container.clientHeight * scale);
+  
   renderer.setPixelRatio(1);
   renderer.setSize(outW, outH, false);
   camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
+  
   layers.forEach(d => {
     if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
     else if (d.userData.isCanvasGraphic) createDecalNow(d);
   });
+  
   renderer.render(scene, camera);
   const fullCanvas = document.createElement('canvas');
   fullCanvas.width = outW; fullCanvas.height = outH;
   const ctx = fullCanvas.getContext('2d');
   ctx.drawImage(renderer.domElement, 0, 0);
   drawBgEffectsOnCanvas(ctx, outW, outH);
+  
+  // Buka Crop Modal
   const cropModal = document.getElementById('crop-modal');
   const cropImage = document.getElementById('crop-image');
   const cropBox = document.getElementById('crop-box');
+  
   cropImage.width = outW;
   cropImage.height = outH;
   cropImage.getContext('2d').drawImage(fullCanvas, 0, 0);
+  
   cropModal.style.display = 'flex';
+  
+  // Tunggu DOM selesai render, kemudian set saiz crop box
   setTimeout(() => {
     const imgRect = cropImage.getBoundingClientRect();
     cropBox.style.left = '0px';
@@ -2782,6 +2788,8 @@ document.getElementById('saveBtn').onclick = () => {
     cropBox.style.width = imgRect.width + 'px';
     cropBox.style.height = imgRect.height + 'px';
   }, 50);
+  
+  // Revert size temporarily
   camera.aspect = oldSize.x / oldSize.y;
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(oldPR);
@@ -2790,29 +2798,37 @@ document.getElementById('saveBtn').onclick = () => {
   controls.enabled = true;
   controls.update();
   renderer.render(scene, camera);
+
+  // Simpan function for Crop
   document.getElementById('crop-save').onclick = () => {
     const imgRect = cropImage.getBoundingClientRect();
     const boxRect = cropBox.getBoundingClientRect();
+    
     const scaleX = outW / imgRect.width;
     const scaleY = outH / imgRect.height;
+
     const cropX = (boxRect.left - imgRect.left) * scaleX;
     const cropY = (boxRect.top - imgRect.top) * scaleY;
     const cropW = boxRect.width * scaleX;
     const cropH = boxRect.height * scaleY;
+    
     const finalCanvas = document.createElement('canvas');
     finalCanvas.width = cropW;
     finalCanvas.height = cropH;
     const finalCtx = finalCanvas.getContext('2d');
     finalCtx.drawImage(fullCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    
     const a = document.createElement('a');
     a.download = `design-crop-${Date.now()}.png`;
     a.href = finalCanvas.toDataURL('image/png');
     a.click();
+    
     cropModal.style.display = 'none';
     isExporting = false;
     layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
     showToast('✅ Imej berjaya disimpan');
   };
+  
   document.getElementById('crop-cancel').onclick = () => {
     cropModal.style.display = 'none';
     isExporting = false;
@@ -2820,50 +2836,65 @@ document.getElementById('saveBtn').onclick = () => {
   };
 };
 
-// Crop drag logic
+// Logik Drag Crop Box
 let cropMode = '';
 let cropStartX = 0, cropStartY = 0;
 let cropStartL = 0, cropStartT = 0;
 let cropStartW = 0, cropStartH = 0;
 let cropMaxW = 0, cropMaxH = 0;
+
 const cropBoxEl = document.getElementById('crop-box');
 const cropImageEl = document.getElementById('crop-image');
+
 function startCropDrag(e, mode) {
     cropMode = mode;
     cropStartX = e.clientX;
     cropStartY = e.clientY;
+    
     const imgRect = cropImageEl.getBoundingClientRect();
     const boxRect = cropBoxEl.getBoundingClientRect();
+    
     cropStartL = boxRect.left - imgRect.left;
     cropStartT = boxRect.top - imgRect.top;
     cropStartW = boxRect.width;
     cropStartH = boxRect.height;
     cropMaxW = imgRect.width;
     cropMaxH = imgRect.height;
+    
     e.preventDefault();
 }
+
 cropBoxEl.addEventListener('mousedown', (e) => {
     if (e.target.classList.contains('crop-handle') || e.target.classList.contains('crop-edge')) return;
     startCropDrag(e, 'move');
 });
+
 document.querySelectorAll('.crop-handle').forEach(h => {
     h.addEventListener('mousedown', (e) => {
         startCropDrag(e, h.dataset.corner);
         e.stopPropagation();
     });
 });
+
 document.querySelectorAll('.crop-edge').forEach(h => {
     h.addEventListener('mousedown', (e) => {
         startCropDrag(e, h.dataset.edge);
         e.stopPropagation();
     });
 });
+
 window.addEventListener('mousemove', (e) => {
     if (!cropMode) return;
+    
     const dx = e.clientX - cropStartX;
     const dy = e.clientY - cropStartY;
     const MIN = 50;
-    let newL = cropStartL, newT = cropStartT, newW = cropStartW, newH = cropStartH;
+    
+    let newL = cropStartL;
+    let newT = cropStartT;
+    let newW = cropStartW;
+    let newH = cropStartH;
+    
     if (cropMode === 'move') {
         newL = Math.max(0, Math.min(cropStartL + dx, cropMaxW - cropStartW));
         newT = Math.max(0, Math.min(cropStartT + dy, cropMaxH - cropStartH));
@@ -2891,11 +2922,13 @@ window.addEventListener('mousemove', (e) => {
             if (cropStartT + newH > cropMaxH) newH = cropMaxH - cropStartT;
         }
     }
+    
     cropBoxEl.style.left = newL + 'px';
     cropBoxEl.style.top = newT + 'px';
     cropBoxEl.style.width = newW + 'px';
     cropBoxEl.style.height = newH + 'px';
 });
+
 window.addEventListener('mouseup', () => { cropMode = ''; });
 
 // ===== VIDEO =====
@@ -2914,8 +2947,10 @@ function startPreview() {
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
+  
   fitCameraForRender(renderZoom);
   loadedModelContainers.forEach(c => c.rotation.y = 0);
+  
   animStartTime = performance.now();
   currentP = 0;
   recordingOverlay.classList.add('active');
@@ -2964,8 +2999,10 @@ async function startVideoRecord() {
   const tw = container.clientWidth, th = container.clientHeight;
   renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   camera.aspect = tw / th; camera.updateProjectionMatrix();
+  
   fitCameraForRender(renderZoom);
   loadedModelContainers.forEach(c => c.rotation.y = 0);
+  
   for (let i = 0; i < 8; i++) {
     renderer.clear(); renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
