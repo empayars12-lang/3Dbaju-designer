@@ -1466,8 +1466,8 @@ function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
       let R = (w * w) / (8 * sagitta) + (sagitta / 2);
       let maxAngle = Math.asin(Math.min(1, (w / 2) / R));
       curve = maxAngle / (Math.PI / 2);
-      // Let the raycast drive the curve, but ensure a minimum bend to wrap the arm
-      curve = Math.max(0.35, Math.min(1.0, curve)); 
+      // Hadkan curve supaya tak melengkung membulat
+      curve = Math.max(0.35, Math.min(0.85, curve)); 
       requiredDepth = baseDepth;
   } else if (minDistToBack !== Infinity && requiredDepth >= minDistToBack * 0.85) {
       const sagitta = Math.max(0.01, maxOffset);
@@ -1584,36 +1584,26 @@ function createCurvedDecal(dummy, curve) {
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
   
+  // Geometri silinder (melengkung pada paksi X sahaja)
   const segX = Math.max(24, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
-  const segY = Math.max(16, Math.min(32, Math.round(16 * Math.max(1, h * 2))));
+  const segY = 8; 
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const halfW = w / 2;
-  const halfH = h / 2;
   
   const maxAngleX = (Math.PI / 2) * curve;
   const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
 
-  const maxAngleY = (Math.PI / 2) * curve * 0.8; 
-  const Ry = halfH / Math.max(0.001, Math.sin(maxAngleY));
-
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
-    const y = pos.getY(i);
-
     const u = x / halfW;
     const angleX = u * maxAngleX;
     const newX = Math.sin(angleX) * Rx;
-    const newZ_X = (Math.cos(angleX) - 1) * Rx;
-
-    const v = y / halfH;
-    const angleY = v * maxAngleY;
-    const newY = Math.sin(angleY) * Ry;
-    const newZ_Y = (Math.cos(angleY) - 1) * Ry;
+    const newZ = (Math.cos(angleX) - 1) * Rx;
 
     pos.setX(i, newX);
-    pos.setY(i, newY);
-    pos.setZ(i, newZ_X + newZ_Y);
+    // pos.setY(i, y) tidak diusik supaya kekal lurus menegak
+    pos.setZ(i, newZ);
   }
   geo.computeVertexNormals();
 
@@ -1625,8 +1615,8 @@ function createCurvedDecal(dummy, curve) {
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
-  // Naikkan offset untuk tolak logo keluar sedikit dari permukaan baju
-  mesh.position.add(dummyNormal.clone().multiplyScalar(0.02));
+  // Tolak keluar sedikit dari permukaan baju
+  mesh.position.add(dummyNormal.clone().multiplyScalar(0.015));
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
