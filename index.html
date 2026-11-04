@@ -96,22 +96,6 @@
     #btnPausePlay{background:#f59e0b;color:#000;}
     #btnSnap{background:#10b981;color:#fff;}
     #btnSnap:disabled{opacity:0.5;cursor:not-allowed;}
-    
-    #floating-edit-controls {
-      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 8px; z-index: 60; background: rgba(24,24,27,0.85);
-      padding: 8px 12px; border-radius: 12px; backdrop-filter: blur(4px);
-      border: 1px solid #3f3f46;
-    }
-    #floating-edit-controls button {
-      background: #3f3f46; color: white; border: none; padding: 8px 16px;
-      border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
-      transition: 0.2s; display: flex; align-items: center; gap: 6px;
-    }
-    #floating-edit-controls button:hover { background: #52525b; }
-    #floating-edit-controls button.active { background: #38bdf8; color: #000; }
-    #floating-edit-controls button.loop-active { background: #f59e0b; color: #000; }
-
     #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
     #free-transform.active{display:block}
     .ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:none}
@@ -126,6 +110,7 @@
     #layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
     #layers-list{flex:1;overflow-y:auto;max-height:45%; padding:10px}
     
+    /* ==== LAYER GROUPING STYLES ==== */
     .layer-group { margin-bottom: 8px; border: 1px solid #3f3f46; border-radius: 6px; overflow: hidden; }
     .group-header { background: #27272a; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; color: #e4e4e7; }
     .group-header:hover { background: #3f3f46; }
@@ -166,20 +151,28 @@
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
 
+    /* ==== CROP MODAL ==== */
     #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
     #crop-container { position: relative; display: inline-block; background: #000; }
     #crop-image { display: block; max-width: 90vw; max-height: 80vh; }
+    
+    /* Kotak Crop */
     #crop-box { position: absolute; border: 2px dashed #38bdf8; background: rgba(56,189,248,0.1); cursor: move; box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); box-sizing: border-box; top: 0; left: 0; width: 100%; height: 100%; }
+    
+    /* Bucu (Corners) */
     .crop-handle { position: absolute; width: 14px; height: 14px; background: #fff; border: 2px solid #38bdf8; border-radius: 50%; z-index: 10; }
     .crop-handle.tl { top: -7px; left: -7px; cursor: nwse-resize; }
     .crop-handle.tr { top: -7px; right: -7px; cursor: nesw-resize; }
     .crop-handle.bl { bottom: -7px; left: -7px; cursor: nesw-resize; }
     .crop-handle.br { bottom: -7px; right: -7px; cursor: nwse-resize; }
+    
+    /* Tepi (Edges) */
     .crop-edge { position: absolute; z-index: 9; }
     .crop-edge.top { top: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
     .crop-edge.bottom { bottom: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
     .crop-edge.left { top: 14px; bottom: 14px; left: -4px; width: 8px; cursor: ew-resize; }
     .crop-edge.right { top: 14px; bottom: 14px; right: -4px; width: 8px; cursor: ew-resize; }
+
     #crop-controls { margin-top: 20px; display: flex; gap: 10px; }
     #crop-controls button { padding: 12px 24px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
     #crop-save { background: #10b981; color: white; }
@@ -385,12 +378,6 @@
 
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
-    
-    <div id="floating-edit-controls">
-      <button id="btnLoopToggle">🔄 Auto Loop</button>
-      <button id="btnFitAll">🖼️ Fit to Screen</button>
-    </div>
-
     <div id="recording-overlay"><span>●</span> <span id="recordingText">Sedang merakam...</span></div>
     <div id="floating-controls">
       <button id="btnPausePlay">⏸ Jeda</button>
@@ -425,17 +412,11 @@
     <div id="properties-panel">
       <h3 id="propTitle">Properties</h3>
       
+      <!-- Decal Properties -->
       <div id="decalProps">
         <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
         <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
         <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
-        
-        <div class="prop-row" id="depthRow">
-          <label>Jarak Logo (Z) <span id="propDepthValue" style="color:#a78bfa">0.00</span></label>
-          <input type="range" id="propDepth" min="-0.5" max="0.5" step="0.01" value="0">
-          <div style="font-size:10px;color:#71717a;margin-top:4px">Nilai negatif (-) untuk rapatkan ke baju</div>
-        </div>
-
         <div class="prop-row" id="curveRow">
           <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
           <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
@@ -504,6 +485,7 @@
         </div>
       </div>
 
+      <!-- Model Properties -->
       <div id="modelProps" style="display:none; margin-top:12px;">
         <div class="prop-row"><label>Warna Baju</label><input type="color" id="modelColor" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
         <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
@@ -517,14 +499,17 @@
 </div>
 <div id="toast"></div>
 
+<!-- CROP MODAL -->
 <div id="crop-modal">
   <div id="crop-container">
     <canvas id="crop-image"></canvas>
     <div id="crop-box">
+      <!-- Bucu -->
       <div class="crop-handle tl" data-corner="tl"></div>
       <div class="crop-handle tr" data-corner="tr"></div>
       <div class="crop-handle bl" data-corner="bl"></div>
       <div class="crop-handle br" data-corner="br"></div>
+      <!-- Tepi -->
       <div class="crop-edge top" data-edge="top"></div>
       <div class="crop-edge bottom" data-edge="bottom"></div>
       <div class="crop-edge left" data-edge="left"></div>
@@ -557,7 +542,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 });
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v12';
+const DB_NAME = 'ProDesigner3D_v9';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -671,8 +656,6 @@ controls.dampingFactor = 0.08;
 controls.enablePan = true; 
 controls.minDistance = 1.5;
 controls.maxDistance = 20;
-controls.autoRotate = false;
-controls.autoRotateSpeed = 2.0;
 
 const transformControls = new TransformControls(camera, renderer.domElement);
 transformControls.setMode('translate');
@@ -922,16 +905,11 @@ function loadShirtModel(url, config = {}) {
       
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
       model.scale.setScalar(2.4 / maxDim);
       model.updateMatrixWorld(true);
-      
       box.setFromObject(model);
-      const center2 = box.getCenter(new THREE.Vector3());
-      
-      model.position.set(-center2.x, -center2.y, -center2.z);
+      model.position.sub(box.getCenter(new THREE.Vector3()));
       model.updateMatrixWorld(true);
 
       const container = new THREE.Group();
@@ -978,11 +956,6 @@ function loadShirtModel(url, config = {}) {
       container.userData.brightness = config.brightness ?? 100;
       container.userData.contrast = config.contrast ?? 100;
       if (config.position) container.position.fromArray(config.position);
-      
-      const box = new THREE.Box3().setFromObject(fallback);
-      const center = box.getCenter(new THREE.Vector3());
-      fallback.position.sub(center);
-      
       container.add(fallback);
       fallback.traverse(c => { if(c.isMesh) shirtMaterials.push(c.material); });
       applyModelColorAndEffects(container);
@@ -1215,23 +1188,6 @@ async function setupInitialModel() {
 }
 setupInitialModel();
 
-// ===== EDIT VIEW CONTROLS =====
-document.getElementById('btnLoopToggle').onclick = function() {
-  controls.autoRotate = !controls.autoRotate;
-  this.classList.toggle('active', controls.autoRotate);
-  if (controls.autoRotate) {
-    this.classList.add('loop-active');
-    this.innerHTML = '⏹ Stop Loop';
-  } else {
-    this.classList.remove('loop-active');
-    this.innerHTML = '🔄 Auto Loop';
-  }
-};
-document.getElementById('btnFitAll').onclick = () => {
-  fitCameraToModels();
-  showToast('Kamera dipusatkan');
-};
-
 // ===== LAYERS =====
 function addDesignLayer(dummy, name, icon, isBg = false) {
   const id = 'layer-' + Date.now() + Math.random().toString(36).slice(2, 7);
@@ -1243,7 +1199,6 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.visible = true;
   dummy.userData.locked = false;
   dummy.userData.curve = dummy.userData.curve || 0;
-  dummy.userData.depthOffset = dummy.userData.depthOffset || 0;
   ensureEffects(dummy);
   
   const el = document.createElement('div');
@@ -1257,8 +1212,10 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   const actions = document.createElement('div'); actions.className = 'layer-actions';
   const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.title = 'Visibility'; bVis.textContent = '👁️';
   const bLock = document.createElement('button'); bLock.className = 'lock'; bLock.title = 'Lock'; bLock.textContent = '🔓';
+  
   const bUp = document.createElement('button'); bUp.title = 'Naikkan'; bUp.textContent = '▲';
   const bDown = document.createElement('button'); bDown.title = 'Turunkan'; bDown.textContent = '▼';
+  
   const bDel = document.createElement('button'); bDel.className = 'del'; bDel.title = 'Padam'; bDel.textContent = '✕';
   
   actions.appendChild(bUp); actions.appendChild(bDown);
@@ -1270,6 +1227,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
+  
   bUp.onclick = e => {
     e.stopPropagation();
     const prev = el.previousElementSibling;
@@ -1279,6 +1237,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
       pushHistory();
     }
   };
+  
   bDown.onclick = e => {
     e.stopPropagation();
     const next = el.nextElementSibling;
@@ -1336,17 +1295,11 @@ function selectLayer(dummy, el) {
   document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
   document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
-  
-  document.getElementById('propDepth').value = dummy.userData.depthOffset || 0;
-  document.getElementById('propDepthValue').textContent = (dummy.userData.depthOffset || 0).toFixed(2);
-
   const curveRow = document.getElementById('curveRow');
   if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) {
     curveRow.style.display = 'none';
-    document.getElementById('depthRow').style.display = 'none';
   } else {
     curveRow.style.display = 'block';
-    document.getElementById('depthRow').style.display = 'block';
     const c = dummy.userData.curve || 0;
     document.getElementById('propCurve').value = c;
     document.getElementById('propCurveValue').textContent = c.toFixed(2);
@@ -1605,15 +1558,6 @@ document.getElementById('propOpacity').oninput = e => {
   }
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
-document.getElementById('propDepth').oninput = e => {
-  if (!activeDummy) return;
-  const v = +e.target.value;
-  activeDummy.userData.depthOffset = v;
-  document.getElementById('propDepthValue').textContent = v.toFixed(2);
-  scheduleDecal(activeDummy);
-};
-document.getElementById('propDepth').onchange = () => pushHistory();
-
 document.getElementById('propCurve').oninput = e => {
   if (!activeDummy || activeDummy.userData.isBg || activeDummy.userData.isCanvasGraphic) return;
   const c = +e.target.value;
@@ -1883,7 +1827,6 @@ document.getElementById('btnDuplicate').onclick = () => {
       textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
       opacity: src.userData.opacity, visible: true, locked: false,
       curve: src.userData.curve || 0, targetContainer: src.userData.targetContainer,
-      depthOffset: src.userData.depthOffset || 0,
       effects: { ...ensureEffects(src) }, decals: []
     };
     
@@ -1992,8 +1935,7 @@ function createDecalNow(dummy) {
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-  // Tingkatkan ketebalan (depth) untuk pastikan ia menembusi baju lengan panjang
-  const depth = onSleeve ? 0.6 : 0.4; 
+  const depth = onSleeve ? 0.38 : 0.22;
   const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
@@ -2008,34 +1950,23 @@ function createFlatDecal(dummy) {
     target.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
   }
 
-  // Dapatkan posisi dan rotasi sebenar di skrin 3D (World Space)
-  dummy.updateMatrixWorld(true);
-  const dummyWorldPos = new THREE.Vector3();
-  dummy.getWorldPosition(dummyWorldPos);
-  const dummyWorldQuat = new THREE.Quaternion();
-  dummy.getWorldQuaternion(dummyWorldQuat);
-
-  const worldNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummyWorldQuat);
-  const adjustedWorldPos = dummyWorldPos.clone().add(worldNormal.clone().multiplyScalar(dummy.userData.depthOffset || 0));
-
   meshesToProject.forEach(mesh => {
     try {
-      // DecalGeometry memerlukan World Space posisi!
-      const geo = new DecalGeometry(mesh, adjustedWorldPos, dummyWorldQuat, size);
+      const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
       if (geo.attributes.position?.count > 0) {
         const mat = new THREE.MeshStandardMaterial({
           map: tex, transparent: true, depthTest: true, depthWrite: false,
           polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
-          color: 0xffffff, 
+          color: 0xffffff, // Set to pure white so the texture isn't tinted
           opacity: dummy.userData.opacity || 1
         });
         const m = new THREE.Mesh(geo, mat);
         m.renderOrder = 2;
         m.visible = dummy.userData.visible !== false;
-        m.userData.isDecal = true; 
+        m.userData.isDecal = true; // Tag as decal
         
-        // PENTING: Lekatkan decal pada mesh asal supaya ia melekat tepat pada fabrik
-        mesh.add(m);
+        if (target) target.add(m);
+        else shirtGroup.add(m);
         
         dummy.userData.decals.push(m);
       } else geo.dispose();
@@ -2079,14 +2010,12 @@ function createCurvedDecal(dummy, curve) {
     side: THREE.DoubleSide
   });
   const mesh = new THREE.Mesh(geo, mat);
-  
-  // Kedudukan local space untuk curved decal
-  const offsetPos = dummy.position.clone().add(dummyNormal.clone().multiplyScalar((dummy.userData.depthOffset || 0) + 0.002));
-  mesh.position.copy(offsetPos);
+  mesh.position.copy(dummy.position);
+  mesh.position.add(dummyNormal.clone().multiplyScalar(0.002));
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
-  mesh.userData.isDecal = true; 
+  mesh.userData.isDecal = true; // Tag as decal
   
   if (dummy.userData.targetContainer) dummy.userData.targetContainer.add(mesh);
   else shirtGroup.add(mesh);
@@ -2330,62 +2259,37 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
-    opacity: 1, visible: true, locked: false, curve: 0, depthOffset: 0,
+    opacity: 1, visible: true, locked: false, curve: 0,
     effects: defaultEffects(), decals: []
   };
   
-  let targetContainer = activeModelContainer;
-  let hitPoint = null;
-  let hitNormal = null;
-
-  // 1. Cuba letak pada baju yang sedang aktif (jika ada)
-  if (targetContainer) {
-    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    const hits = raycaster.intersectObject(targetContainer, true);
-    if (hits.length > 0) {
-      hitPoint = hits[0].point;
-      hitNormal = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
+  let hits = raycaster.intersectObjects(loadedModelContainers, true);
+  
+  if (hits.length === 0 && loadedModelContainers.length > 0) {
+    dummy.userData.targetContainer = loadedModelContainers[0];
+    dummy.userData.targetContainer.add(dummy);
+    dummy.position.set(0, 0.1, 0.4);
+  } else if (hits.length > 0) {
+    const hit = hits[0];
+    let hitContainer = hit.object;
+    while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
+      hitContainer = hitContainer.parent;
     }
-  }
-
-  // 2. Jika tiada baju aktif, cari baju di tengah skrin
-  if (!targetContainer) {
-    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    const hits = raycaster.intersectObjects(loadedModelContainers, true);
-    if (hits.length > 0) {
-      let hitContainer = hits[0].object;
-      while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
-        hitContainer = hitContainer.parent;
-      }
-      targetContainer = hitContainer;
-      hitPoint = hits[0].point;
-      hitNormal = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
-    } else if (loadedModelContainers.length > 0) {
-      targetContainer = loadedModelContainers[0];
-    }
-  }
-
-  // 3. Tetapkan posisi
-  if (!targetContainer) {
+    dummy.userData.targetContainer = hitContainer;
+    hitContainer.add(dummy);
+    dummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
+    
+    const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
+    const up = new THREE.Vector3(0, 1, 0);
+    let right = new THREE.Vector3().crossVectors(up, ln);
+    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+    right.normalize();
+    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+    dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+  } else {
     shirtGroup.add(dummy);
     dummy.position.set(0, 0.1, 0.4);
-  } else {
-    dummy.userData.targetContainer = targetContainer;
-    targetContainer.add(dummy);
-
-    if (hitPoint && hitNormal) {
-      dummy.position.copy(targetContainer.worldToLocal(hitPoint.clone()));
-      
-      const ln = hitNormal.clone().transformDirection(new THREE.Matrix4().copy(targetContainer.matrixWorld).invert()).normalize();
-      const up = new THREE.Vector3(0, 1, 0);
-      let right = new THREE.Vector3().crossVectors(up, ln);
-      if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-      right.normalize();
-      const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
-      dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
-    } else {
-      dummy.position.set(0, 0.1, 0.4);
-    }
   }
   
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
@@ -2520,7 +2424,7 @@ async function getStateForSave() {
       font: d.userData.font || 'Inter', fontSize: d.userData.fontSize || 120,
       name: d.userData.name || 'Logo', icon: d.userData.icon || '🖼️',
       opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked,
-      curve: d.userData.curve || 0, depthOffset: d.userData.depthOffset || 0,
+      curve: d.userData.curve || 0,
       isCanvasGraphic: !!d.userData.isCanvasGraphic,
       containerIndex: containerIdx,
       effects: { ...ensureEffects(d) }
@@ -2786,7 +2690,7 @@ async function restoreState(state) {
               fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
               icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
               visible: ldata.visible !== false, locked: !!ldata.locked,
-              curve: ldata.curve || 0, depthOffset: ldata.depthOffset || 0,
+              curve: ldata.curve || 0,
               effects: { ...defaultEffects(), ...(ldata.effects || {}) },
               decals: []
             };
@@ -2865,6 +2769,7 @@ document.getElementById('saveBtn').onclick = () => {
   ctx.drawImage(renderer.domElement, 0, 0);
   drawBgEffectsOnCanvas(ctx, outW, outH);
   
+  // Buka Crop Modal
   const cropModal = document.getElementById('crop-modal');
   const cropImage = document.getElementById('crop-image');
   const cropBox = document.getElementById('crop-box');
@@ -2875,6 +2780,7 @@ document.getElementById('saveBtn').onclick = () => {
   
   cropModal.style.display = 'flex';
   
+  // Tunggu DOM selesai render, kemudian set saiz crop box
   setTimeout(() => {
     const imgRect = cropImage.getBoundingClientRect();
     cropBox.style.left = '0px';
@@ -2883,6 +2789,7 @@ document.getElementById('saveBtn').onclick = () => {
     cropBox.style.height = imgRect.height + 'px';
   }, 50);
   
+  // Revert size temporarily
   camera.aspect = oldSize.x / oldSize.y;
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(oldPR);
@@ -2892,6 +2799,7 @@ document.getElementById('saveBtn').onclick = () => {
   controls.update();
   renderer.render(scene, camera);
 
+  // Simpan function for Crop
   document.getElementById('crop-save').onclick = () => {
     const imgRect = cropImage.getBoundingClientRect();
     const boxRect = cropBox.getBoundingClientRect();
@@ -3040,9 +2948,6 @@ function startPreview() {
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
   
-  document.getElementById('floating-edit-controls').style.display = 'none';
-  controls.autoRotate = false; 
-  
   fitCameraForRender(renderZoom);
   loadedModelContainers.forEach(c => c.rotation.y = 0);
   
@@ -3072,8 +2977,6 @@ function stopPreview() {
   loadedModelContainers.forEach(c => c.rotation.y = 0);
   transformHelper.visible = true; controls.enabled = true;
   fitCameraToModels();
-  
-  document.getElementById('floating-edit-controls').style.display = 'flex';
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
 
@@ -3081,10 +2984,6 @@ async function startVideoRecord() {
   if (isRecording) return;
   isExporting = true;
   transformHelper.visible = false; hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
-  
-  document.getElementById('floating-edit-controls').style.display = 'none';
-  controls.autoRotate = false;
-  
   layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
   let targetRes = recordQuality === 0 ? 1080 : 1920;
   let scale = targetRes / Math.max(cropRect.w, cropRect.h);
@@ -3132,8 +3031,6 @@ async function startVideoRecord() {
     loadedModelContainers.forEach(c => c.rotation.y = 0);
     floatingControls.style.display = 'none';
     fitCameraToModels();
-    
-    document.getElementById('floating-edit-controls').style.display = 'flex';
   };
   isRecording = true; isPaused = false;
   btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
@@ -3231,7 +3128,7 @@ window.addEventListener('keydown', e => {
 function animate() {
   requestAnimationFrame(animate);
   if (!isRecording && !isPreviewing) {
-    controls.update(); 
+    controls.update();
     renderer.render(scene, camera);
     if (currentMode === 'free' && activeDummy && !ftDragging) updateFreeTransformHandles();
   }
