@@ -1401,7 +1401,6 @@ const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 
 // ===== AUTO-DETECT CURVATURE (untuk 3 model GLB baru sahaja) =====
-// Model asal './T_shirt_gltf.gltf' TIDAK diusik — kekal guna depth statik asal.
 const AUTO_CURVATURE_MODELS = new Set([
   './baju_baru.glb',
   './long_sleeve_t-_shirt.glb',
@@ -1419,54 +1418,54 @@ function computeAutoDepth(dummy, w, h, baseDepth) {
   const worldPos = new THREE.Vector3();
   dummy.getWorldPosition(worldPos);
 
-  // 9 titik sampel: 4 penjuru + 4 tepi tengah + 1 tengah
-  const samples = [
-    [-0.5,-0.5],[0,-0.5],[0.5,-0.5],
-    [-0.5, 0  ],[0, 0  ],[0.5, 0  ],
-    [-0.5, 0.5],[0, 0.5],[0.5, 0.5]
-  ];
-
+  // 5x5 grid (25 sampel) untuk tangkap lipatan/alur yang lebih kecil
+  const steps = 5;
   let maxOffset = 0;
   const tmpP = new THREE.Vector3();
 
-  for (const [u, v] of samples) {
-    tmpP.copy(worldPos)
-      .addScaledVector(right, u * w)
-      .addScaledVector(up,    v * h);
+  for (let i = 0; i < steps; i++) {
+    for (let j = 0; j < steps; j++) {
+      const u = (i / (steps - 1)) - 0.5;
+      const v = (j / (steps - 1)) - 0.5;
 
-    let found = false;
+      tmpP.copy(worldPos)
+        .addScaledVector(right, u * w)
+        .addScaledVector(up,    v * h);
 
-    // Cuba tembak ke arah viewer (+normal) — untuk permukaan yang menonjol keluar
-    _autoRayc.set(tmpP, normal);
-    let hits = _autoRayc.intersectObjects(shirtMeshes, true);
-    if (hits.length && hits[0].distance < 0.8) {
-      const hit = hits[0];
-      const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
-      // Hanya terima jika permukaan hadap arah sama (bukan belakang baju)
-      if (!fn || fn.dot(normal) > 0.1) {
-        if (hit.distance > maxOffset) maxOffset = hit.distance;
-        found = true;
-      }
-    }
+      let found = false;
 
-    // Kalau tak jumpa, cuba tembak menjauhi viewer (-normal) — untuk permukaan yang melengkung masuk
-    if (!found) {
-      const nn = normal.clone().negate();
-      _autoRayc.set(tmpP, nn);
-      hits = _autoRayc.intersectObjects(shirtMeshes, true);
+      // Tembak ke arah viewer (+normal)
+      _autoRayc.set(tmpP, normal);
+      let hits = _autoRayc.intersectObjects(shirtMeshes, true);
       if (hits.length && hits[0].distance < 0.8) {
         const hit = hits[0];
         const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
-        if (!fn || fn.dot(normal) > 0.1) {
+        // Longgarkan syarat normal (-0.2) untuk tangkap permukaan yang melengkung tajam ke bawah
+        if (!fn || fn.dot(normal) > -0.2) {
           if (hit.distance > maxOffset) maxOffset = hit.distance;
+          found = true;
+        }
+      }
+
+      // Jika tak jumpa, tembak ke arah bertentangan (-normal)
+      if (!found) {
+        const nn = normal.clone().negate();
+        _autoRayc.set(tmpP, nn);
+        hits = _autoRayc.intersectObjects(shirtMeshes, true);
+        if (hits.length && hits[0].distance < 0.8) {
+          const hit = hits[0];
+          const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
+          if (!fn || fn.dot(normal) > -0.2) {
+            if (hit.distance > maxOffset) maxOffset = hit.distance;
+          }
         }
       }
     }
   }
 
-  // depth = 2 × offset maksimum (kotak berpusat di dummy.position) + margin keselamatan
-  const requiredDepth = maxOffset * 2 + 0.12;
-  return Math.max(baseDepth, Math.min(requiredDepth, 1.0));
+  // Tambah margin keselamatan kepada 0.25 dan naikkan cap kepada 1.3
+  const requiredDepth = maxOffset * 2 + 0.25;
+  return Math.max(baseDepth, Math.min(requiredDepth, 1.3));
 }
 
 function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
@@ -1523,10 +1522,8 @@ function createFlatDecal(dummy) {
   const baseDepth = onSleeve ? 0.38 : 0.22;
   let depth;
   if (AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
-    // 3 model GLB baru — guna auto-detect ikut curvature mesh
     depth = computeAutoDepth(dummy, w, h, baseDepth);
   } else {
-    // Model asal T_shirt_gltf.gltf — kekal seperti asal (sudah OK)
     depth = baseDepth;
   }
 
