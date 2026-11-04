@@ -1400,7 +1400,7 @@ async function updateTextLayer(dummy) {
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 
-// ===== AUTO-DETECT CURVATURE (untuk 3 model GLB baru sahaja) =====
+// ===== AUTO-DETECT CURVATURE =====
 const AUTO_CURVATURE_MODELS = new Set([
   './baju_baru.glb',
   './long_sleeve_t-_shirt.glb',
@@ -1408,7 +1408,7 @@ const AUTO_CURVATURE_MODELS = new Set([
 ]);
 const _autoRayc = new THREE.Raycaster();
 
-function computeAutoDepth(dummy, w, h, baseDepth) {
+function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
   dummy.updateMatrixWorld(true);
   const wq = new THREE.Quaternion();
   dummy.getWorldQuaternion(wq);
@@ -1418,9 +1418,9 @@ function computeAutoDepth(dummy, w, h, baseDepth) {
   const worldPos = new THREE.Vector3();
   dummy.getWorldPosition(worldPos);
 
-  // 5x5 grid (25 sampel) untuk tangkap lipatan/alur yang lebih kecil
   const steps = 5;
   let maxOffset = 0;
+  let minDistToBack = Infinity;
   const tmpP = new THREE.Vector3();
 
   for (let i = 0; i < steps; i++) {
@@ -1432,40 +1432,49 @@ function computeAutoDepth(dummy, w, h, baseDepth) {
         .addScaledVector(right, u * w)
         .addScaledVector(up,    v * h);
 
-      let found = false;
-
-      // Tembak ke arah viewer (+normal)
+      // Tembak depan (+normal) untuk cari lengkung ke dalam
       _autoRayc.set(tmpP, normal);
       let hits = _autoRayc.intersectObjects(shirtMeshes, true);
       if (hits.length && hits[0].distance < 0.8) {
         const hit = hits[0];
         const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
-        // Longgarkan syarat normal (-0.2) untuk tangkap permukaan yang melengkung tajam ke bawah
         if (!fn || fn.dot(normal) > -0.2) {
           if (hit.distance > maxOffset) maxOffset = hit.distance;
-          found = true;
         }
       }
 
-      // Jika tak jumpa, tembak ke arah bertentangan (-normal)
-      if (!found) {
-        const nn = normal.clone().negate();
-        _autoRayc.set(tmpP, nn);
-        hits = _autoRayc.intersectObjects(shirtMeshes, true);
-        if (hits.length && hits[0].distance < 0.8) {
-          const hit = hits[0];
-          const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
-          if (!fn || fn.dot(normal) > -0.2) {
-            if (hit.distance > maxOffset) maxOffset = hit.distance;
-          }
-        }
+      // Tembak belakang (-normal) untuk cari ketebalan baju
+      const nn = normal.clone().negate();
+      _autoRayc.set(tmpP, nn);
+      let hitsBack = _autoRayc.intersectObjects(shirtMeshes, true);
+      if (hitsBack.length && hitsBack[0].distance < 0.8) {
+         const hitB = hitsBack[0];
+         const fnB = hitB.face ? hitB.face.normal.clone().transformDirection(hitB.object.matrixWorld) : null;
+         if (!fnB || fnB.dot(normal) < 0.2) {
+             if (hitB.distance < minDistToBack) minDistToBack = hitB.distance;
+         }
       }
     }
   }
 
-  // Tambah margin keselamatan kepada 0.25 dan naikkan cap kepada 1.3
-  const requiredDepth = maxOffset * 2 + 0.25;
-  return Math.max(baseDepth, Math.min(requiredDepth, 1.3));
+  let requiredDepth = maxOffset * 2 + 0.15;
+  let curve = 0;
+
+  // Jika kotak akan menembusi dinding belakang (lengan nipis atau melengkung tinggi)
+  if (minDistToBack !== Infinity && requiredDepth >= minDistToBack * 0.85) {
+      const sagitta = Math.max(0.01, maxOffset);
+      const R = (w * w) / (8 * sagitta) + (sagitta / 2);
+      const halfW = w / 2;
+      const maxAngle = Math.asin(Math.min(1, halfW / R));
+      curve = maxAngle / (Math.PI / 2);
+      curve = Math.max(0.1, Math.min(1.0, curve));
+      requiredDepth = baseDepth;
+  }
+
+  return {
+    depth: Math.max(baseDepth, requiredDepth),
+    curve: curve
+  };
 }
 
 function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
@@ -1518,13 +1527,19 @@ function createFlatDecal(dummy) {
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
 
-  // ===== AUTO-DEPTH =====
   const baseDepth = onSleeve ? 0.38 : 0.22;
-  let depth;
+  let depth = baseDepth;
+  let autoCurve = 0;
+
   if (AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
-    depth = computeAutoDepth(dummy, w, h, baseDepth);
-  } else {
-    depth = baseDepth;
+    const result = computeAutoDepthAndCurve(dummy, w, h, baseDepth);
+    depth = result.depth;
+    autoCurve = result.curve;
+  }
+
+  if (autoCurve > 0.05) {
+    createCurvedDecal(dummy, autoCurve);
+    return;
   }
 
   const size = new THREE.Vector3(w, h, depth);
@@ -1558,28 +1573,48 @@ function createCurvedDecal(dummy, curve) {
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
+  
   const segX = Math.max(16, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
   const segY = 8;
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const halfW = w / 2;
+  const halfH = h / 2;
   const maxAngle = (Math.PI / 2) * curve;
   const R = halfW / Math.max(0.001, Math.sin(maxAngle));
+
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
+    const y = pos.getY(i);
+
     const u = x / halfW;
-    const angle = u * maxAngle;
-    const newX = Math.sin(angle) * R;
-    const newZ = (Math.cos(angle) - 1) * R;
+    const angleX = u * maxAngle;
+    const newX = Math.sin(angleX) * R;
+    const newZ_X = (Math.cos(angleX) - 1) * R;
+
+    let newY = y;
+    let newZ_Y = 0;
+    // Jika melengkung tinggi, buatkan ia melengkung 2 paksi (macam cangkerang) untuk peluk lengan
+    if (curve > 0.4) {
+        const v = y / halfH;
+        const maxAngleY = maxAngle * 0.6;
+        const Ry = halfH / Math.max(0.001, Math.sin(maxAngleY));
+        const angleY = v * maxAngleY;
+        newY = Math.sin(angleY) * Ry;
+        newZ_Y = (Math.cos(angleY) - 1) * Ry;
+    }
+
     pos.setX(i, newX);
-    pos.setZ(i, newZ);
+    pos.setY(i, newY);
+    pos.setZ(i, newZ_X + newZ_Y);
   }
   geo.computeVertexNormals();
+
   const mat = new THREE.MeshStandardMaterial({
     map: tex, transparent: true, depthTest: true, depthWrite: false,
     polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
     roughness: 0.8, opacity: dummy.userData.opacity || 1,
-    side: THREE.DoubleSide
+    side: THREE.FrontSide // Guna FrontSide untuk elak nampak dari belakang (mirror double)
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
