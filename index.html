@@ -930,7 +930,13 @@ function loadShirtModel(url, config = {}) {
       container.userData.contrast = config.contrast ?? 100;
       container.userData.torsoHalfWidth = Math.max(0.24, Math.min(0.55, size.x * scaleFactor * 0.17));
       
-      if (config.position) container.position.fromArray(config.position);
+      if (config.position) {
+        container.position.fromArray(config.position);
+      } else {
+        loadedModelContainers.forEach(c => c.visible = false);
+        container.position.set(0, 0, 0);
+      }
+      
       container.add(model);
 
       model.traverse(c => {
@@ -948,19 +954,15 @@ function loadShirtModel(url, config = {}) {
       
       applyModelColorAndEffects(container);
 
-      if (!config.position) {
-        const xOffset = loadedModelContainers.length * 2.2;
-        container.position.set(xOffset, 0, 0);
-      }
-      
       shirtGroup.add(container);
       loadedModelContainers.push(container);
       addModelGroup(container, url);
 
+      activeModelContainer = container;
+      
       const newBox = new THREE.Box3().setFromObject(container);
       ground.position.y = newBox.min.y - 0.1;
       
-      activeModelContainer = container;
       resolve();
     }, undefined, () => {
       const fallback = createFallbackShirt();
@@ -969,7 +971,13 @@ function loadShirtModel(url, config = {}) {
       container.userData.baseColor = config.baseColor || currentShirtColor;
       container.userData.brightness = config.brightness ?? 100;
       container.userData.contrast = config.contrast ?? 100;
-      if (config.position) container.position.fromArray(config.position);
+      
+      if (config.position) {
+        container.position.fromArray(config.position);
+      } else {
+        loadedModelContainers.forEach(c => c.visible = false);
+        container.position.set(0, 0, 0);
+      }
       
       const box = new THREE.Box3().setFromObject(fallback);
       const fbSize = box.getSize(new THREE.Vector3());
@@ -986,7 +994,6 @@ function loadShirtModel(url, config = {}) {
       fallback.traverse(c => { if(c.isMesh) shirtMaterials.push(c.material); });
       applyModelColorAndEffects(container);
       
-      if (!config.position) container.position.set(loadedModelContainers.length * 2.2, 0, 0);
       shirtGroup.add(container);
       loadedModelContainers.push(container);
       addModelGroup(container, url);
@@ -1062,7 +1069,8 @@ function addModelGroup(container, url) {
       layerGroups.delete(id);
       
       if (activeModelContainer === container) {
-        activeModelContainer = null;
+        activeModelContainer = loadedModelContainers[0] || null;
+        if (activeModelContainer) activeModelContainer.visible = true;
         document.getElementById('properties-panel').classList.remove('active');
         document.getElementById('modelProps').style.display = 'none';
       }
@@ -1088,6 +1096,10 @@ function addModelGroup(container, url) {
             d.visible = container.visible && d.userData.visible;
         }
     });
+    if (container.visible) {
+      activeModelContainer = container;
+      fitCameraToModels();
+    }
   };
 }
 
@@ -1114,6 +1126,8 @@ function selectModelGroup(container, groupEl) {
   if (header) header.classList.add('active');
 
   activeModelContainer = container;
+  container.visible = true;
+  
   propertiesPanel.classList.add('active');
   
   focusCameraOn(container);
@@ -2064,7 +2078,7 @@ function createCurvedDecal(dummy, curve) {
   });
   const mesh = new THREE.Mesh(geo, mat);
   
-  const offsetPos = dummy.position.clone().add(dummyNormal.clone().multiplyScalar(0.002));
+  const offsetPos = dummy.position.clone();
   mesh.position.copy(offsetPos);
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
@@ -2303,11 +2317,22 @@ document.getElementById('addCanvasTextBtn').onclick = async () => {
   document.getElementById('canvasTextInput').value = '';
 };
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
+  const targetC = activeModelContainer || loadedModelContainers[loadedModelContainers.length - 1];
+  
   if (isCanvas) {
     const geo = new THREE.PlaneGeometry(1, 1 / aspect);
     const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(-1.2, 0, 0.8);
+    
+    if (targetC) {
+      const box = new THREE.Box3().setFromObject(targetC);
+      const center = box.getCenter(new THREE.Vector3());
+      mesh.position.copy(center);
+      mesh.position.z += 0.5;
+    } else {
+      mesh.position.set(0, 0, 0.5);
+    }
+    
     mesh.userData = {
       texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
       opacity: 1, visible: true, locked: false, isCanvasGraphic: true,
@@ -2321,6 +2346,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     showToast('Grafik Canvas ditambah');
     return;
   }
+  
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
@@ -2330,11 +2356,21 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   
   let hits = raycaster.intersectObjects(loadedModelContainers, true);
   
-  if (hits.length === 0 && loadedModelContainers.length > 0) {
-    dummy.userData.targetContainer = loadedModelContainers[0];
-    dummy.userData.targetContainer.add(dummy);
-    dummy.position.set(0, 0.1, 0.4);
-  } else if (hits.length > 0) {
+  if (hits.length === 0) {
+    if (targetC) {
+      dummy.userData.targetContainer = targetC;
+      targetC.add(dummy);
+      
+      const box = new THREE.Box3().setFromObject(targetC);
+      const size = box.getSize(new THREE.Vector3());
+      dummy.position.set(0, 0, size.z / 2 + 0.1);
+      
+      dummy.quaternion.identity();
+    } else {
+      shirtGroup.add(dummy);
+      dummy.position.set(0, 0, 0.4);
+    }
+  } else {
     const hit = hits[0];
     let hitContainer = hit.object;
     while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
@@ -2352,9 +2388,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     right.normalize();
     const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
-  } else {
-    shirtGroup.add(dummy);
-    dummy.position.set(0, 0.1, 0.4);
   }
   
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
@@ -2687,6 +2720,8 @@ async function restoreState(state) {
   
   if (loadedModelContainers.length > 0) {
     activeModelContainer = loadedModelContainers[0];
+    activeModelContainer.visible = true;
+    loadedModelContainers.forEach((c, i) => { if (i > 0) c.visible = false; });
   }
   fitCameraToModels();
   
