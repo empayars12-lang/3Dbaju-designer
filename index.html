@@ -83,11 +83,21 @@
     .align-btn:hover{background:#52525b}
     #viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden}
     #viewer-container canvas{display:block}
-    #bg-overlays{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
-    #bg-overlays > div{position:absolute;inset:0;pointer-events:none;transition:opacity .18s ease}
-    #bg-vignette{mix-blend-mode:multiply;opacity:0}
-    #bg-studio-shadow{mix-blend-mode:multiply;opacity:0}
-    #bg-gradient-overlay{opacity:0}
+
+    /* ===== LAPISAN LATAR TETAP (2D) ===== */
+    #bgCanvas,#fgCanvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
+    #bgCanvas{z-index:0}
+    #fgCanvas{z-index:2}
+
+    /* ===== PRESET LATAR ===== */
+    .preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .preset-btn{aspect-ratio:1;border-radius:8px;border:2px solid #3f3f46;cursor:pointer;font-size:9px;font-weight:600;color:#fff;
+      text-shadow:0 1px 2px rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;padding:3px 1px;font-family:inherit;transition:.15s}
+    .preset-btn:hover{border-color:#38bdf8;transform:translateY(-1px)}
+    .sub-title{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 8px;padding-top:10px;border-top:1px solid #2e2e32}
+    .sub-title:first-child{margin-top:0;padding-top:0;border-top:none}
+    .hint{font-size:11px;color:#71717a;line-height:1.5;margin-bottom:8px}
+
     #crop-overlay{position:absolute;inset:0;pointer-events:none;z-index:12;display:none;}
     #crop-overlay.active{display:block;}
     #crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);border:1.5px dashed #38bdf8;}
@@ -233,47 +243,112 @@
       </div>
     </div>
 
+    <!-- ================= LATAR BELAKANG PRO ================= -->
     <div class="accordion-item open">
-      <div class="accordion-header">Latar Studio (Tetap) <span class="arrow">▼</span></div>
+      <div class="accordion-header">🎨 Preset Latar Pro <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div style="font-size:11px;color:#71717a;margin-bottom:8px;line-height:1.4">
-          Latar ini <b style="color:#a1a1aa">tidak berpusing</b> bila baju rotate (preview/video). Opacity, brightness &amp; kesan digunakan semasa save/render.
+        <div class="preset-grid">
+          <button class="preset-btn" data-preset="studioPutih" style="background:radial-gradient(circle at 50% 40%,#ffffff,#cfd2d8);color:#111;text-shadow:none">Putih</button>
+          <button class="preset-btn" data-preset="studioGelap" style="background:radial-gradient(circle at 50% 40%,#52525b,#0a0a0c)">Gelap</button>
+          <button class="preset-btn" data-preset="spotlight" style="background:radial-gradient(circle at 50% 40%,#6b7280,#08080c 70%)">Spotlight</button>
+          <button class="preset-btn" data-preset="hitam" style="background:radial-gradient(circle at 50% 40%,#3a3a3a,#000 65%)">Premium</button>
+          <button class="preset-btn" data-preset="biru" style="background:linear-gradient(160deg,#1d4ed8,#0b1020)">Biru</button>
+          <button class="preset-btn" data-preset="sunset" style="background:linear-gradient(160deg,#fb923c,#7e22ce)">Sunset</button>
+          <button class="preset-btn" data-preset="mint" style="background:linear-gradient(180deg,#ecfdf5,#99f6e4);color:#064e3b;text-shadow:none">Mint</button>
+          <button class="preset-btn" data-preset="lantai" style="background:linear-gradient(180deg,#e5e7eb 60%,#9ca3af);color:#111;text-shadow:none">Lantai</button>
         </div>
+        <div class="hint" style="margin-top:8px">Klik preset, kemudian ubah suai kawalan di bawah.</div>
+      </div>
+    </div>
+
+    <div class="accordion-item open">
+      <div class="accordion-header">Jenis &amp; Warna Latar <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <select id="bg_type" class="prop-input" style="margin-bottom:8px">
+          <option value="solid">Warna Solid</option>
+          <option value="gradient">Gradient Linear</option>
+          <option value="radial">Gradient Radial (studio)</option>
+        </select>
         <div class="custom-color-wrapper" style="margin-top:0">
-          <input type="color" id="bgColor" value="#09090b">
-          <span>Warna Latar</span>
+          <input type="color" id="bg_color" value="#09090b">
+          <span>Warna Utama</span>
         </div>
-        <div class="upload-btn" style="margin-top:8px;padding:10px;font-size:13px">+ Imej Latar (tetap)<input type="file" id="bgImageUpload" accept="image/*"></div>
+        <div class="custom-color-wrapper" id="bgRowColor2" style="display:none">
+          <input type="color" id="bg_color2" value="#27272a">
+          <span>Warna Kedua</span>
+        </div>
+        <div class="slider-row" id="bgRowAngle" style="display:none;margin-top:10px">
+          <label><span>Sudut Gradient</span><span id="bgv_angle">180°</span></label>
+          <input type="range" id="bg_angle" min="0" max="360" step="1" value="180">
+        </div>
+        <div class="toggle-row"><span>Latar Transparent (PNG)</span><div class="toggle-switch" id="toggleTransparent"></div></div>
+      </div>
+    </div>
+
+    <div class="accordion-item open">
+      <div class="accordion-header">Imej Latar (Tetap) <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="hint">Imej ini <b style="color:#a1a1aa">kekal tetap</b> di belakang. Ia tidak berpusing atau bergerak bila baju diputar, preview atau video.</div>
+        <div class="upload-btn" style="padding:10px;font-size:13px">+ Pilih Imej Latar<input type="file" id="bgImageUpload" accept="image/*"></div>
         <button class="small-btn" id="btnClearBgImage">Buang Imej Latar</button>
-        <div class="toggle-row"><span>Transparent</span><div class="toggle-switch" id="toggleTransparent"></div></div>
         <div id="bgImagePanel" style="display:none;margin-top:10px">
-          <div class="slider-row"><label><span>Opacity</span><span id="bgOpacityValue">1.00</span></label><input type="range" id="bgOpacitySlider" min="0" max="1" step="0.01" value="1"></div>
-          <div class="slider-row"><label><span>Saiz</span><span id="bgScaleValue">1.00</span></label><input type="range" id="bgScaleSlider" min="0.2" max="5" step="0.05" value="1"></div>
-          <div class="fill-modes">
-            <button class="fill-btn active" data-mode="stretch">Stretch</button>
-            <button class="fill-btn" data-mode="cover">Cover</button>
+          <div class="fill-modes" style="margin-bottom:10px">
+            <button class="fill-btn active" data-mode="cover">Cover</button>
             <button class="fill-btn" data-mode="contain">Contain</button>
+            <button class="fill-btn" data-mode="stretch">Stretch</button>
             <button class="fill-btn" data-mode="free">Free</button>
           </div>
+          <div class="slider-row"><label><span>Saiz</span><span id="bgv_imgScale">1.00</span></label><input type="range" id="bg_imgScale" min="0.2" max="4" step="0.05" value="1"></div>
+          <div class="slider-row"><label><span>Kedudukan X</span><span id="bgv_imgX">0%</span></label><input type="range" id="bg_imgX" min="-100" max="100" step="1" value="0"></div>
+          <div class="slider-row"><label><span>Kedudukan Y</span><span id="bgv_imgY">0%</span></label><input type="range" id="bg_imgY" min="-100" max="100" step="1" value="0"></div>
+          <div class="slider-row"><label><span>Opacity</span><span id="bgv_imgOpacity">1.00</span></label><input type="range" id="bg_imgOpacity" min="0" max="1" step="0.01" value="1"></div>
+          <div class="slider-row"><label><span>Blur Imej</span><span id="bgv_imgBlur">0px</span></label><input type="range" id="bg_imgBlur" min="0" max="20" step="1" value="0"></div>
+          <div class="slider-row"><label><span>Brightness</span><span id="bgv_imgBrightness">100</span></label><input type="range" id="bg_imgBrightness" min="20" max="200" step="5" value="100"></div>
+          <div class="slider-row"><label><span>Contrast</span><span id="bgv_imgContrast">100</span></label><input type="range" id="bg_imgContrast" min="20" max="200" step="5" value="100"></div>
+          <div class="slider-row"><label><span>Saturation</span><span id="bgv_imgSaturation">100</span></label><input type="range" id="bg_imgSaturation" min="0" max="200" step="5" value="100"></div>
         </div>
       </div>
     </div>
 
     <div class="accordion-item open">
-      <div class="accordion-header">Kesan Latar Belakang <span class="arrow">▼</span></div>
+      <div class="accordion-header">Lampu &amp; Bayang Studio <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="slider-row"><label><span>Vignette</span><span id="vignetteValue">0</span></label><input type="range" id="vignetteSlider" min="0" max="100" step="1" value="0"></div>
-        <div class="slider-row"><label><span>Shadow Studio</span><span id="shadowBgValue">0</span></label><input type="range" id="shadowBgSlider" min="0" max="100" step="1" value="0"></div>
-        <div class="custom-color-wrapper" style="margin-top:6px">
-          <input type="color" id="gradientColor" value="#000000">
-          <span>Gradient Overlay</span>
+        <div class="sub-title">Spotlight (cahaya belakang baju)</div>
+        <div class="custom-color-wrapper" style="margin-top:0">
+          <input type="color" id="bg_spotColor" value="#ffffff">
+          <span>Warna Cahaya</span>
         </div>
-        <div class="slider-row" style="margin-top:8px"><label><span>Gradient Opacity</span><span id="gradientOpacityValue">0</span></label><input type="range" id="gradientOpacitySlider" min="0" max="100" step="1" value="0"></div>
-        <div class="slider-row"><label><span>Blur Latar</span><span id="bgBlurValue">0</span></label><input type="range" id="bgBlurSlider" min="0" max="20" step="1" value="0"></div>
-        <div class="slider-row"><label><span>Brightness</span><span id="bgBrightnessValue">100</span></label><input type="range" id="bgBrightnessSlider" min="20" max="200" step="5" value="100"></div>
-        <div class="slider-row"><label><span>Contrast</span><span id="bgContrastValue">100</span></label><input type="range" id="bgContrastSlider" min="20" max="200" step="5" value="100"></div>
-        <div class="slider-row"><label><span>Saturation</span><span id="bgSaturationValue">100</span></label><input type="range" id="bgSaturationSlider" min="0" max="200" step="5" value="100"></div>
-        <button class="small-btn" id="bgResetBtn">↺ Reset Kesan Latar</button>
+        <div class="slider-row" style="margin-top:10px"><label><span>Kekuatan</span><span id="bgv_spotIntensity">0%</span></label><input type="range" id="bg_spotIntensity" min="0" max="100" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Saiz</span><span id="bgv_spotSize">60%</span></label><input type="range" id="bg_spotSize" min="10" max="140" step="1" value="60"></div>
+        <div class="slider-row"><label><span>Kedudukan Atas/Bawah</span><span id="bgv_spotY">45%</span></label><input type="range" id="bg_spotY" min="0" max="100" step="1" value="45"></div>
+
+        <div class="sub-title">Bayang Lantai (contact shadow)</div>
+        <div class="slider-row"><label><span>Kegelapan</span><span id="bgv_shadowOpacity">0%</span></label><input type="range" id="bg_shadowOpacity" min="0" max="100" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Lebar</span><span id="bgv_shadowWidth">60%</span></label><input type="range" id="bg_shadowWidth" min="20" max="130" step="1" value="60"></div>
+        <div class="slider-row"><label><span>Kelembutan (Blur)</span><span id="bgv_shadowBlur">60</span></label><input type="range" id="bg_shadowBlur" min="0" max="100" step="1" value="60"></div>
+        <div class="slider-row"><label><span>Kedudukan Atas/Bawah</span><span id="bgv_shadowY">84%</span></label><input type="range" id="bg_shadowY" min="50" max="98" step="1" value="84"></div>
+
+        <div class="sub-title">Lantai Studio</div>
+        <div class="custom-color-wrapper" style="margin-top:0">
+          <input type="color" id="bg_floorColor" value="#000000">
+          <span>Warna Lantai</span>
+        </div>
+        <div class="slider-row" style="margin-top:10px"><label><span>Kekuatan Lantai</span><span id="bgv_floorOpacity">0%</span></label><input type="range" id="bg_floorOpacity" min="0" max="100" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Paras Ufuk</span><span id="bgv_floorHorizon">72%</span></label><input type="range" id="bg_floorHorizon" min="30" max="95" step="1" value="72"></div>
+      </div>
+    </div>
+
+    <div class="accordion-item open">
+      <div class="accordion-header">Kesan Pro Latar <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="slider-row"><label><span>Vignette</span><span id="bgv_vignette">0%</span></label><input type="range" id="bg_vignette" min="0" max="100" step="1" value="0"></div>
+        <div class="custom-color-wrapper" style="margin-top:6px">
+          <input type="color" id="bg_overlayColor" value="#000000">
+          <span>Gradient Overlay (atas → bawah)</span>
+        </div>
+        <div class="slider-row" style="margin-top:8px"><label><span>Overlay Opacity</span><span id="bgv_overlayOpacity">0%</span></label><input type="range" id="bg_overlayOpacity" min="0" max="100" step="1" value="0"></div>
+        <div class="slider-row"><label><span>Grain / Filem</span><span id="bgv_grain">0</span></label><input type="range" id="bg_grain" min="0" max="100" step="1" value="0"></div>
+        <button class="small-btn" id="bgResetBtn">↺ Reset Semua Latar</button>
       </div>
     </div>
 
@@ -341,6 +416,8 @@
   </div>
 
   <div id="viewer-container">
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="fgCanvas"></canvas>
     <div id="loading">MEMUATKAN STUDIO...</div>
     <div id="recording-overlay"><span>●</span> <span id="recordingText">Sedang merakam...</span></div>
     <div id="floating-controls">
@@ -355,11 +432,6 @@
       <div class="ft-handle sw" data-corner="sw"></div>
       <div class="ft-rotate-line" id="ftRotateLine"></div>
       <div class="ft-rotate-handle" id="ftRotateHandle"></div>
-    </div>
-    <div id="bg-overlays">
-      <div id="bg-gradient-overlay"></div>
-      <div id="bg-studio-shadow"></div>
-      <div id="bg-vignette"></div>
     </div>
     <div id="crop-overlay"><div id="crop-frame"></div></div>
     <div id="view-toggles">
@@ -500,7 +572,7 @@ async function dbDelete(id) {
     tx.onerror = () => reject(tx.error);
   });
 }
-function resizeDataURL(dataURL, max = 900) {
+function resizeDataURL(dataURL, max = 900, type = 'image/png', quality = 0.9) {
   return new Promise(resolve => {
     if (!dataURL || dataURL.length < 150000) return resolve(dataURL);
     const img = new Image();
@@ -512,7 +584,7 @@ function resizeDataURL(dataURL, max = 900) {
       const c = document.createElement('canvas');
       c.width = w; c.height = h;
       c.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(c.toDataURL('image/png'));
+      resolve(c.toDataURL(type, quality));
     };
     img.onerror = () => resolve(dataURL);
     img.src = dataURL;
@@ -546,7 +618,10 @@ renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.setClearColor(0x09090b, 1);
+// Latar belakang dilukis di lapisan 2D tetap — renderer sentiasa lutsinar
+renderer.setClearColor(0x000000, 0);
+renderer.domElement.style.position = 'relative';
+renderer.domElement.style.zIndex = '1';
 container.appendChild(renderer.domElement);
 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 const pmrem = new THREE.PMREMGenerator(renderer);
@@ -602,7 +677,7 @@ let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, logo
 let currentShirtColor = '#ffffff', currentMode = 'free';
 let currentModelUrl = './T_shirt_gltf.gltf';
 let history = [], historyIndex = -1;
-let currentBgColor = '#09090b', isTransparentBg = false, bgPlane = null, bgFillMode = 'stretch', bgOpacity = 1;
+let isTransparentBg = false;
 let isRecording = false, isPreviewing = false, isPaused = false, mediaRecorder = null, recordedChunks = [];
 let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null;
 let currentProjectId = null, currentProjectName = 'Design Baru';
@@ -611,13 +686,6 @@ let cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight
 let animStartTime = 0, currentP = 0;
 let isExporting = false;
 let isHistoryProcessing = false;
-
-// ===== KESAN LATAR BELAKANG =====
-function defaultBgEffects() {
-  return { vignette: 0, shadowBg: 0, gradientColor: '#000000', gradientOpacity: 0, blur: 0, brightness: 100, contrast: 100, saturation: 100 };
-}
-let bgEffects = defaultBgEffects();
-let bgImageSource = null;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = document.getElementById('layers-list');
@@ -653,6 +721,373 @@ function ensureEffects(dummy) {
   return dummy.userData.effects;
 }
 
+// =====================================================================
+// ===== LATAR BELAKANG PRO (lapisan 2D TETAP — tidak berpusing) =====
+// =====================================================================
+// Latar dilukis pada <canvas> 2D di belakang (bgCanvas) dan kesan atas
+// (vignette/overlay/grain) di fgCanvas. Kamera/baju berputar tanpa
+// menjejaskan latar. Fungsi yang sama digunakan semasa eksport & video.
+function defaultBg() {
+  return {
+    type: 'solid', color: '#09090b', color2: '#27272a', angle: 180,
+    spotColor: '#ffffff', spotIntensity: 0, spotSize: 60, spotY: 45,
+    shadowOpacity: 0, shadowWidth: 60, shadowBlur: 60, shadowY: 84,
+    floorColor: '#000000', floorOpacity: 0, floorHorizon: 72,
+    vignette: 0, overlayColor: '#000000', overlayOpacity: 0, grain: 0,
+    imgMode: 'cover', imgScale: 1, imgX: 0, imgY: 0, imgOpacity: 1,
+    imgBlur: 0, imgBrightness: 100, imgContrast: 100, imgSaturation: 100
+  };
+}
+let bg = defaultBg();
+let bgImg = null;            // HTMLImageElement
+let bgImageDataURL = null;   // disimpan dalam project
+let bgVersion = 0;
+const bgCache = new Map();
+const bgCanvasEl = document.getElementById('bgCanvas');
+const fgCanvasEl = document.getElementById('fgCanvas');
+let bgRenderQueued = false;
+
+const BG_PRESETS = {
+  studioPutih: { type:'radial', color:'#ffffff', color2:'#cfd2d8', shadowOpacity:45, shadowWidth:60, shadowBlur:70, shadowY:84, vignette:14 },
+  studioGelap: { type:'radial', color:'#3f3f46', color2:'#0a0a0c', spotColor:'#ffffff', spotIntensity:18, spotSize:60, spotY:45, shadowOpacity:65, shadowWidth:60, shadowBlur:65, shadowY:84, vignette:35, grain:8 },
+  spotlight:   { type:'solid', color:'#08080c', spotColor:'#ffffff', spotIntensity:50, spotSize:55, spotY:45, shadowOpacity:60, shadowWidth:55, shadowBlur:60, shadowY:84, vignette:45, grain:6 },
+  hitam:       { type:'solid', color:'#000000', spotColor:'#ffffff', spotIntensity:30, spotSize:45, spotY:45, shadowOpacity:75, shadowWidth:55, shadowBlur:55, shadowY:84, vignette:50, grain:5 },
+  biru:        { type:'gradient', color:'#1d4ed8', color2:'#0b1020', angle:160, spotColor:'#93c5fd', spotIntensity:30, spotSize:60, spotY:45, shadowOpacity:55, shadowWidth:60, shadowBlur:70, shadowY:84, vignette:25, grain:4 },
+  sunset:      { type:'gradient', color:'#fb923c', color2:'#7e22ce', angle:160, spotColor:'#ffffff', spotIntensity:22, spotSize:60, spotY:45, shadowOpacity:40, shadowWidth:60, shadowBlur:70, shadowY:84, vignette:22, grain:6 },
+  mint:        { type:'gradient', color:'#ecfdf5', color2:'#99f6e4', angle:180, shadowOpacity:35, shadowWidth:60, shadowBlur:75, shadowY:84, vignette:8 },
+  lantai:      { type:'solid', color:'#e5e7eb', floorColor:'#9ca3af', floorOpacity:60, floorHorizon:70, spotColor:'#ffffff', spotIntensity:35, spotSize:70, spotY:35, shadowOpacity:55, shadowWidth:55, shadowBlur:60, shadowY:84, vignette:12 }
+};
+const BG_IMG_KEYS = ['imgMode','imgScale','imgX','imgY','imgOpacity','imgBlur','imgBrightness','imgContrast','imgSaturation'];
+
+function hexToRgba(hex, a) {
+  let h = String(hex || '#000000').replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h, 16) || 0;
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${Math.max(0, Math.min(1, a))})`;
+}
+
+let grainTile = null;
+function getGrainTile() {
+  if (grainTile) return grainTile;
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const x = c.getContext('2d');
+  const id = x.createImageData(256, 256);
+  for (let i = 0; i < id.data.length; i += 4) {
+    const v = Math.random() < 0.5 ? 0 : 255; // hitam/putih seimbang = tiada tint
+    id.data[i] = id.data[i + 1] = id.data[i + 2] = v;
+    id.data[i + 3] = Math.random() * 255;
+  }
+  x.putImageData(id, 0, 0);
+  grainTile = c;
+  return c;
+}
+
+function paintBgImage(ctx, w, h) {
+  const iw = bgImg.naturalWidth || bgImg.width, ih = bgImg.naturalHeight || bgImg.height;
+  if (!iw || !ih) return;
+  const S = w / 1000;
+  const mode = bg.imgMode;
+  let dw, dh;
+  if (mode === 'stretch') { dw = w; dh = h; }
+  else {
+    const sCover = Math.max(w / iw, h / ih), sContain = Math.min(w / iw, h / ih);
+    const s = mode === 'cover' ? sCover : sContain; // free = contain + skala bebas
+    dw = iw * s; dh = ih * s;
+  }
+  const pad = (bg.imgBlur > 0 && (mode === 'cover' || mode === 'stretch')) ? 1 + bg.imgBlur * 0.006 : 1;
+  dw *= bg.imgScale * pad; dh *= bg.imgScale * pad;
+  const cx = w / 2 + (bg.imgX / 100) * w;
+  const cy = h / 2 + (bg.imgY / 100) * h;
+  ctx.save();
+  ctx.globalAlpha = bg.imgOpacity;
+  const f = [];
+  if (bg.imgBlur > 0) f.push(`blur(${(bg.imgBlur * S).toFixed(2)}px)`);
+  if (bg.imgBrightness !== 100) f.push(`brightness(${bg.imgBrightness}%)`);
+  if (bg.imgContrast !== 100) f.push(`contrast(${bg.imgContrast}%)`);
+  if (bg.imgSaturation !== 100) f.push(`saturate(${bg.imgSaturation}%)`);
+  if (f.length) ctx.filter = f.join(' ');
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(bgImg, cx - dw / 2, cy - dh / 2, dw, dh);
+  ctx.restore();
+}
+
+function paintEllipseShadow(ctx, cx, cy, rx, ry, alpha, inner) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(rx, ry);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, `rgba(0,0,0,${alpha})`);
+  g.addColorStop(inner, `rgba(0,0,0,${alpha * 0.55})`);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(-1, -1, 2, 2);
+  ctx.restore();
+}
+
+function paintBackground(ctx, w, h) {
+  // 1) Asas: solid / gradient / radial
+  if (bg.type === 'gradient') {
+    const a = (bg.angle || 0) * Math.PI / 180;
+    const vx = Math.sin(a), vy = -Math.cos(a);
+    const L = (Math.abs(w * vx) + Math.abs(h * vy)) / 2;
+    const g = ctx.createLinearGradient(w / 2 - vx * L, h / 2 - vy * L, w / 2 + vx * L, h / 2 + vy * L);
+    g.addColorStop(0, bg.color); g.addColorStop(1, bg.color2);
+    ctx.fillStyle = g;
+  } else if (bg.type === 'radial') {
+    const g = ctx.createRadialGradient(w / 2, h * 0.45, 0, w / 2, h * 0.45, Math.hypot(w, h) * 0.5);
+    g.addColorStop(0, bg.color); g.addColorStop(1, bg.color2);
+    ctx.fillStyle = g;
+  } else ctx.fillStyle = bg.color;
+  ctx.fillRect(0, 0, w, h);
+
+  // 2) Imej latar (tetap)
+  if (bgImg) paintBgImage(ctx, w, h);
+
+  // 3) Spotlight di belakang baju
+  if (bg.spotIntensity > 0) {
+    const I = bg.spotIntensity / 100;
+    const cx = w / 2, cy = h * bg.spotY / 100;
+    const r = Math.max(w, h) * (bg.spotSize / 100) * 0.75;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, hexToRgba(bg.spotColor, I * 0.9));
+    g.addColorStop(0.45, hexToRgba(bg.spotColor, I * 0.4));
+    g.addColorStop(1, hexToRgba(bg.spotColor, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // 4) Lantai studio (ufuk lembut)
+  if (bg.floorOpacity > 0) {
+    const op = bg.floorOpacity / 100;
+    const y0 = h * bg.floorHorizon / 100 - h * 0.05;
+    if (y0 < h) {
+      const g = ctx.createLinearGradient(0, y0, 0, h);
+      g.addColorStop(0, hexToRgba(bg.floorColor, 0));
+      g.addColorStop(0.25, hexToRgba(bg.floorColor, op * 0.7));
+      g.addColorStop(1, hexToRgba(bg.floorColor, op));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, y0, w, h - y0);
+    }
+  }
+
+  // 5) Bayang lantai (contact shadow, 2 lapis: lembut + teras gelap)
+  if (bg.shadowOpacity > 0) {
+    const op = bg.shadowOpacity / 100;
+    const cx = w / 2, cy = h * bg.shadowY / 100;
+    const rx = w * bg.shadowWidth / 100 / 2;
+    const ry = rx * 0.18;
+    const blur = bg.shadowBlur / 100;
+    paintEllipseShadow(ctx, cx, cy, rx, ry, op * 0.75, Math.max(0.05, 0.8 - blur * 0.75));
+    paintEllipseShadow(ctx, cx, cy, rx * 0.55, ry * 0.55, op, 0.2);
+  }
+}
+
+function paintForeground(ctx, w, h) {
+  if (bg.vignette > 0) {
+    const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.hypot(w, h) / 2);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, `rgba(0,0,0,${bg.vignette / 100})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  }
+  if (bg.overlayOpacity > 0) {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, hexToRgba(bg.overlayColor, 0));
+    g.addColorStop(1, hexToRgba(bg.overlayColor, bg.overlayOpacity / 100));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  }
+  if (bg.grain > 0) {
+    const pat = ctx.createPattern(getGrainTile(), 'repeat');
+    if (pat) {
+      const s = Math.max(1, w / 900);
+      ctx.save();
+      ctx.globalAlpha = (bg.grain / 100) * 0.45;
+      ctx.scale(s, s);
+      ctx.fillStyle = pat;
+      ctx.fillRect(0, 0, w / s, h / s);
+      ctx.restore();
+    }
+  }
+}
+
+function getBgLayer(w, h) { return getLayerCanvas('bg', w, h, paintBackground); }
+function getFgLayer(w, h) { return getLayerCanvas('fg', w, h, paintForeground); }
+function getLayerCanvas(kind, w, h, painter) {
+  w = Math.max(1, Math.round(w)); h = Math.max(1, Math.round(h));
+  const key = `${kind}|${w}|${h}|${bgVersion}`;
+  let c = bgCache.get(key);
+  if (!c) {
+    if (bgCache.size > 5) bgCache.delete(bgCache.keys().next().value);
+    c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    painter(c.getContext('2d'), w, h);
+    bgCache.set(key, c);
+  }
+  return c;
+}
+
+// Gabung: latar (bawah) + render 3D (tengah) + kesan atas
+function composeFrame(ctx, w, h, src, sx, sy, sw, sh) {
+  if (!isTransparentBg) ctx.drawImage(getBgLayer(w, h), 0, 0, w, h);
+  ctx.drawImage(src, sx, sy, sw, sh, 0, 0, w, h);
+  if (!isTransparentBg) ctx.drawImage(getFgLayer(w, h), 0, 0, w, h);
+}
+function drawCropped(ctx, w, h) {
+  const r = renderer.domElement.width / container.clientWidth;
+  composeFrame(ctx, w, h, renderer.domElement, cropRect.x * r, cropRect.y * r, cropRect.w * r, cropRect.h * r);
+}
+
+function renderLiveBg() {
+  bgRenderQueued = false;
+  const cw = container.clientWidth, ch = container.clientHeight;
+  if (!cw || !ch) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = Math.round(cw * dpr), H = Math.round(ch * dpr);
+  [bgCanvasEl, fgCanvasEl].forEach(c => {
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    c.getContext('2d').clearRect(0, 0, c.width, c.height);
+  });
+  const bctx = bgCanvasEl.getContext('2d');
+  if (isTransparentBg) {
+    // papan semak (tanda lutsinar)
+    const sq = Math.round(14 * dpr);
+    for (let y = 0; y < H; y += sq) for (let x = 0; x < W; x += sq) {
+      bctx.fillStyle = (((x / sq) + (y / sq)) & 1) ? '#2c2c31' : '#222226';
+      bctx.fillRect(x, y, sq, sq);
+    }
+    return;
+  }
+  const x = Math.round(cropRect.x * dpr), y = Math.round(cropRect.y * dpr);
+  const w = Math.round(cropRect.w * dpr), h = Math.round(cropRect.h * dpr);
+  if (w < 2 || h < 2) return;
+  bctx.drawImage(getBgLayer(w, h), x, y);
+  fgCanvasEl.getContext('2d').drawImage(getFgLayer(w, h), x, y);
+}
+function scheduleBgRender() {
+  if (bgRenderQueued) return;
+  bgRenderQueued = true;
+  requestAnimationFrame(renderLiveBg);
+}
+function markBgDirty() {
+  bgVersion++;
+  bgCache.clear();
+  scheduleBgRender();
+}
+
+// ----- UI latar -----
+const BG_RANGE_SUFFIX = {
+  angle:'°', spotIntensity:'%', spotSize:'%', spotY:'%',
+  shadowOpacity:'%', shadowWidth:'%', shadowBlur:'', shadowY:'%',
+  floorOpacity:'%', floorHorizon:'%',
+  vignette:'%', overlayOpacity:'%', grain:'',
+  imgScale:'', imgX:'%', imgY:'%', imgOpacity:'', imgBlur:'px',
+  imgBrightness:'', imgContrast:'', imgSaturation:''
+};
+const BG_COLOR_KEYS = ['color', 'color2', 'spotColor', 'floorColor', 'overlayColor'];
+function updateBgValueLabel(key) {
+  const el = document.getElementById('bg_' + key), lab = document.getElementById('bgv_' + key);
+  if (!el || !lab) return;
+  const v = +el.value;
+  lab.textContent = String(el.step).includes('.') ? v.toFixed(2) : v + BG_RANGE_SUFFIX[key];
+}
+function syncBgUI() {
+  Object.keys(BG_RANGE_SUFFIX).forEach(key => {
+    const el = document.getElementById('bg_' + key);
+    if (!el) return;
+    el.value = bg[key];
+    updateBgValueLabel(key);
+  });
+  BG_COLOR_KEYS.forEach(key => { const el = document.getElementById('bg_' + key); if (el) el.value = bg[key]; });
+  document.getElementById('bg_type').value = bg.type;
+  document.getElementById('bgRowColor2').style.display = bg.type === 'solid' ? 'none' : 'flex';
+  document.getElementById('bgRowAngle').style.display = bg.type === 'gradient' ? 'flex' : 'none';
+  document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === bg.imgMode));
+  bgImagePanel.style.display = bgImg ? 'block' : 'none';
+  document.getElementById('toggleTransparent').classList.toggle('active', isTransparentBg);
+}
+Object.keys(BG_RANGE_SUFFIX).forEach(key => {
+  const el = document.getElementById('bg_' + key);
+  if (!el) return;
+  el.oninput = () => { bg[key] = +el.value; updateBgValueLabel(key); markBgDirty(); };
+  el.onchange = () => pushHistory();
+});
+BG_COLOR_KEYS.forEach(key => {
+  const el = document.getElementById('bg_' + key);
+  if (!el) return;
+  el.oninput = () => { bg[key] = el.value; markBgDirty(); };
+  el.onchange = () => pushHistory();
+});
+document.getElementById('bg_type').onchange = e => {
+  bg.type = e.target.value;
+  syncBgUI(); markBgDirty(); pushHistory();
+};
+document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.onclick = () => {
+  bg.imgMode = b.dataset.mode;
+  syncBgUI(); markBgDirty(); pushHistory();
+});
+document.querySelectorAll('.preset-btn').forEach(b => b.onclick = () => {
+  const p = BG_PRESETS[b.dataset.preset];
+  if (!p) return;
+  const keep = {};
+  BG_IMG_KEYS.forEach(k => keep[k] = bg[k]);
+  bg = { ...defaultBg(), ...keep, ...p };
+  isTransparentBg = false;
+  syncBgUI(); markBgDirty(); pushHistory();
+  showToast('Preset latar digunakan');
+});
+document.getElementById('toggleTransparent').onclick = function () {
+  isTransparentBg = !isTransparentBg;
+  this.classList.toggle('active', isTransparentBg);
+  scheduleBgRender(); pushHistory();
+};
+document.getElementById('bgResetBtn').onclick = () => {
+  bg = defaultBg();
+  isTransparentBg = false;
+  syncBgUI(); markBgDirty(); pushHistory();
+  showToast('Latar direset (imej dikekalkan)');
+};
+
+function loadBgImageFromDataURL(dataURL) {
+  return new Promise(resolve => {
+    if (!dataURL) {
+      bgImg = null; bgImageDataURL = null;
+      bgImagePanel.style.display = 'none';
+      markBgDirty();
+      return resolve();
+    }
+    if (dataURL === bgImageDataURL && bgImg) { bgImagePanel.style.display = 'block'; return resolve(); }
+    const img = new Image();
+    img.onload = () => {
+      bgImg = img; bgImageDataURL = dataURL;
+      bgImagePanel.style.display = 'block';
+      markBgDirty();
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = dataURL;
+  });
+}
+document.getElementById('bgImageUpload').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = async ev => {
+    const type = String(ev.target.result).startsWith('data:image/jpeg') ? 'image/jpeg' : 'image/png';
+    const small = await resizeDataURL(ev.target.result, 1920, type, 0.88);
+    await loadBgImageFromDataURL(small);
+    isTransparentBg = false;
+    bg.imgMode = 'cover'; bg.imgScale = 1; bg.imgX = 0; bg.imgY = 0;
+    syncBgUI(); markBgDirty(); pushHistory();
+    showToast('Imej latar ditetapkan (tidak bergerak)');
+  };
+  r.readAsDataURL(f); e.target.value = '';
+};
+document.getElementById('btnClearBgImage').onclick = async () => {
+  await loadBgImageFromDataURL(null);
+  syncBgUI(); pushHistory();
+};
+
 // ===== CROP / RATIO =====
 function updateCropFrame() {
   const overlay = document.getElementById('crop-overlay');
@@ -660,6 +1095,7 @@ function updateCropFrame() {
   if (outputRatio === 'auto') {
     overlay.classList.remove('active');
     cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
+    scheduleBgRender();
     return;
   }
   overlay.classList.add('active');
@@ -675,6 +1111,7 @@ function updateCropFrame() {
   frame.style.left = x + 'px'; frame.style.top = y + 'px';
   frame.style.width = w + 'px'; frame.style.height = h + 'px';
   cropRect = { x, y, w, h };
+  scheduleBgRender();
 }
 document.querySelectorAll('.ratio-btn').forEach(btn => {
   btn.onclick = () => {
@@ -685,108 +1122,6 @@ document.querySelectorAll('.ratio-btn').forEach(btn => {
     pushHistory();
   };
 });
-
-// ===== BACKGROUND FX =====
-function updateBgOverlayStyles() {
-  const vig = document.getElementById('bg-vignette');
-  vig.style.background = `radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(0,0,0,${bgEffects.vignette / 100}) 100%)`;
-  vig.style.opacity = bgEffects.vignette > 0 ? '1' : '0';
-  const shadow = document.getElementById('bg-studio-shadow');
-  shadow.style.background = `radial-gradient(ellipse 42% 22% at 50% 82%, rgba(0,0,0,${(bgEffects.shadowBg / 100) * 0.75}) 0%, rgba(0,0,0,0) 72%)`;
-  shadow.style.opacity = bgEffects.shadowBg > 0 ? '1' : '0';
-  const grad = document.getElementById('bg-gradient-overlay');
-  grad.style.background = `linear-gradient(to bottom, rgba(0,0,0,0) 0%, ${bgEffects.gradientColor} 100%)`;
-  grad.style.opacity = (bgEffects.gradientOpacity / 100).toFixed(2);
-}
-function updateBgOverlaysVisibility() {
-  document.getElementById('bg-overlays').style.display = isTransparentBg ? 'none' : 'block';
-}
-function updateBgEffectsUI() {
-  document.getElementById('vignetteSlider').value = bgEffects.vignette;
-  document.getElementById('vignetteValue').textContent = bgEffects.vignette;
-  document.getElementById('shadowBgSlider').value = bgEffects.shadowBg;
-  document.getElementById('shadowBgValue').textContent = bgEffects.shadowBg;
-  document.getElementById('gradientColor').value = bgEffects.gradientColor;
-  document.getElementById('gradientOpacitySlider').value = bgEffects.gradientOpacity;
-  document.getElementById('gradientOpacityValue').textContent = bgEffects.gradientOpacity;
-  document.getElementById('bgBlurSlider').value = bgEffects.blur;
-  document.getElementById('bgBlurValue').textContent = bgEffects.blur;
-  document.getElementById('bgBrightnessSlider').value = bgEffects.brightness;
-  document.getElementById('bgBrightnessValue').textContent = bgEffects.brightness;
-  document.getElementById('bgContrastSlider').value = bgEffects.contrast;
-  document.getElementById('bgContrastValue').textContent = bgEffects.contrast;
-  document.getElementById('bgSaturationSlider').value = bgEffects.saturation;
-  document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
-}
-function drawBgEffectsOnCanvas(ctx, w, h) {
-  if (isTransparentBg) return;
-  if (bgEffects.vignette > 0) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.translate(w / 2, h / 2);
-    ctx.scale(w / 2, h / 2);
-    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, Math.sqrt(2));
-    grad.addColorStop(0.3, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, `rgba(0,0,0,${bgEffects.vignette / 100})`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(-1, -1, 2, 2);
-    ctx.restore();
-  }
-  if (bgEffects.shadowBg > 0) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'multiply';
-    const cx = w / 2, cy = h * 0.82, rx = w * 0.42, ry = h * 0.22;
-    ctx.translate(cx, cy);
-    ctx.scale(rx, ry);
-    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
-    grad.addColorStop(0, `rgba(0,0,0,${(bgEffects.shadowBg / 100) * 0.75})`);
-    grad.addColorStop(0.72, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(-1, -1, 2, 2);
-    ctx.restore();
-  }
-  if (bgEffects.gradientOpacity > 0) {
-    ctx.save();
-    ctx.globalAlpha = bgEffects.gradientOpacity / 100;
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, 'rgba(0,0,0,0)');
-    grad.addColorStop(1, bgEffects.gradientColor);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
-    ctx.restore();
-  }
-}
-function processBgImage(img) {
-  if (!img) return null;
-  const needFilter = bgEffects.blur > 0 || bgEffects.brightness !== 100 || bgEffects.contrast !== 100 || bgEffects.saturation !== 100;
-  if (!needFilter) {
-    const tex = new THREE.Texture(img);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = maxAnisotropy;
-    tex.needsUpdate = true;
-    return tex;
-  }
-  const c = document.createElement('canvas');
-  c.width = img.width || img.naturalWidth || 512;
-  c.height = img.height || img.naturalHeight || 512;
-  const ctx = c.getContext('2d');
-  ctx.filter = `blur(${bgEffects.blur}px) brightness(${bgEffects.brightness}%) contrast(${bgEffects.contrast}%) saturate(${bgEffects.saturation}%)`;
-  ctx.drawImage(img, 0, 0);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = maxAnisotropy;
-  tex.needsUpdate = true;
-  return tex;
-}
-function refreshBgImage() {
-  if (!bgPlane || !bgImageSource) return;
-  const newTex = processBgImage(bgImageSource);
-  if (newTex) {
-    bgPlane.material.map?.dispose();
-    bgPlane.material.map = newTex;
-    bgPlane.material.needsUpdate = true;
-  }
-}
 
 // ===== MODEL =====
 function createFallbackShirt() {
@@ -845,7 +1180,7 @@ function setupShirt(model) {
 async function switchShirtModelLive(url) {
   if (url === currentModelUrl && shirtMeshes.length > 0) return;
   layers.forEach(d => {
-    if (!d.userData.isBg && !d.userData.isCanvasGraphic) disposeDummyDecals(d);
+    if (!d.userData.isCanvasGraphic) disposeDummyDecals(d);
   });
   const toRemove = shirtGroup.children.filter(c => !layers.includes(c));
   toRemove.forEach(c => {
@@ -859,7 +1194,7 @@ async function switchShirtModelLive(url) {
   showToast('Memuat model baru...');
   await loadShirtModel(url);
   layers.forEach(d => {
-    if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
+    if (!d.userData.isCanvasGraphic) createDecalNow(d);
   });
   if (currentMode === 'free' && activeDummy) updateFreeTransformHandles();
   pushHistory();
@@ -889,12 +1224,11 @@ function addBaseLayer() {
   };
   layerListUI.appendChild(el);
 }
-function addDesignLayer(dummy, name, icon, isBg = false) {
+function addDesignLayer(dummy, name, icon) {
   const id = 'layer-' + Date.now() + Math.random().toString(36).slice(2, 7);
   dummy.userData.layerId = id;
   dummy.userData.name = name;
   dummy.userData.icon = icon;
-  dummy.userData.isBg = isBg;
   dummy.userData.opacity = dummy.userData.opacity ?? 1;
   dummy.userData.visible = true;
   dummy.userData.locked = false;
@@ -902,7 +1236,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   ensureEffects(dummy);
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
-  if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
+  if (!dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
   const info = document.createElement('div'); info.className = 'layer-info';
   const ic = document.createElement('span'); ic.textContent = icon;
   const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
@@ -914,7 +1248,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   actions.appendChild(bVis); actions.appendChild(bLock); actions.appendChild(bDel);
   el.appendChild(info); el.appendChild(actions);
   el.onclick = e => { if (e.target.closest('.layer-actions')) return; selectLayer(dummy, el); };
-  bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
+  bDel.onclick = e => { e.stopPropagation(); deleteLayer(dummy, el); };
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
   layerListUI.prepend(el);
@@ -934,7 +1268,7 @@ function selectLayer(dummy, el) {
   document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
   const curveRow = document.getElementById('curveRow');
-  if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) {
+  if (dummy.userData.isCanvasGraphic) {
     curveRow.style.display = 'none';
   } else {
     curveRow.style.display = 'block';
@@ -948,14 +1282,9 @@ function selectLayer(dummy, el) {
     document.getElementById('propTextContent').value = dummy.userData.textContent || '';
     document.getElementById('propTextColor').value = dummy.userData.textColor || '#000000';
   } else textProps.style.display = 'none';
-  const fxPanel = document.getElementById('fxPanel');
-  if (dummy.userData.isBg) {
-    fxPanel.style.display = 'none';
-  } else {
-    fxPanel.style.display = 'block';
-    updateFxUI(dummy);
-  }
-  transformControls.setSpace(dummy.userData.isBg ? 'world' : 'local');
+  document.getElementById('fxPanel').style.display = 'block';
+  updateFxUI(dummy);
+  transformControls.setSpace('local');
   // Gaya Photoshop: sentiasa petak + handle, tiada anak panah RGB 3D
   transformControls.detach();
   currentMode = 'free';
@@ -969,11 +1298,11 @@ function toggleVisibility(dummy, el) {
   if (dummy.userData.visible) {
     visBtn.classList.remove('hidden'); visBtn.textContent = '👁️';
     if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = true);
-    if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) dummy.visible = true;
+    if (dummy.userData.isCanvasGraphic) dummy.visible = true;
   } else {
     visBtn.classList.add('hidden'); visBtn.textContent = '👁️‍🗨️';
     if (dummy.userData.decals) dummy.userData.decals.forEach(d => d.visible = false);
-    if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) dummy.visible = false;
+    if (dummy.userData.isCanvasGraphic) dummy.visible = false;
   }
 }
 function toggleLock(dummy, el) {
@@ -1165,15 +1494,8 @@ document.getElementById('propScale').oninput = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   const s = +e.target.value;
   document.getElementById('propScaleValue').textContent = s.toFixed(2);
-  if (activeDummy.userData.isBg) {
-    const a = activeDummy.userData.aspect || 1;
-    activeDummy.scale.set(s, s / a, 1);
-    document.getElementById('bgScaleSlider').value = s;
-    document.getElementById('bgScaleValue').textContent = s.toFixed(2);
-  } else {
-    activeDummy.scale.setScalar(s);
-    scheduleDecal(activeDummy);
-  }
+  activeDummy.scale.setScalar(s);
+  scheduleDecal(activeDummy);
 };
 document.getElementById('propScale').onchange = () => pushHistory();
 document.getElementById('propOpacity').oninput = e => {
@@ -1185,12 +1507,11 @@ document.getElementById('propOpacity').oninput = e => {
     activeDummy.material.opacity = op;
   } else {
     if (activeDummy.userData.decals) activeDummy.userData.decals.forEach(d => d.material.opacity = op);
-    if (activeDummy.userData.isBg) activeDummy.material.opacity = op;
   }
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
 document.getElementById('propCurve').oninput = e => {
-  if (!activeDummy || activeDummy.userData.isBg || activeDummy.userData.isCanvasGraphic) return;
+  if (!activeDummy || activeDummy.userData.isCanvasGraphic) return;
   const c = +e.target.value;
   activeDummy.userData.curve = c;
   document.getElementById('propCurveValue').textContent = c.toFixed(2);
@@ -1222,7 +1543,7 @@ function updateFxUI(dummy) {
   g('fxShadowYValue').textContent = fx.shadowOffsetY;
 }
 function fxOnInput(key, value) {
-  if (!activeDummy || activeDummy.userData.isBg) return;
+  if (!activeDummy) return;
   const fx = ensureEffects(activeDummy);
   fx[key] = value;
   scheduleDecal(activeDummy);
@@ -1260,7 +1581,7 @@ document.getElementById('fxShadowY').oninput = e => {
 };
 document.getElementById('fxShadowY').onchange = () => pushHistory();
 document.getElementById('fxReset').onclick = () => {
-  if (!activeDummy || activeDummy.userData.isBg) return;
+  if (!activeDummy) return;
   activeDummy.userData.effects = defaultEffects();
   updateFxUI(activeDummy);
   scheduleDecal(activeDummy);
@@ -1269,7 +1590,7 @@ document.getElementById('fxReset').onclick = () => {
   showToast('Kesan: timbul + bayang');
 };
 document.getElementById('fxPresetRaised').onclick = () => {
-  if (!activeDummy || activeDummy.userData.isBg) return;
+  if (!activeDummy) return;
   activeDummy.userData.effects = {
     overlayColor: '#ff0000', overlayOpacity: 0,
     strokeColor: '#000000', strokeWidth: 0,
@@ -1282,7 +1603,7 @@ document.getElementById('fxPresetRaised').onclick = () => {
   showToast('⬆ Timbul + bayang diaktifkan');
 };
 document.getElementById('fxPresetFlat').onclick = () => {
-  if (!activeDummy || activeDummy.userData.isBg) return;
+  if (!activeDummy) return;
   activeDummy.userData.effects = {
     overlayColor: '#ff0000', overlayOpacity: 0,
     strokeColor: '#000000', strokeWidth: 0,
@@ -1295,78 +1616,21 @@ document.getElementById('fxPresetFlat').onclick = () => {
   showToast('Logo rata (tiada bayang)');
 };
 
-// BG FX UI
-document.getElementById('vignetteSlider').oninput = e => {
-  bgEffects.vignette = +e.target.value;
-  document.getElementById('vignetteValue').textContent = bgEffects.vignette;
-  updateBgOverlayStyles();
-};
-document.getElementById('vignetteSlider').onchange = () => pushHistory();
-document.getElementById('shadowBgSlider').oninput = e => {
-  bgEffects.shadowBg = +e.target.value;
-  document.getElementById('shadowBgValue').textContent = bgEffects.shadowBg;
-  updateBgOverlayStyles();
-};
-document.getElementById('shadowBgSlider').onchange = () => pushHistory();
-document.getElementById('gradientColor').oninput = e => {
-  bgEffects.gradientColor = e.target.value;
-  updateBgOverlayStyles();
-};
-document.getElementById('gradientColor').onchange = () => pushHistory();
-document.getElementById('gradientOpacitySlider').oninput = e => {
-  bgEffects.gradientOpacity = +e.target.value;
-  document.getElementById('gradientOpacityValue').textContent = bgEffects.gradientOpacity;
-  updateBgOverlayStyles();
-};
-document.getElementById('gradientOpacitySlider').onchange = () => pushHistory();
-document.getElementById('bgBlurSlider').oninput = e => {
-  bgEffects.blur = +e.target.value;
-  document.getElementById('bgBlurValue').textContent = bgEffects.blur;
-  if (bgPlane && bgImageSource) refreshBgImage();
-};
-document.getElementById('bgBlurSlider').onchange = () => pushHistory();
-document.getElementById('bgBrightnessSlider').oninput = e => {
-  bgEffects.brightness = +e.target.value;
-  document.getElementById('bgBrightnessValue').textContent = bgEffects.brightness;
-  if (bgPlane && bgImageSource) refreshBgImage();
-};
-document.getElementById('bgBrightnessSlider').onchange = () => pushHistory();
-document.getElementById('bgContrastSlider').oninput = e => {
-  bgEffects.contrast = +e.target.value;
-  document.getElementById('bgContrastValue').textContent = bgEffects.contrast;
-  if (bgPlane && bgImageSource) refreshBgImage();
-};
-document.getElementById('bgContrastSlider').onchange = () => pushHistory();
-document.getElementById('bgSaturationSlider').oninput = e => {
-  bgEffects.saturation = +e.target.value;
-  document.getElementById('bgSaturationValue').textContent = bgEffects.saturation;
-  if (bgPlane && bgImageSource) refreshBgImage();
-};
-document.getElementById('bgSaturationSlider').onchange = () => pushHistory();
-document.getElementById('bgResetBtn').onclick = () => {
-  bgEffects = defaultBgEffects();
-  updateBgEffectsUI();
-  updateBgOverlayStyles();
-  if (bgPlane && bgImageSource) refreshBgImage();
-  pushHistory();
-  showToast('Kesan latar direset');
-};
-
 // Alignment
 document.getElementById('btnAlignCenterX').onclick = () => {
-  if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
+  if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.x = 0;
   createDecalNow(activeDummy); pushHistory(); showToast('Center X');
 };
 document.getElementById('btnAlignCenterY').onclick = () => {
-  if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
+  if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.y = 0.15;
   createDecalNow(activeDummy); pushHistory(); showToast('Center Y');
 };
 
 // Duplicate
 document.getElementById('btnDuplicate').onclick = () => {
-  if (!activeDummy || activeDummy.userData.isBg) return;
+  if (!activeDummy) return;
   const src = activeDummy;
   const tex = src.userData.texture.clone();
   tex.needsUpdate = true;
@@ -1536,7 +1800,7 @@ function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
 }
 
 function isOnSleeve(d) {
-  if (!d || d.userData?.isBg || d.userData?.isCanvasGraphic) return false;
+  if (!d || d.userData?.isCanvasGraphic) return false;
   const px = Math.abs(d.position.x);
   // Threshold asal untuk T_shirt_gltf.gltf
   if (px > 0.34) return true;
@@ -1595,7 +1859,7 @@ function createDecalNow(dummy, highQuality = true) {
     }
     return;
   }
-  if (!shirtMeshes.length || dummy.userData.isBg || !dummy.userData.texture) return;
+  if (!shirtMeshes.length || !dummy.userData.texture) return;
   disposeDummyDecals(dummy);
 
   // Auto-aktifkan lekung lengan jika dikesan di lengan & curve masih 0
@@ -1824,13 +2088,6 @@ function createCurvedDecal(dummy, curve) {
 
 transformControls.addEventListener('objectChange', () => {
   if (!activeDummy || activeDummy.userData.locked) return;
-  if (activeDummy.userData.isBg) {
-    document.getElementById('bgScaleSlider').value = activeDummy.scale.x;
-    document.getElementById('bgScaleValue').textContent = activeDummy.scale.x.toFixed(2);
-    document.getElementById('propScale').value = activeDummy.scale.x;
-    document.getElementById('propScaleValue').textContent = activeDummy.scale.x.toFixed(2);
-    return;
-  }
   if (transformControls.getMode() === 'scale') {
     const s = Math.max(activeDummy.scale.x, activeDummy.scale.y, activeDummy.scale.z);
     activeDummy.scale.setScalar(Math.max(0.12, Math.min(s, 4.5)));
@@ -1884,7 +2141,7 @@ function worldToScreen(p) {
 
 // Sudut teoritikal (fallback)
 function getLogoCornersTheoretical(d) {
-  if (d.userData.isBg || d.userData.isCanvasGraphic) {
+  if (d.userData.isCanvasGraphic) {
     const b = new THREE.Box3().setFromObject(d);
     return [
       new THREE.Vector3(b.min.x, b.max.y, b.min.z),
@@ -1949,19 +2206,6 @@ function getLogoScreenCorners(d) {
   // 2) Fallback teoritikal
   if (screenPts.length < 4) {
     getLogoCornersTheoretical(d).forEach(c => screenPts.push(worldToScreen(c)));
-  }
-
-  // 3) Canvas graphic / BG
-  if (screenPts.length < 4 && (d.userData.isBg || d.userData.isCanvasGraphic)) {
-    const box = new THREE.Box3().setFromObject(d);
-    if (!box.isEmpty()) {
-      [
-        new THREE.Vector3(box.min.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.min.y, box.min.z),
-        new THREE.Vector3(box.min.x, box.min.y, box.min.z)
-      ].forEach(c => screenPts.push(worldToScreen(c)));
-    }
   }
 
   return screenPts;
@@ -2055,7 +2299,7 @@ window.addEventListener('pointermove', e => {
       -((e.clientY - rect.top) / rect.height) * 2 + 1
     );
     raycaster.setFromCamera(ndc, camera);
-    if (!activeDummy.userData.isCanvasGraphic && !activeDummy.userData.isBg) {
+    if (!activeDummy.userData.isCanvasGraphic) {
       const hits = raycaster.intersectObjects(shirtMeshes, true);
       if (hits.length) {
         const hit = hits[0];
@@ -2088,10 +2332,7 @@ window.addEventListener('pointermove', e => {
     let ns = Math.max(0.12, Math.min(ftStartScale * (dist / startDist), 8));
     document.getElementById('propScale').value = ns;
     document.getElementById('propScaleValue').textContent = ns.toFixed(2);
-    if (activeDummy.userData.isBg) {
-      const a = activeDummy.userData.aspect || 1;
-      activeDummy.scale.set(ns, ns / a, 1);
-    } else if (activeDummy.userData.isCanvasGraphic) {
+    if (activeDummy.userData.isCanvasGraphic) {
       activeDummy.scale.set(ns, ns / (activeDummy.userData.aspect || 1), 1);
     } else {
       activeDummy.scale.setScalar(ns);
@@ -2102,7 +2343,7 @@ window.addEventListener('pointermove', e => {
   }
 
   // --- ROTATE: handle bulat ---
-  if (ftDragging === 'rotate' && !activeDummy.userData.isBg) {
+  if (ftDragging === 'rotate') {
     const ang = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
     const delta = ang - ftStartAngle;
     activeDummy.quaternion.multiplyQuaternions(
@@ -2249,98 +2490,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
 }
 
-// ===== BACKGROUND =====
-function applySolidBackground() {
-  if (isTransparentBg) {
-    scene.background = null;
-    renderer.setClearColor(0x000000, 0);
-    container.style.background = 'transparent';
-  } else {
-    scene.background = new THREE.Color(currentBgColor);
-    renderer.setClearColor(currentBgColor, 1);
-    container.style.background = currentBgColor;
-  }
-  updateBgOverlaysVisibility();
-}
-function createBgPlane(img, aspect) {
-  if (bgPlane) {
-    scene.remove(bgPlane);
-    bgPlane.material.map?.dispose();
-    bgPlane.material.dispose();
-    bgPlane.geometry.dispose();
-    document.getElementById(bgPlane.userData.layerId)?.remove();
-    layers = layers.filter(l => l !== bgPlane);
-  }
-  bgImageSource = img;
-  const tex = processBgImage(img);
-  const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: bgOpacity, depthWrite: false, side: THREE.DoubleSide });
-  bgPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
-  bgPlane.position.set(0, 0, -6);
-  bgPlane.scale.set(12, 12 / aspect, 1);
-  bgPlane.renderOrder = -10;
-  bgPlane.userData = { isBg: true, aspect, opacity: bgOpacity, visible: true, locked: false };
-  scene.add(bgPlane);
-  layers.push(bgPlane);
-  addDesignLayer(bgPlane, 'Latar Imej', '🖼️', true);
-  bgImagePanel.style.display = 'block';
-  applyFillMode(bgFillMode);
-}
-function clearBgImage() {
-  if (!bgPlane) return;
-  scene.remove(bgPlane); bgPlane.material.map?.dispose(); bgPlane.material.dispose(); bgPlane.geometry.dispose();
-  document.getElementById(bgPlane.userData.layerId)?.remove();
-  layers = layers.filter(l => l !== bgPlane);
-  bgPlane = null;
-  bgImageSource = null;
-  bgImagePanel.style.display = 'none';
-  transformControls.detach(); activeDummy = null;
-  gizmoControlsUI.classList.remove('active'); propertiesPanel.classList.remove('active');
-  applySolidBackground(); pushHistory();
-}
-function applyFillMode(mode) {
-  if (!bgPlane) return;
-  bgFillMode = mode;
-  document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-  const a = bgPlane.userData.aspect || 1;
-  if (mode === 'stretch') bgPlane.scale.set(16, 16 / a, 1);
-  else if (mode === 'cover') bgPlane.scale.set(20, 20 / a, 1);
-  else if (mode === 'contain') bgPlane.scale.set(10, 10 / a, 1);
-  bgPlane.position.set(0, 0, -6);
-  document.getElementById('bgScaleSlider').value = bgPlane.scale.x;
-  document.getElementById('bgScaleValue').textContent = bgPlane.scale.x.toFixed(2);
-}
-document.getElementById('bgColor').oninput = e => { currentBgColor = e.target.value; if (!bgPlane) applySolidBackground(); };
-document.getElementById('bgColor').onchange = () => pushHistory();
-document.getElementById('bgImageUpload').onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => {
-    const img = new Image();
-    img.onload = () => {
-      isTransparentBg = false; document.getElementById('toggleTransparent').classList.remove('active');
-      applySolidBackground(); createBgPlane(img, img.width / img.height); pushHistory();
-    };
-    img.src = ev.target.result;
-  };
-  r.readAsDataURL(f); e.target.value = '';
-};
-document.getElementById('btnClearBgImage').onclick = clearBgImage;
-document.getElementById('toggleTransparent').onclick = function () {
-  isTransparentBg = !isTransparentBg; this.classList.toggle('active', isTransparentBg);
-  applySolidBackground(); pushHistory();
-};
-document.getElementById('bgOpacitySlider').oninput = e => {
-  bgOpacity = +e.target.value; document.getElementById('bgOpacityValue').textContent = bgOpacity.toFixed(2);
-  if (bgPlane) bgPlane.material.opacity = bgOpacity;
-};
-document.getElementById('bgOpacitySlider').onchange = () => pushHistory();
-document.getElementById('bgScaleSlider').oninput = e => {
-  const s = +e.target.value; document.getElementById('bgScaleValue').textContent = s.toFixed(2);
-  if (bgPlane) { const a = bgPlane.userData.aspect || 1; bgPlane.scale.set(s, s / a, 1); }
-};
-document.getElementById('bgScaleSlider').onchange = () => pushHistory();
-document.querySelectorAll('.fill-btn[data-mode]').forEach(b => b.onclick = () => { applyFillMode(b.dataset.mode); pushHistory(); });
-
 // ===== LIGHT =====
 document.getElementById('ambientSlider').oninput = e => { ambientLight.intensity = +e.target.value; document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2); };
 document.getElementById('ambientSlider').onchange = () => pushHistory();
@@ -2355,7 +2504,7 @@ document.getElementById('shadowSlider').onchange = () => pushHistory();
 // ===== PROJECT =====
 async function getStateForSave() {
   const processed = [];
-  for (const d of layers.filter(l => !l.userData.isBg)) {
+  for (const d of layers) {
     let dataURL = d.userData.dataURL;
     if (dataURL) dataURL = await resizeDataURL(dataURL, 900);
     processed.push({
@@ -2371,10 +2520,11 @@ async function getStateForSave() {
     });
   }
   return {
-    color: currentShirtColor, bgColor: currentBgColor, isTransparentBg,
+    color: currentShirtColor,
+    isTransparentBg,
+    bg: { ...bg },
+    bgImage: bgImageDataURL ? { dataURL: bgImageDataURL } : null,
     ambient: ambientLight.intensity, directional: mainLight.intensity, shadow: mainLight.shadow.intensity,
-    bgOpacity, bgFillMode,
-    bgEffects: { ...bgEffects },
     outputRatio,
     modelUrl: currentModelUrl,
     layers: processed
@@ -2436,8 +2586,7 @@ document.getElementById('btnSaveProject').onclick = async () => {
     thumbCanvas.width = 320;
     thumbCanvas.height = Math.round(320 * (cropRect.h / cropRect.w));
     const tctx = thumbCanvas.getContext('2d');
-    tctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, thumbCanvas.width, thumbCanvas.height);
-    drawBgEffectsOnCanvas(tctx, thumbCanvas.width, thumbCanvas.height);
+    drawCropped(tctx, thumbCanvas.width, thumbCanvas.height);
     const thumb = thumbCanvas.toDataURL('image/jpeg', 0.4);
     transformHelper.visible = true;
     let project = currentProjectId != null
@@ -2487,7 +2636,7 @@ document.getElementById('importProjectFile').onchange = e => {
   reader.readAsText(file);
   e.target.value = '';
 };
-document.getElementById('btnNewProject').onclick = () => {
+document.getElementById('btnNewProject').onclick = async () => {
   if (!confirm('Buat project baru? Design semasa akan dikosongkan.')) return;
   clearAllLayers();
   currentProjectId = null; currentProjectName = 'Design Baru';
@@ -2495,10 +2644,11 @@ document.getElementById('btnNewProject').onclick = () => {
   currentShirtColor = '#ffffff';
   shirtMaterials.forEach(m => m.color.set(0xffffff));
   document.getElementById('customColor').value = '#ffffff';
-  bgEffects = defaultBgEffects();
-  updateBgEffectsUI();
-  updateBgOverlayStyles();
-  applySolidBackground();
+  bg = defaultBg();
+  isTransparentBg = false;
+  await loadBgImageFromDataURL(null);
+  syncBgUI();
+  markBgDirty();
   history = []; historyIndex = -1;
   pushHistory();
   loadProjectList();
@@ -2518,7 +2668,6 @@ async function pushHistory() {
 }
 function clearAllLayers() {
   [...layers].forEach(d => {
-    if (d.userData.isBg) return;
     if (d.userData.isCanvasGraphic) {
       canvasGroup.remove(d);
       d.geometry?.dispose?.();
@@ -2529,10 +2678,10 @@ function clearAllLayers() {
       shirtGroup.remove(d);
     }
   });
-  layers = layers.filter(l => l.userData.isBg);
+  layers = [];
   logoCount = 0;
   [...layerListUI.children].forEach(el => {
-    if (el.id !== 'layer-base' && !el.querySelector('.layer-name')?.textContent.includes('Latar')) el.remove();
+    if (el.id !== 'layer-base') el.remove();
   });
 }
 async function restoreState(state) {
@@ -2558,16 +2707,34 @@ async function restoreState(state) {
   currentShirtColor = state.color || '#ffffff';
   shirtMaterials.forEach(m => m.color.set(currentShirtColor));
   document.getElementById('customColor').value = currentShirtColor;
-  currentBgColor = state.bgColor || '#09090b';
-  document.getElementById('bgColor').value = currentBgColor;
   isTransparentBg = !!state.isTransparentBg;
-  document.getElementById('toggleTransparent').classList.toggle('active', isTransparentBg);
   outputRatio = state.outputRatio || 'auto';
   document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === outputRatio));
   updateCropFrame();
-  bgEffects = { ...defaultBgEffects(), ...(state.bgEffects || {}) };
-  updateBgEffectsUI();
-  updateBgOverlayStyles();
+
+  // ---- Latar belakang ----
+  if (state.bg) {
+    bg = { ...defaultBg(), ...state.bg };
+  } else {
+    // migrasi project lama
+    const e = state.bgEffects || {};
+    bg = defaultBg();
+    bg.color = state.bgColor || '#09090b';
+    bg.vignette = e.vignette || 0;
+    bg.shadowOpacity = e.shadowBg || 0;
+    bg.overlayColor = e.gradientColor || '#000000';
+    bg.overlayOpacity = e.gradientOpacity || 0;
+    bg.imgBlur = e.blur || 0;
+    bg.imgBrightness = e.brightness ?? 100;
+    bg.imgContrast = e.contrast ?? 100;
+    bg.imgSaturation = e.saturation ?? 100;
+    bg.imgOpacity = state.bgOpacity ?? 1;
+    bg.imgMode = state.bgFillMode || 'cover';
+  }
+  await loadBgImageFromDataURL(state.bgImage?.dataURL || null);
+  syncBgUI();
+  markBgDirty();
+
   ambientLight.intensity = state.ambient ?? 0.5;
   mainLight.intensity = state.directional ?? 2;
   mainLight.shadow.intensity = state.shadow ?? 1;
@@ -2578,9 +2745,7 @@ async function restoreState(state) {
   document.getElementById('ambientValue').textContent = ambientLight.intensity.toFixed(2);
   document.getElementById('dirValue').textContent = mainLight.intensity.toFixed(2);
   document.getElementById('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
-  bgOpacity = state.bgOpacity ?? 1;
-  bgFillMode = state.bgFillMode || 'stretch';
-  applySolidBackground();
+
   for (const ldata of (state.layers || [])) {
     if (!ldata.dataURL) continue;
     await new Promise(resolve => {
@@ -2682,10 +2847,7 @@ function captureImage(view = 'current') {
   camera.setViewOffset(container.clientWidth, container.clientHeight, cropRect.x, cropRect.y, cropRect.w, cropRect.h);
   camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
-  layers.forEach(d => {
-    if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
-    else if (d.userData.isCanvasGraphic) createDecalNow(d);
-  });
+  layers.forEach(d => createDecalNow(d));
   function renderAndExtract(posX, posY, posZ) {
     camera.position.set(posX, posY, posZ);
     controls.target.set(0, 0.05, 0);
@@ -2694,8 +2856,8 @@ function captureImage(view = 'current') {
     const c = document.createElement('canvas');
     c.width = outW; c.height = outH;
     const ctx = c.getContext('2d');
-    ctx.drawImage(renderer.domElement, 0, 0);
-    drawBgEffectsOnCanvas(ctx, outW, outH);
+    // Latar tetap (bawah) + baju 3D + kesan atas
+    composeFrame(ctx, outW, outH, renderer.domElement, 0, 0, renderer.domElement.width, renderer.domElement.height);
     return c;
   }
   if (view === 'all') {
@@ -2733,7 +2895,9 @@ function captureImage(view = 'current') {
   renderer.setSize(oldSize.x, oldSize.y, false);
   transformHelper.visible = true;
   controls.enabled = true;
-  layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
+  layers.forEach(d => createDecalNow(d));
+  bgCache.clear(); // bebaskan memori lapisan resolusi tinggi
+  scheduleBgRender();
   if (currentMode === 'free' && activeDummy) showFreeTransform();
   controls.update();
   renderer.render(scene, camera);
@@ -2792,7 +2956,7 @@ async function startVideoRecord() {
   if (isRecording) return;
   isExporting = true;
   transformHelper.visible = false; hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
-  layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
+  layers.forEach(d => createDecalNow(d));
   let targetRes = recordQuality === 0 ? 1080 : 1920;
   let scale = targetRes / Math.max(cropRect.w, cropRect.h);
   let recW = Math.round(cropRect.w * scale);
@@ -2808,11 +2972,11 @@ async function startVideoRecord() {
   renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   camera.aspect = tw / th; camera.updateProjectionMatrix();
   camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
+  // Papar bingkai pemanas (bg di-cache sekali, sangat laju)
   for (let i = 0; i < 8; i++) {
     renderer.clear(); renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
-    rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
-    drawBgEffectsOnCanvas(rctx, recW, recH);
+    drawCropped(rctx, recW, recH);
   }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   const stream = recordCanvas.captureStream(60);
@@ -2826,7 +2990,7 @@ async function startVideoRecord() {
     a.href = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
     a.download = `design-portrait-${Date.now()}.webm`; a.click();
     isExporting = false;
-    layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
+    layers.forEach(d => createDecalNow(d));
     renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
     camera.aspect = oldSize.x / oldSize.y; camera.updateProjectionMatrix();
     transformHelper.visible = true; controls.enabled = true;
@@ -2834,6 +2998,7 @@ async function startVideoRecord() {
     btnRenderVideo.classList.remove('recording'); btnRenderVideo.textContent = '🎥 Render Video';
     recordingOverlay.classList.remove('active'); shirtGroup.rotation.y = 0;
     floatingControls.style.display = 'none';
+    bgCache.clear(); scheduleBgRender();
   };
   isRecording = true; isPaused = false;
   btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
@@ -2853,8 +3018,7 @@ async function startVideoRecord() {
     }
     renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
-    rctx.drawImage(renderer.domElement, cropRect.x, cropRect.y, cropRect.w, cropRect.h, 0, 0, recW, recH);
-    drawBgEffectsOnCanvas(rctx, recW, recH);
+    drawCropped(rctx, recW, recH); // latar kekal tetap, hanya baju berputar
     if (currentP >= 1) {
       setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
     } else {
@@ -2925,11 +3089,11 @@ window.addEventListener('keydown', e => {
     if (e.key === 'y') { e.preventDefault(); redo(); }
     if (e.key === 's') { e.preventDefault(); document.getElementById('btnSaveProject').click(); }
     if (e.key === 't') { e.preventDefault(); if (activeDummy) setMode('free'); }
-    if (e.key === 'd') { e.preventDefault(); if (activeDummy && !activeDummy.userData.isBg) document.getElementById('btnDuplicate').click(); }
+    if (e.key === 'd') { e.preventDefault(); if (activeDummy) document.getElementById('btnDuplicate').click(); }
     return;
   }
   if (isEditing) return;
-  if ((e.key === 'Delete' || e.key === 'Backspace') && activeDummy && !activeDummy.userData.isBg) {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && activeDummy) {
     e.preventDefault();
     const el = document.getElementById(activeDummy.userData.layerId);
     if (el) deleteLayer(activeDummy, el);
@@ -2956,10 +3120,9 @@ window.addEventListener('resize', () => {
   camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
   updateCropFrame();
 });
-updateBgOverlayStyles();
-updateBgEffectsUI();
-applySolidBackground();
+syncBgUI();
 updateCropFrame();
+markBgDirty();
 </script>
 </body>
 </html>
