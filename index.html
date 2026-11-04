@@ -1836,7 +1836,16 @@ function showFreeTransform() {
 }
 function hideFreeTransform() { ftEl.classList.remove('active'); ftDragging = null; }
 
-function getLogoCorners(d) {
+function worldToScreen(p) {
+  const v = p.clone().project(camera);
+  return new THREE.Vector2(
+    (v.x * 0.5 + 0.5) * container.clientWidth,
+    (-v.y * 0.5 + 0.5) * container.clientHeight
+  );
+}
+
+// Sudut teoritikal (fallback)
+function getLogoCornersTheoretical(d) {
   if (d.userData.isBg || d.userData.isCanvasGraphic) {
     const b = new THREE.Box3().setFromObject(d);
     return [
@@ -1847,9 +1856,11 @@ function getLogoCorners(d) {
     ];
   }
   const base = isOnSleeve(d) ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-  const aspect = getDecalAspect(d);
-  const hw = base * d.scale.x * 0.5;
-  const hh = (base / aspect) * d.scale.y * 0.5;
+  const aspect = Math.max(0.05, getDecalAspect(d));
+  // Guna scale.x untuk lebar, scale.y untuk tinggi (jika seragam, sama)
+  const sx = d.scale.x, sy = d.scale.y || sx;
+  const hw = base * sx * 0.5;
+  const hh = (base / aspect) * sy * 0.5;
   const cs = [
     new THREE.Vector3(-hw, hh, 0),
     new THREE.Vector3(hw, hh, 0),
@@ -1859,24 +1870,96 @@ function getLogoCorners(d) {
   d.updateMatrixWorld(true);
   return cs.map(c => c.applyMatrix4(d.matrixWorld));
 }
-function worldToScreen(p) {
-  const v = p.clone().project(camera);
-  return new THREE.Vector2(
-    (v.x * 0.5 + 0.5) * container.clientWidth,
-    (-v.y * 0.5 + 0.5) * container.clientHeight
-  );
+
+// Petak ikut mesh sebenar yang dipaparkan (fit tepat dengan logo)
+function getLogoScreenCorners(d) {
+  const screenPts = [];
+
+  // 1) Dari decal mesh sebenar (paling tepat)
+  const decals = (d.userData.decals || []).filter(m => m && m.visible !== false);
+  if (decals.length) {
+    const tmp = new THREE.Vector3();
+    decals.forEach(m => {
+      m.updateMatrixWorld(true);
+      const pos = m.geometry && m.geometry.attributes && m.geometry.attributes.position;
+      if (pos && pos.count > 0) {
+        // Sampel vertex (max ~48) supaya laju
+        const step = Math.max(1, Math.floor(pos.count / 48));
+        for (let i = 0; i < pos.count; i += step) {
+          tmp.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld);
+          screenPts.push(worldToScreen(tmp));
+        }
+      } else {
+        const box = new THREE.Box3().setFromObject(m);
+        if (!box.isEmpty()) {
+          const corners = [
+            new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+            new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+            new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+            new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+            new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+            new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+            new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+            new THREE.Vector3(box.max.x, box.max.y, box.max.z)
+          ];
+          corners.forEach(c => screenPts.push(worldToScreen(c)));
+        }
+      }
+    });
+  }
+
+  // 2) Fallback teoritikal
+  if (screenPts.length < 4) {
+    getLogoCornersTheoretical(d).forEach(c => screenPts.push(worldToScreen(c)));
+  }
+
+  // 3) Canvas graphic / BG
+  if (screenPts.length < 4 && (d.userData.isBg || d.userData.isCanvasGraphic)) {
+    const box = new THREE.Box3().setFromObject(d);
+    if (!box.isEmpty()) {
+      [
+        new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+        new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+        new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+        new THREE.Vector3(box.min.x, box.min.y, box.min.z)
+      ].forEach(c => screenPts.push(worldToScreen(c)));
+    }
+  }
+
+  return screenPts;
 }
+
 function updateFreeTransformHandles() {
   if (!activeDummy || currentMode !== 'free') return;
-  const sc = getLogoCorners(activeDummy).map(worldToScreen);
+  const sc = getLogoScreenCorners(activeDummy);
+  if (!sc.length) return;
+
   const xs = sc.map(p => p.x), ys = sc.map(p => p.y);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  let minX = Math.min(...xs), maxX = Math.max(...xs);
+  let minY = Math.min(...ys), maxY = Math.max(...ys);
+
+  // Padding kecil supaya handle tak potong tepi logo
+  const pad = 2;
+  minX -= pad; maxX += pad; minY -= pad; maxY += pad;
+
+  // Elak petak sifar
+  if (maxX - minX < 8) { const c = (minX + maxX) / 2; minX = c - 4; maxX = c + 4; }
+  if (maxY - minY < 8) { const c = (minY + maxY) / 2; minY = c - 4; maxY = c + 4; }
+
   ftBox.style.cssText = `left:${minX}px;top:${minY}px;width:${maxX - minX}px;height:${maxY - minY}px;cursor:move;pointer-events:auto`;
-  ['nw', 'ne', 'se', 'sw'].forEach((k, i) => {
+
+  // Handle di 4 sudut petak skrin (bukan sudut 3D) — lebih stabil
+  const corners = [
+    { k: 'nw', x: minX, y: minY },
+    { k: 'ne', x: maxX, y: minY },
+    { k: 'se', x: maxX, y: maxY },
+    { k: 'sw', x: minX, y: maxY }
+  ];
+  corners.forEach(({ k, x, y }) => {
     const h = ftEl.querySelector(`.ft-handle.${k}`);
-    if (h) { h.style.left = sc[i].x + 'px'; h.style.top = sc[i].y + 'px'; }
+    if (h) { h.style.left = x + 'px'; h.style.top = y + 'px'; }
   });
+
   const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
   ftCenterScreen.set(cx, cy);
   ftRotateHandle.style.left = cx + 'px';
