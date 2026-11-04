@@ -108,30 +108,17 @@
     #sidebar-right{width:300px;background:#18181b;border-left:1px solid #27272a;display:flex;flex-direction:column}
     #layers-header{padding:16px 16px 10px;border-bottom:1px solid #27272a}
     #layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
-    #layers-list{flex:1;overflow-y:auto;max-height:45%; padding:10px}
-    
-    /* ==== LAYER GROUPING STYLES ==== */
-    .layer-group { margin-bottom: 8px; border: 1px solid #3f3f46; border-radius: 6px; overflow: hidden; }
-    .group-header { background: #27272a; padding: 8px 12px; font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; color: #e4e4e7; }
-    .group-header:hover { background: #3f3f46; }
-    .group-header.active { border-left: 3px solid #10b981; background: rgba(16, 185, 129, 0.1); color: #10b981; }
-    .group-title { flex: 1; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    .group-header .arrow { transition: transform 0.2s; font-size: 10px; cursor: pointer; padding: 4px; }
-    .layer-group.collapsed .group-header .arrow { transform: rotate(-90deg); }
-    .group-items { padding: 4px; border-left: 2px solid #38bdf8; margin-left: 12px; display: flex; flex-direction: column; gap: 2px; }
-    .layer-group.collapsed .group-items { display: none; }
-    
-    .layer-item{padding:8px 10px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px;background:#1f1f23;margin-bottom:2px}
+    #layers-list{flex:1;overflow-y:auto;max-height:45%}
+    .layer-item{padding:10px 14px;border-bottom:1px solid #27272a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#d4d4d8;gap:6px}
     .layer-item:hover{background:#27272a}
-    .layer-item.active{background:rgba(56,189,248,.15);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
+    .layer-item.active{background:rgba(56,189,248,.1);border-left:3px solid #38bdf8;color:#38bdf8;font-weight:600}
     .layer-item.locked{opacity:.65}
     .layer-info{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
     .layer-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .layer-actions{display:flex;gap:4px;align-items:center}
-    .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7; color: white}
+    .layer-actions button{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;opacity:.7}
     .layer-actions button:hover{opacity:1}
     .layer-actions .vis.hidden{opacity:.35}
-    
     #properties-panel{border-top:1px solid #27272a;padding:14px 16px;overflow-y:auto;flex:1;display:none}
     #properties-panel.active{display:block}
     #properties-panel h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#a1a1aa;margin-bottom:12px}
@@ -150,33 +137,6 @@
     .fx-row input[type=color]{width:34px;height:30px;border:none;background:#1f1f23;border-radius:6px;cursor:pointer;padding:0;flex-shrink:0}
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
-
-    /* ==== CROP MODAL ==== */
-    #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    #crop-container { position: relative; display: inline-block; background: #000; }
-    #crop-image { display: block; max-width: 90vw; max-height: 80vh; }
-    
-    /* Kotak Crop */
-    #crop-box { position: absolute; border: 2px dashed #38bdf8; background: rgba(56,189,248,0.1); cursor: move; box-shadow: 0 0 0 9999px rgba(0,0,0,0.7); box-sizing: border-box; top: 0; left: 0; width: 100%; height: 100%; }
-    
-    /* Bucu (Corners) */
-    .crop-handle { position: absolute; width: 14px; height: 14px; background: #fff; border: 2px solid #38bdf8; border-radius: 50%; z-index: 10; }
-    .crop-handle.tl { top: -7px; left: -7px; cursor: nwse-resize; }
-    .crop-handle.tr { top: -7px; right: -7px; cursor: nesw-resize; }
-    .crop-handle.bl { bottom: -7px; left: -7px; cursor: nesw-resize; }
-    .crop-handle.br { bottom: -7px; right: -7px; cursor: nwse-resize; }
-    
-    /* Tepi (Edges) */
-    .crop-edge { position: absolute; z-index: 9; }
-    .crop-edge.top { top: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
-    .crop-edge.bottom { bottom: -4px; left: 14px; right: 14px; height: 8px; cursor: ns-resize; }
-    .crop-edge.left { top: 14px; bottom: 14px; left: -4px; width: 8px; cursor: ew-resize; }
-    .crop-edge.right { top: 14px; bottom: 14px; right: -4px; width: 8px; cursor: ew-resize; }
-
-    #crop-controls { margin-top: 20px; display: flex; gap: 10px; }
-    #crop-controls button { padding: 12px 24px; font-size: 14px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
-    #crop-save { background: #10b981; color: white; }
-    #crop-cancel { background: #dc2626; color: white; }
   </style>
 </head>
 <body>
@@ -199,18 +159,18 @@
       </div>
     </div>
 
+    <!-- ===== MODEL BAJU 3D DROPDOWN ===== -->
     <div class="accordion-item open">
-      <div class="accordion-header">Tambah Model 3D <span class="arrow">▼</span></div>
+      <div class="accordion-header">Model Baju 3D <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <select id="modelSelect" class="prop-input">
           <option value="./T_shirt_gltf.gltf">👕 Baju Asal (GLTF)</option>
           <option value="./baju_baru.glb">👕 Baju Baru (GLB)</option>
           <option value="./long_sleeve_t-_shirt.glb">🧥 Lengan Panjang (GLB)</option>
-          <option value="./short_sleeve_polo.glb">👔 Polo Shirt (GLB)</option>
+          <option value="./short_sleeve_polo.glb">👔 Polo Shirt (GLB)</option> <!-- PILIHAN BAHARU -->
         </select>
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="project-btn" id="btnAddModel" style="margin:0; background:#10b981">+ Tambah ke Canvas</button>
-          <button class="project-btn secondary" id="btnClearModels" style="margin:0; background:#dc2626; color:white">🗑️ Reset</button>
+        <div style="font-size:11px;color:#71717a;margin-top:8px;line-height:1.5">
+          Tukar model 3D. Design sedia ada akan dikekalkan automatik.
         </div>
       </div>
     </div>
@@ -221,7 +181,7 @@
         <div class="color-grid" id="colorGrid"></div>
         <div class="custom-color-wrapper">
           <input type="color" id="customColor" value="#ffffff">
-          <span>Warna Custom (Semua)</span>
+          <span>Warna Custom</span>
         </div>
       </div>
     </div>
@@ -354,7 +314,6 @@
         <div class="slider-row"><label><span>Kelajuan</span><span id="speedValue">1.0x</span></label><input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1"></div>
         <div class="slider-row"><label><span>Tempoh</span><span id="durationValue">6s</span></label><input type="range" id="durationSlider" min="4" max="12" step="1" value="6"></div>
         <div class="slider-row"><label><span>Kualiti</span><span id="qualityValue">720p Portrait</span></label><input type="range" id="qualitySlider" min="0" max="1" step="1" value="0"></div>
-        <div class="slider-row"><label><span>Zoom Out Frame</span><span id="renderZoomValue">1.2x</span></label><input type="range" id="renderZoomSlider" min="1" max="3" step="0.1" value="1.2"></div>
         <button class="preview-btn" id="btnPreview">▶ Mainkan Preview</button>
         <button class="video-btn" id="btnRenderVideo">🎥 Render Video</button>
       </div>
@@ -407,120 +366,69 @@
   </div>
 
   <div id="sidebar-right">
-    <div id="layers-header"><h2>Senarai Layer & Kumpulan</h2></div>
+    <div id="layers-header"><h2>Senarai Layer</h2></div>
     <div id="layers-list"></div>
     <div id="properties-panel">
-      <h3 id="propTitle">Properties</h3>
-      
-      <!-- Decal Properties -->
-      <div id="decalProps">
-        <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
-        <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
-        <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
-        <div class="prop-row" id="curveRow">
-          <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
-          <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
-          <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
-        </div>
-        <div class="align-row">
-          <button class="align-btn" id="btnAlignCenterX">Center X</button>
-          <button class="align-btn" id="btnAlignCenterY">Center Y</button>
-        </div>
-        <button class="small-btn" id="btnDuplicate" style="margin-top:10px">Duplicate Layer</button>
-        <div id="textProps" style="display:none;margin-top:12px">
-          <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
-          <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
-        </div>
-        
-        <div id="fxPanel" style="display:none">
-          <h3 style="margin-top:14px">Kesan Imej</h3>
-          <div class="fx-group">
-            <div class="fx-title">Brightness & Contrast</div>
-            <div class="fx-row">
-              <span class="fx-val" style="color:#a1a1aa;text-align:left">B</span>
-              <input type="range" id="fxBrightness" min="20" max="200" step="5" value="100">
-              <span class="fx-val" id="fxBrightnessValue">100%</span>
-            </div>
-            <div class="fx-row">
-              <span class="fx-val" style="color:#a1a1aa;text-align:left">C</span>
-              <input type="range" id="fxContrast" min="20" max="200" step="5" value="100">
-              <span class="fx-val" id="fxContrastValue">100%</span>
-            </div>
-          </div>
-          <div class="fx-group">
-            <div class="fx-title">Overlay Warna</div>
-            <div class="fx-row">
-              <input type="color" id="fxOverlayColor" value="#ff0000">
-              <input type="range" id="fxOverlayOpacity" min="0" max="100" step="1" value="0">
-              <span class="fx-val" id="fxOverlayOpacityValue">0%</span>
-            </div>
-          </div>
-          <div class="fx-group">
-            <div class="fx-title">Stroke</div>
-            <div class="fx-row">
-              <input type="color" id="fxStrokeColor" value="#000000">
-              <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
-              <span class="fx-val" id="fxStrokeWidthValue">0px</span>
-            </div>
-          </div>
-          <div class="fx-group">
-            <div class="fx-title">Drop Shadow</div>
-            <div class="fx-row">
-              <input type="color" id="fxShadowColor" value="#000000">
-              <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="0">
-              <span class="fx-val" id="fxShadowBlurValue">0px</span>
-            </div>
-            <div class="fx-row">
-              <span class="fx-val" style="color:#a1a1aa;text-align:left">X</span>
-              <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="0">
-              <span class="fx-val" id="fxShadowXValue">0</span>
-            </div>
-            <div class="fx-row">
-              <span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span>
-              <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="0">
-              <span class="fx-val" id="fxShadowYValue">0</span>
-            </div>
-          </div>
-          <button class="small-btn" id="fxReset">↺ Reset Kesan (0)</button>
-        </div>
+      <h3>Properties</h3>
+      <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
+      <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
+      <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
+      <div class="prop-row" id="curveRow">
+        <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
+        <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
+        <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
       </div>
-
-      <!-- Model Properties -->
-      <div id="modelProps" style="display:none; margin-top:12px;">
-        <div class="prop-row"><label>Warna Baju</label><input type="color" id="modelColor" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
-        <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
-        <div class="prop-row"><label>Contrast <span id="modelContrastValue">100</span>%</label><input type="range" id="modelContrast" min="20" max="200" step="5" value="100"></div>
-        
-        <button class="small-btn" id="btnMoveModel" style="background:#0ea5e9; color:white; margin-top:10px;">✥ Gerakkan Baju (Mouse)</button>
+      <div class="align-row">
+        <button class="align-btn" id="btnAlignCenterX">Center X</button>
+        <button class="align-btn" id="btnAlignCenterY">Center Y</button>
       </div>
-
+      <button class="small-btn" id="btnDuplicate" style="margin-top:10px">Duplicate Layer</button>
+      <div id="textProps" style="display:none;margin-top:12px">
+        <div class="prop-row"><label>Kandungan Teks</label><input type="text" id="propTextContent" class="prop-input"></div>
+        <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
+      </div>
+      <div id="fxPanel" style="display:none">
+        <h3 style="margin-top:14px">Kesan Imej</h3>
+        <div class="fx-group">
+          <div class="fx-title">Overlay Warna</div>
+          <div class="fx-row">
+            <input type="color" id="fxOverlayColor" value="#ff0000">
+            <input type="range" id="fxOverlayOpacity" min="0" max="100" step="1" value="0">
+            <span class="fx-val" id="fxOverlayOpacityValue">0%</span>
+          </div>
+        </div>
+        <div class="fx-group">
+          <div class="fx-title">Stroke (Silhouette Dilation)</div>
+          <div class="fx-row">
+            <input type="color" id="fxStrokeColor" value="#000000">
+            <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
+            <span class="fx-val" id="fxStrokeWidthValue">0px</span>
+          </div>
+        </div>
+        <div class="fx-group">
+          <div class="fx-title">Drop Shadow</div>
+          <div class="fx-row">
+            <input type="color" id="fxShadowColor" value="#000000">
+            <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="0">
+            <span class="fx-val" id="fxShadowBlurValue">0px</span>
+          </div>
+          <div class="fx-row">
+            <span class="fx-val" style="color:#a1a1aa;text-align:left">X</span>
+            <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="0">
+            <span class="fx-val" id="fxShadowXValue">0</span>
+          </div>
+          <div class="fx-row">
+            <span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span>
+            <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="0">
+            <span class="fx-val" id="fxShadowYValue">0</span>
+          </div>
+        </div>
+        <button class="small-btn" id="fxReset">↺ Reset Kesan (0)</button>
+      </div>
     </div>
   </div>
 </div>
 <div id="toast"></div>
-
-<!-- CROP MODAL -->
-<div id="crop-modal">
-  <div id="crop-container">
-    <canvas id="crop-image"></canvas>
-    <div id="crop-box">
-      <!-- Bucu -->
-      <div class="crop-handle tl" data-corner="tl"></div>
-      <div class="crop-handle tr" data-corner="tr"></div>
-      <div class="crop-handle bl" data-corner="bl"></div>
-      <div class="crop-handle br" data-corner="br"></div>
-      <!-- Tepi -->
-      <div class="crop-edge top" data-edge="top"></div>
-      <div class="crop-edge bottom" data-edge="bottom"></div>
-      <div class="crop-edge left" data-edge="left"></div>
-      <div class="crop-edge right" data-edge="right"></div>
-    </div>
-  </div>
-  <div id="crop-controls">
-    <button id="crop-save">✂️ Simpan Bahagian Ini</button>
-    <button id="crop-cancel">Batal</button>
-  </div>
-</div>
 
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.169.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.169.0/examples/jsm/"}}
@@ -542,7 +450,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 });
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v9';
+const DB_NAME = 'ProDesigner3D_v5';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -653,9 +561,9 @@ scene.add(ground);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.enablePan = true; 
+controls.enablePan = false;
 controls.minDistance = 1.5;
-controls.maxDistance = 20;
+controls.maxDistance = 10;
 
 const transformControls = new TransformControls(camera, renderer.domElement);
 transformControls.setMode('translate');
@@ -668,7 +576,7 @@ let isDragging = false;
 transformControls.addEventListener('dragging-changed', e => {
   controls.enabled = !e.value;
   isDragging = e.value;
-  if (!e.value && (activeDummy || activeModelContainer)) pushHistory();
+  if (!e.value && activeDummy) pushHistory();
 });
 
 // ===== STATE =====
@@ -676,15 +584,13 @@ const shirtGroup = new THREE.Group();
 const canvasGroup = new THREE.Group();
 scene.add(shirtGroup);
 scene.add(canvasGroup);
-
-let loadedModelContainers = [];
-let layerGroups = new Map();
-let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, activeModelContainer = null, logoCount = 0;
+let shirtMeshes = [], shirtMaterials = [], layers = [], activeDummy = null, logoCount = 0;
 let currentShirtColor = '#ffffff', currentMode = 'translate';
+let currentModelUrl = './T_shirt_gltf.gltf';
 let history = [], historyIndex = -1;
 let currentBgColor = '#09090b', isTransparentBg = false, bgPlane = null, bgFillMode = 'stretch', bgOpacity = 1;
 let isRecording = false, isPreviewing = false, isPaused = false, mediaRecorder = null, recordedChunks = [];
-let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null, renderZoom = 1.2;
+let recordDuration = 6, rotationSpeed = 1, recordQuality = 0, previewAnimationId = null;
 let currentProjectId = null, currentProjectName = 'Design Baru';
 let outputRatio = 'auto';
 let cropRect = { x: 0, y: 0, w: container.clientWidth, h: container.clientHeight };
@@ -721,7 +627,7 @@ const btnSnap = document.getElementById('btnSnap');
 
 // ===== KESAN IMEJ =====
 function defaultEffects() {
-  return { brightness: 100, contrast: 100, overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
+  return { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
 }
 function ensureEffects(dummy) {
   if (!dummy.userData.effects) dummy.userData.effects = defaultEffects();
@@ -863,7 +769,7 @@ function refreshBgImage() {
   }
 }
 
-// ===== MODEL MANAGEMENT =====
+// ===== MODEL =====
 function createFallbackShirt() {
   const g = new THREE.Group();
   const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide });
@@ -873,322 +779,97 @@ function createFallbackShirt() {
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.25, 16), m); neck.position.y = 1.05; neck.castShadow = true; g.add(neck);
   return g;
 }
-
-function applyModelColorAndEffects(container) {
-  const base = new THREE.Color(container.userData.baseColor || '#ffffff');
-  const b = (container.userData.brightness ?? 100) / 100;
-  const c = (container.userData.contrast ?? 100) / 100;
-  
-  base.r *= b;
-  base.g *= b;
-  base.b *= b;
-  
-  base.r = Math.max(0, Math.min(1, (base.r - 0.5) * c + 0.5));
-  base.g = Math.max(0, Math.min(1, (base.g - 0.5) * c + 0.5));
-  base.b = Math.max(0, Math.min(1, (base.b - 0.5) * c + 0.5));
-  
-  container.traverse(child => {
-    if (child.isMesh && child.material && !child.userData.isDecal) {
-      if (Array.isArray(child.material)) {
-        child.material.forEach(m => m.color.copy(base));
+function applyModelToScene(model) {
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  model.scale.setScalar(2.4 / maxDim);
+  model.updateMatrixWorld(true);
+  box.setFromObject(model);
+  model.position.sub(box.getCenter(new THREE.Vector3()));
+  model.updateMatrixWorld(true);
+  model.traverse(c => {
+    if (c.isMesh) {
+      c.castShadow = c.receiveShadow = true;
+      if (!c.material?.isMeshStandardMaterial) {
+        c.material = new THREE.MeshStandardMaterial({ color: currentShirtColor, roughness: 0.8, metalness: 0.1 });
       } else {
-        child.material.color.copy(base);
+        c.material.color.set(currentShirtColor);
+        c.material.roughness = 0.8;
+        c.material.metalness = 0.1;
       }
+      shirtMaterials.push(c.material);
+      shirtMeshes.push(c);
     }
   });
+  shirtGroup.add(model);
+  ground.position.y = box.min.y - 0.1;
 }
-
-function loadShirtModel(url, config = {}) {
-  return new Promise((resolve) => {
-    new GLTFLoader().load(url, (g) => {
-      const model = g.scene;
-      
-      const box = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      model.scale.setScalar(2.4 / maxDim);
-      model.updateMatrixWorld(true);
-      box.setFromObject(model);
-      model.position.sub(box.getCenter(new THREE.Vector3()));
-      model.updateMatrixWorld(true);
-
-      const container = new THREE.Group();
-      container.userData.modelUrl = url;
-      container.userData.baseColor = config.baseColor || currentShirtColor;
-      container.userData.brightness = config.brightness ?? 100;
-      container.userData.contrast = config.contrast ?? 100;
-      if (config.position) container.position.fromArray(config.position);
-      container.add(model);
-
-      model.traverse(c => {
-        if (c.isMesh) {
-          c.castShadow = c.receiveShadow = true;
-          if (!c.material?.isMeshStandardMaterial) {
-            c.material = new THREE.MeshStandardMaterial({ roughness: 0.8, metalness: 0.1 });
-          } else {
-            c.material.roughness = 0.8;
-            c.material.metalness = 0.1;
-          }
-          shirtMaterials.push(c.material);
-        }
-      });
-      
-      applyModelColorAndEffects(container);
-
-      if (!config.position) {
-        const xOffset = loadedModelContainers.length * 2.2;
-        container.position.set(xOffset, 0, 0);
-      }
-      
-      shirtGroup.add(container);
-      loadedModelContainers.push(container);
-      addModelGroup(container, url);
-
-      const newBox = new THREE.Box3().setFromObject(container);
-      ground.position.y = newBox.min.y - 0.1;
-
-      resolve();
-    }, undefined, () => {
-      const fallback = createFallbackShirt();
-      const container = new THREE.Group();
-      container.userData.modelUrl = url;
-      container.userData.baseColor = config.baseColor || currentShirtColor;
-      container.userData.brightness = config.brightness ?? 100;
-      container.userData.contrast = config.contrast ?? 100;
-      if (config.position) container.position.fromArray(config.position);
-      container.add(fallback);
-      fallback.traverse(c => { if(c.isMesh) shirtMaterials.push(c.material); });
-      applyModelColorAndEffects(container);
-      
-      if (!config.position) container.position.set(loadedModelContainers.length * 2.2, 0, 0);
-      shirtGroup.add(container);
-      loadedModelContainers.push(container);
-      addModelGroup(container, url);
-      resolve();
-    });
+function loadShirtModel(url) {
+  return new Promise(resolve => {
+    new GLTFLoader().load(
+      url,
+      g => { applyModelToScene(g.scene); resolve(); },
+      undefined,
+      () => { console.warn('Model gagal load, guna fallback:', url); applyModelToScene(createFallbackShirt()); resolve(); }
+    );
   });
 }
-
-function addModelGroup(container, url) {
-  const id = 'group-' + Date.now() + Math.random().toString(36).slice(2, 7);
-  container.userData.layerId = id;
-  
-  let name = 'Model 3D';
-  if (url.includes('long_sleeve')) name = 'Lengan Panjang';
-  else if (url.includes('polo')) name = 'Polo Shirt';
-  else if (url.includes('baju_baru')) name = 'Baju Baru';
-  else if (url.includes('T_shirt')) name = 'Baju Asal';
-
-  const groupEl = document.createElement('div');
-  groupEl.className = 'layer-group';
-  groupEl.id = id;
-  
-  const headerEl = document.createElement('div');
-  headerEl.className = 'group-header';
-  
-  const titleEl = document.createElement('div');
-  titleEl.className = 'group-title';
-  titleEl.innerHTML = `<span>👕 ${name}</span>`;
-  titleEl.onclick = (e) => {
-    e.stopPropagation();
-    selectModelGroup(container, groupEl);
-  };
-
-  const arrowEl = document.createElement('span');
-  arrowEl.className = 'arrow';
-  arrowEl.textContent = '▼';
-  arrowEl.onclick = (e) => {
-    e.stopPropagation();
-    groupEl.classList.toggle('collapsed');
-  };
-  
-  const actionsEl = document.createElement('div');
-  actionsEl.style.display = 'flex';
-  actionsEl.style.gap = '4px';
-  const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.textContent = '👁️'; bVis.style.background='none'; bVis.style.border='none'; bVis.style.cursor='pointer'; bVis.style.fontSize='13px';
-  const bDel = document.createElement('button'); bDel.className = 'del'; bDel.textContent = '✕'; bDel.style.background='none'; bDel.style.border='none'; bDel.style.cursor='pointer'; bDel.style.color='#ef4444'; bDel.style.fontSize='13px';
-  actionsEl.appendChild(bVis);
-  actionsEl.appendChild(bDel);
-  
-  headerEl.appendChild(titleEl);
-  headerEl.appendChild(actionsEl);
-  headerEl.appendChild(arrowEl);
-
-  const itemsEl = document.createElement('div');
-  itemsEl.className = 'group-items';
-  itemsEl.id = 'items-' + id;
-
-  groupEl.appendChild(headerEl);
-  groupEl.appendChild(itemsEl);
-  layerListUI.prepend(groupEl);
-  
-  layerGroups.set(id, { el: groupEl, items: itemsEl, header: headerEl });
-
-  bDel.onclick = (e) => {
-    e.stopPropagation();
-    if (confirm(`Padam kumpulan model ${name} ini?`)) {
-      shirtGroup.remove(container);
-      container.traverse?.(n => { n.geometry?.dispose?.(); });
-      loadedModelContainers = loadedModelContainers.filter(c => c !== container);
-      groupEl.remove();
-      layerGroups.delete(id);
-      
-      if (activeModelContainer === container) {
-        activeModelContainer = null;
-        document.getElementById('properties-panel').classList.remove('active');
-        document.getElementById('modelProps').style.display = 'none';
-      }
-      
-      layers.forEach(d => {
-        if (d.userData.targetContainer === container) {
-          const lEl = document.getElementById(d.userData.layerId);
-          if (lEl) deleteLayer(d, lEl);
-        }
-      });
-      fitCameraToModels();
-      pushHistory();
-    }
-  };
-  
-  bVis.onclick = (e) => {
-    e.stopPropagation();
-    container.visible = !container.visible;
-    bVis.textContent = container.visible ? '👁️' : '👁️‍🗨️';
-    layers.forEach(d => {
-        if (d.userData.targetContainer === container) {
-            if (d.userData.decals) d.userData.decals.forEach(m => m.visible = container.visible && d.userData.visible);
-            d.visible = container.visible && d.userData.visible;
-        }
-    });
-  };
-}
-
-function focusCameraOn(container) {
-  if (!container) return;
-  const box = new THREE.Box3().setFromObject(container);
-  const center = box.getCenter(new THREE.Vector3());
-  controls.target.copy(center);
-  const distance = 4.5;
-  camera.position.set(center.x, center.y, center.z + distance);
-  camera.updateProjectionMatrix();
-  controls.update();
-}
-
-function selectModelGroup(container, groupEl) {
-  transformControls.detach();
-  hideFreeTransform();
-  activeDummy = null;
-  gizmoControlsUI.classList.remove('active');
-  document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
-  
-  document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
-  const header = groupEl.querySelector('.group-header');
-  if (header) header.classList.add('active');
-
-  activeModelContainer = container;
-  propertiesPanel.classList.add('active');
-  
-  focusCameraOn(container);
-  
-  document.getElementById('decalProps').style.display = 'none';
-  document.getElementById('modelProps').style.display = 'block';
-  document.getElementById('propTitle').textContent = 'Model 3D Properties';
-
-  document.getElementById('modelColor').value = container.userData.baseColor || '#ffffff';
-  document.getElementById('modelBrightness').value = container.userData.brightness ?? 100;
-  document.getElementById('modelBrightnessValue').textContent = container.userData.brightness ?? 100;
-  document.getElementById('modelContrast').value = container.userData.contrast ?? 100;
-  document.getElementById('modelContrastValue').textContent = container.userData.contrast ?? 100;
-}
-
-document.getElementById('btnMoveModel').onclick = () => {
-  if (!activeModelContainer) return;
-  transformControls.attach(activeModelContainer);
-  transformControls.setMode('translate');
-  showToast('Gunakan anak panah untuk gerakkan baju');
-};
-
-function fitCameraToModels() {
-  if (loadedModelContainers.length === 0) {
-    camera.position.set(0, 0, 4.5);
-    controls.target.set(0, 0, 0);
-    controls.update();
-    return;
-  }
-  const box = new THREE.Box3().setFromObject(shirtGroup);
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-  
-  controls.target.copy(center);
-  const maxDim = Math.max(size.x, size.y);
-  const fov = camera.fov * (Math.PI / 180);
-  let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-  cameraZ *= 1.8;
-  
-  camera.position.set(center.x, center.y, center.z + cameraZ);
-  camera.updateProjectionMatrix();
-  controls.update();
-}
-
-function fitCameraForRender(zoomMult) {
-  if (loadedModelContainers.length === 0) return;
-  const box = new THREE.Box3().setFromObject(shirtGroup);
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-  
-  const maxDim = Math.max(size.x, size.y);
-  const fov = camera.fov * (Math.PI / 180);
-  let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-  cameraZ *= 1.2 * zoomMult;
-  
-  camera.position.set(center.x, center.y, center.z + cameraZ);
-  controls.target.copy(center);
-  camera.updateProjectionMatrix();
-}
-
-function clearAllModels() {
-  loadedModelContainers.forEach(c => {
-    shirtGroup.remove(c);
-    c.traverse?.(n => { n.geometry?.dispose?.(); });
-    document.getElementById(c.userData.layerId)?.remove();
-  });
-  loadedModelContainers = [];
-  shirtMeshes = [];
-  shirtMaterials = [];
-  layerGroups.clear();
-  ground.position.y = -1.2;
-  activeModelContainer = null;
-}
-
-document.getElementById('btnAddModel').onclick = async () => {
-  const url = document.getElementById('modelSelect').value;
-  showToast('Memuat model...');
-  await loadShirtModel(url);
-  fitCameraToModels();
-  pushHistory();
-  showToast('✅ Model ditambah');
-};
-
-document.getElementById('btnClearModels').onclick = () => {
-  if (!confirm('Buang semua model dan design?')) return;
-  clearAllModels();
-  clearAllLayers();
-  fitCameraToModels();
-  pushHistory();
-  showToast('Semua model dibuang');
-};
-
-async function setupInitialModel() {
-  await loadShirtModel('./T_shirt_gltf.gltf');
+function setupShirt(model) {
+  applyModelToScene(model);
   const loadingEl = document.getElementById('loading');
   if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
-  fitCameraToModels();
+  addBaseLayer();
   loadProjectList().then(loadLastProject);
   pushHistory();
 }
-setupInitialModel();
+async function switchShirtModelLive(url) {
+  if (url === currentModelUrl && shirtMeshes.length > 0) return;
+  layers.forEach(d => {
+    if (!d.userData.isBg && !d.userData.isCanvasGraphic) disposeDummyDecals(d);
+  });
+  const toRemove = shirtGroup.children.filter(c => !layers.includes(c));
+  toRemove.forEach(c => {
+    shirtGroup.remove(c);
+    c.traverse?.(n => { n.geometry?.dispose?.(); });
+  });
+  shirtMaterials.forEach(m => m.dispose?.());
+  shirtMeshes = [];
+  shirtMaterials = [];
+  currentModelUrl = url;
+  showToast('Memuat model baru...');
+  await loadShirtModel(url);
+  layers.forEach(d => {
+    if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
+  });
+  if (currentMode === 'free' && activeDummy) updateFreeTransformHandles();
+  pushHistory();
+  showToast('✅ Model baju ditukar');
+}
+document.getElementById('modelSelect').onchange = async e => {
+  const url = e.target.value;
+  if (url === currentModelUrl) return;
+  await switchShirtModelLive(url);
+};
+
+// Load awal
+new GLTFLoader().load('./T_shirt_gltf.gltf', g => setupShirt(g.scene), undefined, () => setupShirt(createFallbackShirt()));
 
 // ===== LAYERS =====
+function addBaseLayer() {
+  if (document.getElementById('layer-base')) return;
+  const el = document.createElement('div');
+  el.className = 'layer-item active'; el.id = 'layer-base';
+  el.innerHTML = `<div class="layer-info"><span>👕</span><span class="layer-name">Baju 3D (Asas)</span></div>`;
+  el.onclick = () => {
+    transformControls.detach(); activeDummy = null;
+    gizmoControlsUI.classList.remove('active'); hideFreeTransform();
+    propertiesPanel.classList.remove('active');
+    document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  };
+  layerListUI.appendChild(el);
+}
 function addDesignLayer(dummy, name, icon, isBg = false) {
   const id = 'layer-' + Date.now() + Math.random().toString(36).slice(2, 7);
   dummy.userData.layerId = id;
@@ -1200,7 +881,6 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.locked = false;
   dummy.userData.curve = dummy.userData.curve || 0;
   ensureEffects(dummy);
-  
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
   if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
@@ -1208,88 +888,27 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   const ic = document.createElement('span'); ic.textContent = icon;
   const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
   info.appendChild(ic); info.appendChild(nm);
-  
   const actions = document.createElement('div'); actions.className = 'layer-actions';
   const bVis = document.createElement('button'); bVis.className = 'vis'; bVis.title = 'Visibility'; bVis.textContent = '👁️';
   const bLock = document.createElement('button'); bLock.className = 'lock'; bLock.title = 'Lock'; bLock.textContent = '🔓';
-  
-  const bUp = document.createElement('button'); bUp.title = 'Naikkan'; bUp.textContent = '▲';
-  const bDown = document.createElement('button'); bDown.title = 'Turunkan'; bDown.textContent = '▼';
-  
   const bDel = document.createElement('button'); bDel.className = 'del'; bDel.title = 'Padam'; bDel.textContent = '✕';
-  
-  actions.appendChild(bUp); actions.appendChild(bDown);
   actions.appendChild(bVis); actions.appendChild(bLock); actions.appendChild(bDel);
-  
   el.appendChild(info); el.appendChild(actions);
   el.onclick = e => { if (e.target.closest('.layer-actions')) return; selectLayer(dummy, el); };
-  
   bDel.onclick = e => { e.stopPropagation(); if (isBg) clearBgImage(); else deleteLayer(dummy, el); };
   bVis.onclick = e => { e.stopPropagation(); toggleVisibility(dummy, el); };
   bLock.onclick = e => { e.stopPropagation(); toggleLock(dummy, el); };
-  
-  bUp.onclick = e => {
-    e.stopPropagation();
-    const prev = el.previousElementSibling;
-    if (prev) {
-      el.parentNode.insertBefore(el, prev);
-      updateLayerZIndex();
-      pushHistory();
-    }
-  };
-  
-  bDown.onclick = e => {
-    e.stopPropagation();
-    const next = el.nextElementSibling;
-    if (next) {
-      el.parentNode.insertBefore(next, el);
-      updateLayerZIndex();
-      pushHistory();
-    }
-  };
-  
-  if (dummy.userData.isCanvasGraphic) {
-    layerListUI.prepend(el); 
-  } else if (dummy.userData.targetContainer && layerGroups.has(dummy.userData.targetContainer.userData.layerId)) {
-    const groupItems = layerGroups.get(dummy.userData.targetContainer.userData.layerId).items;
-    groupItems.prepend(el);
-  } else {
-    layerListUI.prepend(el); 
-  }
-  
+  layerListUI.prepend(el);
   selectLayer(dummy, el);
 }
-
-function updateLayerZIndex() {
-  const domItems = document.querySelectorAll('#layers-list .layer-item');
-  let order = 100;
-  domItems.forEach(el => {
-    const dummy = layers.find(l => l.userData.layerId === el.id);
-    if (dummy) {
-      dummy.renderOrder = order--;
-      dummy.userData.decals?.forEach(d => d.renderOrder = order);
-    }
-  });
-}
-
 function selectLayer(dummy, el) {
   if (dummy.userData.locked) { showToast('Layer dikunci', true); return; }
-  
-  activeModelContainer = null;
-  transformControls.detach();
-  document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
-
   document.querySelectorAll('.layer-item').forEach(i => i.classList.remove('active'));
   el.classList.add('active');
   activeDummy = dummy;
   gizmoControlsUI.classList.add('active');
   propertiesPanel.classList.add('active');
   ensureEffects(dummy);
-  
-  document.getElementById('decalProps').style.display = 'block';
-  document.getElementById('modelProps').style.display = 'none';
-  document.getElementById('propTitle').textContent = 'Layer Properties';
-
   document.getElementById('propName').value = dummy.userData.name || '';
   document.getElementById('propScale').value = dummy.scale.x;
   document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
@@ -1317,16 +936,10 @@ function selectLayer(dummy, el) {
     fxPanel.style.display = 'block';
     updateFxUI(dummy);
   }
-  
-  if (dummy.userData.targetContainer) {
-    focusCameraOn(dummy.userData.targetContainer);
-  }
-
   transformControls.setSpace(dummy.userData.isBg ? 'world' : 'local');
   if (currentMode === 'free') { transformControls.detach(); showFreeTransform(); }
   else { hideFreeTransform(); transformControls.attach(dummy); transformControls.setMode(currentMode === 'scale' ? 'scale' : 'translate'); }
 }
-
 function toggleVisibility(dummy, el) {
   dummy.userData.visible = !dummy.userData.visible;
   const visBtn = el.querySelector('.vis');
@@ -1340,7 +953,6 @@ function toggleVisibility(dummy, el) {
     if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) dummy.visible = false;
   }
 }
-
 function toggleLock(dummy, el) {
   dummy.userData.locked = !dummy.userData.locked;
   const lockBtn = el.querySelector('.lock');
@@ -1353,7 +965,6 @@ function toggleLock(dummy, el) {
     }
   } else { lockBtn.textContent = '🔓'; el.classList.remove('locked'); }
 }
-
 function deleteLayer(dummy, el) {
   transformControls.detach(); hideFreeTransform(); propertiesPanel.classList.remove('active');
   if (dummy.userData.isCanvasGraphic) {
@@ -1363,7 +974,7 @@ function deleteLayer(dummy, el) {
   } else {
     disposeDummyDecals(dummy);
     disposeDummyTextures(dummy);
-    if (dummy.parent) dummy.parent.remove(dummy);
+    shirtGroup.remove(dummy);
   }
   el.remove();
   layers = layers.filter(l => l !== dummy);
@@ -1374,7 +985,7 @@ function deleteLayer(dummy, el) {
 function disposeDummyDecals(dummy) {
   if (!dummy.userData.decals) { dummy.userData.decals = []; return; }
   dummy.userData.decals.forEach(d => {
-    if (d.parent) d.parent.remove(d);
+    shirtGroup.remove(d);
     d.geometry?.dispose?.();
     d.material?.dispose?.();
   });
@@ -1406,10 +1017,7 @@ function applyLayerEffects(img, fx) {
   const bctx = base.getContext('2d');
   bctx.imageSmoothingEnabled = true;
   bctx.imageSmoothingQuality = 'high';
-  
-  bctx.filter = `brightness(${fx.brightness}%) contrast(${fx.contrast}%)`;
   bctx.drawImage(img, 0, 0, bw, bh);
-  
   const strokeW = Math.max(0, fx.strokeWidth || 0) * sc;
   const blur    = Math.max(0, fx.shadowBlur || 0) * sc;
   const offX    = (fx.shadowOffsetX || 0) * sc;
@@ -1522,7 +1130,7 @@ function getDecalAspect(dummy) {
   return dummy.userData.aspect || 1;
 }
 
-// Properties (Decal)
+// Properties
 document.getElementById('propName').onchange = e => {
   if (!activeDummy) return;
   activeDummy.userData.name = e.target.value;
@@ -1571,85 +1179,11 @@ document.getElementById('propCurve').onchange = () => pushHistory();
 document.getElementById('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 document.getElementById('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
-// Model Properties (Color, Brightness, Contrast)
-document.getElementById('modelColor').oninput = e => {
-  if (!activeModelContainer) return;
-  activeModelContainer.userData.baseColor = e.target.value;
-  applyModelColorAndEffects(activeModelContainer);
-  currentShirtColor = e.target.value;
-};
-document.getElementById('modelColor').onchange = () => pushHistory();
-
-document.getElementById('modelBrightness').oninput = e => {
-  if (!activeModelContainer) return;
-  activeModelContainer.userData.brightness = +e.target.value;
-  document.getElementById('modelBrightnessValue').textContent = e.target.value;
-  applyModelColorAndEffects(activeModelContainer);
-};
-document.getElementById('modelBrightness').onchange = () => pushHistory();
-
-document.getElementById('modelContrast').oninput = e => {
-  if (!activeModelContainer) return;
-  activeModelContainer.userData.contrast = +e.target.value;
-  document.getElementById('modelContrastValue').textContent = e.target.value;
-  applyModelColorAndEffects(activeModelContainer);
-};
-document.getElementById('modelContrast').onchange = () => pushHistory();
-
-// Global Color Grid
-['#ffffff','#171717','#64748b','#dc2626','#2563eb','#16a34a','#ca8a04','#9333ea'].forEach((hex, i) => {
-  const b = document.createElement('button');
-  b.className = 'color-btn' + (i === 0 ? ' active' : '');
-  b.style.background = hex;
-  b.onclick = () => {
-    document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active'); 
-    currentShirtColor = hex;
-    
-    if (activeModelContainer) {
-      activeModelContainer.userData.baseColor = hex;
-      applyModelColorAndEffects(activeModelContainer);
-      document.getElementById('modelColor').value = hex;
-    } else {
-      loadedModelContainers.forEach(c => {
-        c.userData.baseColor = hex;
-        applyModelColorAndEffects(c);
-      });
-    }
-    pushHistory();
-  };
-  document.getElementById('colorGrid').appendChild(b);
-});
-
-document.getElementById('customColor').oninput = e => {
-  document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
-  currentShirtColor = e.target.value; 
-  
-  if (activeModelContainer) {
-    activeModelContainer.userData.baseColor = e.target.value;
-    applyModelColorAndEffects(activeModelContainer);
-    document.getElementById('modelColor').value = e.target.value;
-  } else {
-    loadedModelContainers.forEach(c => {
-      c.userData.baseColor = e.target.value;
-      applyModelColorAndEffects(c);
-    });
-  }
-};
-document.getElementById('customColor').onchange = () => pushHistory();
-
-
-// FX UI (Decal)
+// FX UI
 function updateFxUI(dummy) {
   if (!dummy) return;
   const fx = ensureEffects(dummy);
   const g = id => document.getElementById(id);
-  
-  g('fxBrightness').value = fx.brightness;
-  g('fxBrightnessValue').textContent = fx.brightness + '%';
-  g('fxContrast').value = fx.contrast;
-  g('fxContrastValue').textContent = fx.contrast + '%';
-  
   g('fxOverlayColor').value = fx.overlayColor;
   g('fxOverlayOpacity').value = Math.round(fx.overlayOpacity * 100);
   g('fxOverlayOpacityValue').textContent = Math.round(fx.overlayOpacity * 100) + '%';
@@ -1671,17 +1205,6 @@ function fxOnInput(key, value) {
   scheduleDecal(activeDummy);
   if (currentMode === 'free') updateFreeTransformHandles();
 }
-document.getElementById('fxBrightness').oninput = e => {
-  document.getElementById('fxBrightnessValue').textContent = e.target.value + '%';
-  fxOnInput('brightness', +e.target.value);
-};
-document.getElementById('fxBrightness').onchange = () => pushHistory();
-document.getElementById('fxContrast').oninput = e => {
-  document.getElementById('fxContrastValue').textContent = e.target.value + '%';
-  fxOnInput('contrast', +e.target.value);
-};
-document.getElementById('fxContrast').onchange = () => pushHistory();
-
 document.getElementById('fxOverlayColor').oninput = e => fxOnInput('overlayColor', e.target.value);
 document.getElementById('fxOverlayColor').onchange = () => pushHistory();
 document.getElementById('fxOverlayOpacity').oninput = e => {
@@ -1783,11 +1306,7 @@ document.getElementById('bgResetBtn').onclick = () => {
 // Alignment
 document.getElementById('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
-  if (activeDummy.userData.targetContainer) {
-    activeDummy.position.x = 0;
-  } else {
-    activeDummy.position.x = 0;
-  }
+  activeDummy.position.x = 0;
   createDecalNow(activeDummy); pushHistory(); showToast('Center X');
 };
 document.getElementById('btnAlignCenterY').onclick = () => {
@@ -1826,20 +1345,12 @@ document.getElementById('btnDuplicate').onclick = () => {
       dataURL: src.userData.dataURL, textContent: src.userData.textContent,
       textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
       opacity: src.userData.opacity, visible: true, locked: false,
-      curve: src.userData.curve || 0, targetContainer: src.userData.targetContainer,
+      curve: src.userData.curve || 0,
       effects: { ...ensureEffects(src) }, decals: []
     };
-    
-    if (dummy.userData.targetContainer) {
-        dummy.userData.targetContainer.add(dummy);
-        dummy.position.copy(src.position); dummy.position.x += 0.12;
-        dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
-    } else {
-        shirtGroup.add(dummy);
-        dummy.position.copy(src.position); dummy.position.x += 0.12;
-        dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
-    }
-    
+    dummy.position.copy(src.position); dummy.position.x += 0.12;
+    dummy.quaternion.copy(src.quaternion); dummy.scale.copy(src.scale);
+    shirtGroup.add(dummy);
     createDecalNow(dummy);
     layers.push(dummy);
     logoCount++;
@@ -1889,10 +1400,7 @@ async function updateTextLayer(dummy) {
 // ===== DECAL SYSTEM =====
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
-
-function isOnSleeve(d) {
-  return Math.abs(d.position.x) > 0.34;
-}
+function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
 
 let decalQueuedDummy = null;
 let decalQueued = false;
@@ -1925,7 +1433,7 @@ function createDecalNow(dummy) {
     }
     return;
   }
-  if (loadedModelContainers.length === 0 || dummy.userData.isBg || !dummy.userData.texture) return;
+  if (!shirtMeshes.length || dummy.userData.isBg || !dummy.userData.texture) return;
   disposeDummyDecals(dummy);
   const curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
   if (curve > 0.01) createCurvedDecal(dummy, curve);
@@ -1943,31 +1451,19 @@ function createFlatDecal(dummy) {
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
   const size = new THREE.Vector3(w, h, depth);
-
-  let meshesToProject = [];
-  const target = dummy.userData.targetContainer;
-  if (target) {
-    target.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
-  }
-
-  meshesToProject.forEach(mesh => {
+  shirtMeshes.forEach(mesh => {
     try {
       const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
       if (geo.attributes.position?.count > 0) {
         const mat = new THREE.MeshStandardMaterial({
           map: tex, transparent: true, depthTest: true, depthWrite: false,
           polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
-          color: 0xffffff, // Set to pure white so the texture isn't tinted
           opacity: dummy.userData.opacity || 1
         });
         const m = new THREE.Mesh(geo, mat);
         m.renderOrder = 2;
         m.visible = dummy.userData.visible !== false;
-        m.userData.isDecal = true; // Tag as decal
-        
-        if (target) target.add(m);
-        else shirtGroup.add(m);
-        
+        shirtGroup.add(m);
         dummy.userData.decals.push(m);
       } else geo.dispose();
     } catch (e) {}
@@ -2005,8 +1501,7 @@ function createCurvedDecal(dummy, curve) {
   const mat = new THREE.MeshStandardMaterial({
     map: tex, transparent: true, depthTest: true, depthWrite: false,
     polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
-    roughness: 0.8, color: 0xffffff,
-    opacity: dummy.userData.opacity || 1,
+    roughness: 0.8, opacity: dummy.userData.opacity || 1,
     side: THREE.DoubleSide
   });
   const mesh = new THREE.Mesh(geo, mat);
@@ -2015,22 +1510,12 @@ function createCurvedDecal(dummy, curve) {
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
-  mesh.userData.isDecal = true; // Tag as decal
-  
-  if (dummy.userData.targetContainer) dummy.userData.targetContainer.add(mesh);
-  else shirtGroup.add(mesh);
-  
+  shirtGroup.add(mesh);
   dummy.userData.decals.push(mesh);
 }
 
 transformControls.addEventListener('objectChange', () => {
-  if (!activeDummy && !activeModelContainer) return;
-  
-  if (activeModelContainer) {
-    return; 
-  }
-
-  if (activeDummy.userData.locked) return;
+  if (!activeDummy || activeDummy.userData.locked) return;
   if (activeDummy.userData.isBg) {
     document.getElementById('bgScaleSlider').value = activeDummy.scale.x;
     document.getElementById('bgScaleValue').textContent = activeDummy.scale.x.toFixed(2);
@@ -2049,28 +1534,13 @@ transformControls.addEventListener('objectChange', () => {
       activeDummy.updateMatrixWorld();
       const worldPos = new THREE.Vector3().setFromMatrixPosition(activeDummy.matrixWorld);
       raycaster.set(camera.position, worldPos.clone().sub(camera.position).normalize());
-      const hits = raycaster.intersectObjects(loadedModelContainers, true);
+      const hits = raycaster.intersectObjects(shirtMeshes, true);
       if (hits.length) {
         const hit = hits[0];
-        let hitContainer = hit.object;
-        while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
-          hitContainer = hitContainer.parent;
-        }
-        
-        if (activeDummy.userData.targetContainer !== hitContainer) {
-          activeDummy.userData.targetContainer = hitContainer;
-          
-          const el = document.getElementById(activeDummy.userData.layerId);
-          if (el && layerGroups.has(hitContainer.userData.layerId)) {
-             layerGroups.get(hitContainer.userData.layerId).items.appendChild(el);
-          }
-        }
-        
-        activeDummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
-        
+        activeDummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
         if (isDragging) {
           const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-          const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
+          const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
           const up = new THREE.Vector3(0, 1, 0);
           let right = new THREE.Vector3().crossVectors(up, ln);
           if (right.lengthSq() < 0.001) right.set(1, 0, 0);
@@ -2262,36 +1732,23 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     opacity: 1, visible: true, locked: false, curve: 0,
     effects: defaultEffects(), decals: []
   };
-  
-  let hits = raycaster.intersectObjects(loadedModelContainers, true);
-  
-  if (hits.length === 0 && loadedModelContainers.length > 0) {
-    dummy.userData.targetContainer = loadedModelContainers[0];
-    dummy.userData.targetContainer.add(dummy);
-    dummy.position.set(0, 0.1, 0.4);
-  } else if (hits.length > 0) {
+  shirtGroup.add(dummy);
+  const ox = logoCount % 2 === 0 ? 0.12 : -0.12;
+  const oy = Math.floor(logoCount / 2) * -0.18;
+  raycaster.setFromCamera(new THREE.Vector2(ox, oy), camera);
+  const hits = raycaster.intersectObjects(shirtMeshes, true);
+  if (hits.length) {
     const hit = hits[0];
-    let hitContainer = hit.object;
-    while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
-      hitContainer = hitContainer.parent;
-    }
-    dummy.userData.targetContainer = hitContainer;
-    hitContainer.add(dummy);
-    dummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
-    
+    dummy.position.copy(shirtGroup.worldToLocal(hit.point.clone()));
     const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
+    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(shirtGroup.matrixWorld).invert()).normalize();
     const up = new THREE.Vector3(0, 1, 0);
     let right = new THREE.Vector3().crossVectors(up, ln);
     if (right.lengthSq() < 0.001) right.set(1, 0, 0);
     right.normalize();
     const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
-  } else {
-    shirtGroup.add(dummy);
-    dummy.position.set(0, 0.1, 0.4);
-  }
-  
+  } else dummy.position.set(0, 0.1, 0.4);
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
   logoCount++;
   createDecalNow(dummy);
@@ -2410,13 +1867,6 @@ async function getStateForSave() {
   for (const d of layers.filter(l => !l.userData.isBg)) {
     let dataURL = d.userData.dataURL;
     if (dataURL) dataURL = await resizeDataURL(dataURL, 900);
-    
-    let containerIdx = -1;
-    if (d.userData.targetContainer) {
-      containerIdx = loadedModelContainers.indexOf(d.userData.targetContainer);
-      if (containerIdx === -1) containerIdx = 0;
-    }
-    
     processed.push({
       position: d.position.toArray(), quaternion: d.quaternion.toArray(), scale: d.scale.toArray(),
       aspect: d.userData.aspect, isText: !!d.userData.isText, dataURL,
@@ -2426,7 +1876,6 @@ async function getStateForSave() {
       opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked,
       curve: d.userData.curve || 0,
       isCanvasGraphic: !!d.userData.isCanvasGraphic,
-      containerIndex: containerIdx,
       effects: { ...ensureEffects(d) }
     });
   }
@@ -2436,13 +1885,7 @@ async function getStateForSave() {
     bgOpacity, bgFillMode,
     bgEffects: { ...bgEffects },
     outputRatio,
-    models: loadedModelContainers.map(c => ({
-      url: c.userData.modelUrl,
-      baseColor: c.userData.baseColor || '#ffffff',
-      brightness: c.userData.brightness ?? 100,
-      contrast: c.userData.contrast ?? 100,
-      position: c.position.toArray()
-    })),
+    modelUrl: currentModelUrl,
     layers: processed
   };
 }
@@ -2553,22 +1996,18 @@ document.getElementById('importProjectFile').onchange = e => {
   reader.readAsText(file);
   e.target.value = '';
 };
-document.getElementById('btnNewProject').onclick = async () => {
+document.getElementById('btnNewProject').onclick = () => {
   if (!confirm('Buat project baru? Design semasa akan dikosongkan.')) return;
-  clearAllModels();
   clearAllLayers();
   currentProjectId = null; currentProjectName = 'Design Baru';
   document.getElementById('projectNameInput').value = 'Design Baru';
   currentShirtColor = '#ffffff';
+  shirtMaterials.forEach(m => m.color.set(0xffffff));
   document.getElementById('customColor').value = '#ffffff';
   bgEffects = defaultBgEffects();
   updateBgEffectsUI();
   updateBgOverlayStyles();
   applySolidBackground();
-  
-  await loadShirtModel('./T_shirt_gltf.gltf');
-  fitCameraToModels();
-  
   history = []; historyIndex = -1;
   pushHistory();
   loadProjectList();
@@ -2596,32 +2035,37 @@ function clearAllLayers() {
     } else {
       disposeDummyDecals(d);
       disposeDummyTextures(d);
-      if (d.parent) d.parent.remove(d);
+      shirtGroup.remove(d);
     }
   });
   layers = layers.filter(l => l.userData.isBg);
   logoCount = 0;
   [...layerListUI.children].forEach(el => {
-    if (!el.querySelector('.layer-name')?.textContent.includes('Latar') && !el.classList.contains('layer-group')) el.remove();
+    if (el.id !== 'layer-base' && !el.querySelector('.layer-name')?.textContent.includes('Latar')) el.remove();
   });
 }
 async function restoreState(state) {
   clearAllLayers();
   hideFreeTransform();
   propertiesPanel.classList.remove('active');
-  activeModelContainer = null;
 
-  clearAllModels();
-  
-  const modelsToLoad = state.models || (state.modelUrl ? [{url: state.modelUrl}] : [{url: './T_shirt_gltf.gltf'}]);
-  for (const m of modelsToLoad) {
-    const url = typeof m === 'string' ? m : m.url;
-    const config = typeof m === 'object' ? m : {};
-    await loadShirtModel(url, config);
+  const targetModelUrl = state.modelUrl || './T_shirt_gltf.gltf';
+  if (targetModelUrl !== currentModelUrl || shirtMeshes.length === 0) {
+    const toRemove = [...shirtGroup.children];
+    toRemove.forEach(c => {
+      shirtGroup.remove(c);
+      c.traverse?.(n => { n.geometry?.dispose?.(); });
+    });
+    shirtMaterials.forEach(m => m.dispose?.());
+    shirtMeshes = [];
+    shirtMaterials = [];
+    currentModelUrl = targetModelUrl;
+    await loadShirtModel(targetModelUrl);
   }
-  fitCameraToModels();
-  
+  document.getElementById('modelSelect').value = currentModelUrl;
+
   currentShirtColor = state.color || '#ffffff';
+  shirtMaterials.forEach(m => m.color.set(currentShirtColor));
   document.getElementById('customColor').value = currentShirtColor;
   currentBgColor = state.bgColor || '#09090b';
   document.getElementById('bgColor').value = currentBgColor;
@@ -2694,21 +2138,11 @@ async function restoreState(state) {
               effects: { ...defaultEffects(), ...(ldata.effects || {}) },
               decals: []
             };
-            
-            if (ldata.containerIndex !== undefined && loadedModelContainers[ldata.containerIndex]) {
-              dummy.userData.targetContainer = loadedModelContainers[ldata.containerIndex];
-              dummy.userData.targetContainer.add(dummy);
-            } else if (loadedModelContainers.length > 0) {
-              dummy.userData.targetContainer = loadedModelContainers[0];
-              dummy.userData.targetContainer.add(dummy);
-            } else {
-              shirtGroup.add(dummy);
-            }
-            
             dummy.position.fromArray(ldata.position || [0, 0, 0.4]);
             dummy.quaternion.fromArray(ldata.quaternion || [0, 0, 0, 1]);
             const s = Math.max(...(ldata.scale || [1, 1, 1]));
             dummy.scale.setScalar(Math.max(0.12, s));
+            shirtGroup.add(dummy);
             createDecalNow(dummy);
             layers.push(dummy);
             logoCount++;
@@ -2728,6 +2162,7 @@ async function restoreState(state) {
   }
   transformControls.detach(); activeDummy = null;
   gizmoControlsUI.classList.remove('active');
+  document.getElementById('layer-base')?.classList.add('active');
 }
 function undo() { if (historyIndex <= 0) return; historyIndex--; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
 function redo() { if (historyIndex >= history.length - 1) return; historyIndex++; restoreState(history[historyIndex]).then(updateUndoRedoButtons); }
@@ -2737,205 +2172,91 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
-// ===== IMAGE SAVE WITH CROP MODAL =====
-document.getElementById('saveBtn').onclick = () => {
+// ===== IMAGE SAVE =====
+function captureImage(view = 'current') {
   isExporting = true;
   transformHelper.visible = false;
   hideFreeTransform();
   controls.enabled = false;
-  
+  const origPos = camera.position.clone();
+  const origTarget = controls.target.clone();
   const oldSize = renderer.getSize(new THREE.Vector2());
   const oldPR = renderer.getPixelRatio();
-  
   const targetRes = 3840;
-  const scale = targetRes / Math.max(container.clientWidth, container.clientHeight);
-  const outW = Math.round(container.clientWidth * scale);
-  const outH = Math.round(container.clientHeight * scale);
-  
+  const scale = targetRes / Math.max(cropRect.w, cropRect.h);
+  const outW = Math.round(cropRect.w * scale);
+  const outH = Math.round(cropRect.h * scale);
   renderer.setPixelRatio(1);
   renderer.setSize(outW, outH, false);
+  camera.setViewOffset(container.clientWidth, container.clientHeight, cropRect.x, cropRect.y, cropRect.w, cropRect.h);
   camera.aspect = outW / outH;
   camera.updateProjectionMatrix();
-  
   layers.forEach(d => {
     if (!d.userData.isBg && !d.userData.isCanvasGraphic) createDecalNow(d);
     else if (d.userData.isCanvasGraphic) createDecalNow(d);
   });
-  
-  renderer.render(scene, camera);
-  const fullCanvas = document.createElement('canvas');
-  fullCanvas.width = outW; fullCanvas.height = outH;
-  const ctx = fullCanvas.getContext('2d');
-  ctx.drawImage(renderer.domElement, 0, 0);
-  drawBgEffectsOnCanvas(ctx, outW, outH);
-  
-  // Buka Crop Modal
-  const cropModal = document.getElementById('crop-modal');
-  const cropImage = document.getElementById('crop-image');
-  const cropBox = document.getElementById('crop-box');
-  
-  cropImage.width = outW;
-  cropImage.height = outH;
-  cropImage.getContext('2d').drawImage(fullCanvas, 0, 0);
-  
-  cropModal.style.display = 'flex';
-  
-  // Tunggu DOM selesai render, kemudian set saiz crop box
-  setTimeout(() => {
-    const imgRect = cropImage.getBoundingClientRect();
-    cropBox.style.left = '0px';
-    cropBox.style.top = '0px';
-    cropBox.style.width = imgRect.width + 'px';
-    cropBox.style.height = imgRect.height + 'px';
-  }, 50);
-  
-  // Revert size temporarily
+  function renderAndExtract(posX, posY, posZ) {
+    camera.position.set(posX, posY, posZ);
+    controls.target.set(0, 0.05, 0);
+    camera.lookAt(controls.target);
+    renderer.render(scene, camera);
+    const c = document.createElement('canvas');
+    c.width = outW; c.height = outH;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(renderer.domElement, 0, 0);
+    drawBgEffectsOnCanvas(ctx, outW, outH);
+    return c;
+  }
+  if (view === 'all') {
+    const gridCanvas = document.createElement('canvas');
+    gridCanvas.width = outW * 2;
+    gridCanvas.height = outH * 2;
+    const ctx = gridCanvas.getContext('2d');
+    ctx.drawImage(renderAndExtract(0, 0.15, 5.2), 0, 0);
+    ctx.drawImage(renderAndExtract(5.2, 0.15, 0), outW, 0);
+    ctx.drawImage(renderAndExtract(-5.2, 0.15, 0), 0, outH);
+    ctx.drawImage(renderAndExtract(0, 0.15, -5.2), outW, outH);
+    const a = document.createElement('a');
+    a.download = 'design-all-views.png';
+    a.href = gridCanvas.toDataURL('image/png');
+    a.click();
+  } else {
+    let px = origPos.x, py = origPos.y, pz = origPos.z;
+    if (view === 'front') { px = 0; py = 0.15; pz = 5.2; }
+    else if (view === 'back') { px = 0; py = 0.15; pz = -5.2; }
+    else if (view === 'left') { px = -5.2; py = 0.15; pz = 0; }
+    else if (view === 'right') { px = 5.2; py = 0.15; pz = 0; }
+    const c = renderAndExtract(px, py, pz);
+    const a = document.createElement('a');
+    a.download = `design-${view}.png`;
+    a.href = c.toDataURL('image/png');
+    a.click();
+  }
+  isExporting = false;
+  camera.clearViewOffset();
+  camera.position.copy(origPos);
+  controls.target.copy(origTarget);
   camera.aspect = oldSize.x / oldSize.y;
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(oldPR);
   renderer.setSize(oldSize.x, oldSize.y, false);
   transformHelper.visible = true;
   controls.enabled = true;
+  layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
+  if (currentMode === 'free' && activeDummy) showFreeTransform();
   controls.update();
   renderer.render(scene, camera);
-
-  // Simpan function for Crop
-  document.getElementById('crop-save').onclick = () => {
-    const imgRect = cropImage.getBoundingClientRect();
-    const boxRect = cropBox.getBoundingClientRect();
-    
-    const scaleX = outW / imgRect.width;
-    const scaleY = outH / imgRect.height;
-
-    const cropX = (boxRect.left - imgRect.left) * scaleX;
-    const cropY = (boxRect.top - imgRect.top) * scaleY;
-    const cropW = boxRect.width * scaleX;
-    const cropH = boxRect.height * scaleY;
-    
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = cropW;
-    finalCanvas.height = cropH;
-    const finalCtx = finalCanvas.getContext('2d');
-    finalCtx.drawImage(fullCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-    
-    const a = document.createElement('a');
-    a.download = `design-crop-${Date.now()}.png`;
-    a.href = finalCanvas.toDataURL('image/png');
-    a.click();
-    
-    cropModal.style.display = 'none';
-    isExporting = false;
-    layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
-    showToast('✅ Imej berjaya disimpan');
-  };
-  
-  document.getElementById('crop-cancel').onclick = () => {
-    cropModal.style.display = 'none';
-    isExporting = false;
-    layers.forEach(d => { if (!d.userData.isBg) createDecalNow(d); });
-  };
-};
-
-// Logik Drag Crop Box
-let cropMode = '';
-let cropStartX = 0, cropStartY = 0;
-let cropStartL = 0, cropStartT = 0;
-let cropStartW = 0, cropStartH = 0;
-let cropMaxW = 0, cropMaxH = 0;
-
-const cropBoxEl = document.getElementById('crop-box');
-const cropImageEl = document.getElementById('crop-image');
-
-function startCropDrag(e, mode) {
-    cropMode = mode;
-    cropStartX = e.clientX;
-    cropStartY = e.clientY;
-    
-    const imgRect = cropImageEl.getBoundingClientRect();
-    const boxRect = cropBoxEl.getBoundingClientRect();
-    
-    cropStartL = boxRect.left - imgRect.left;
-    cropStartT = boxRect.top - imgRect.top;
-    cropStartW = boxRect.width;
-    cropStartH = boxRect.height;
-    cropMaxW = imgRect.width;
-    cropMaxH = imgRect.height;
-    
-    e.preventDefault();
+  showToast('✅ Imej HD berjaya disimpan');
 }
-
-cropBoxEl.addEventListener('mousedown', (e) => {
-    if (e.target.classList.contains('crop-handle') || e.target.classList.contains('crop-edge')) return;
-    startCropDrag(e, 'move');
-});
-
-document.querySelectorAll('.crop-handle').forEach(h => {
-    h.addEventListener('mousedown', (e) => {
-        startCropDrag(e, h.dataset.corner);
-        e.stopPropagation();
-    });
-});
-
-document.querySelectorAll('.crop-edge').forEach(h => {
-    h.addEventListener('mousedown', (e) => {
-        startCropDrag(e, h.dataset.edge);
-        e.stopPropagation();
-    });
-});
-
-window.addEventListener('mousemove', (e) => {
-    if (!cropMode) return;
-    
-    const dx = e.clientX - cropStartX;
-    const dy = e.clientY - cropStartY;
-    const MIN = 50;
-    
-    let newL = cropStartL;
-    let newT = cropStartT;
-    let newW = cropStartW;
-    let newH = cropStartH;
-    
-    if (cropMode === 'move') {
-        newL = Math.max(0, Math.min(cropStartL + dx, cropMaxW - cropStartW));
-        newT = Math.max(0, Math.min(cropStartT + dy, cropMaxH - cropStartH));
-    } else {
-        if (cropMode === 'tl' || cropMode === 'left' || cropMode === 'bl') {
-            newW = cropStartW - dx;
-            if (newW < MIN) { newW = MIN; dx = cropStartW - MIN; }
-            newL = cropStartL + dx;
-            if (newL < 0) { newL = 0; newW = cropStartL + cropStartW; }
-        }
-        if (cropMode === 'tr' || cropMode === 'right' || cropMode === 'br') {
-            newW = cropStartW + dx;
-            if (newW < MIN) newW = MIN;
-            if (cropStartL + newW > cropMaxW) newW = cropMaxW - cropStartL;
-        }
-        if (cropMode === 'tl' || cropMode === 'top' || cropMode === 'tr') {
-            newH = cropStartH - dy;
-            if (newH < MIN) { newH = MIN; dy = cropStartH - MIN; }
-            newT = cropStartT + dy;
-            if (newT < 0) { newT = 0; newH = cropStartT + cropStartH; }
-        }
-        if (cropMode === 'bl' || cropMode === 'bottom' || cropMode === 'br') {
-            newH = cropStartH + dy;
-            if (newH < MIN) newH = MIN;
-            if (cropStartT + newH > cropMaxH) newH = cropMaxH - cropStartT;
-        }
-    }
-    
-    cropBoxEl.style.left = newL + 'px';
-    cropBoxEl.style.top = newT + 'px';
-    cropBoxEl.style.width = newW + 'px';
-    cropBoxEl.style.height = newH + 'px';
-});
-
-window.addEventListener('mouseup', () => { cropMode = ''; });
+document.getElementById('saveBtn').onclick = () => {
+  const view = document.getElementById('saveViewSelect').value;
+  captureImage(view);
+};
 
 // ===== VIDEO =====
 document.getElementById('speedSlider').oninput = e => { rotationSpeed = +e.target.value; document.getElementById('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 document.getElementById('durationSlider').oninput = e => { recordDuration = +e.target.value; document.getElementById('durationValue').textContent = recordDuration + 's'; };
 document.getElementById('qualitySlider').oninput = e => { recordQuality = +e.target.value; document.getElementById('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait'; };
-document.getElementById('renderZoomSlider').oninput = e => { renderZoom = +e.target.value; document.getElementById('renderZoomValue').textContent = renderZoom.toFixed(1) + 'x'; };
 btnPreview.onclick = () => { if (isRecording) return; isPreviewing ? stopPreview() : startPreview(); };
 
 function startPreview() {
@@ -2947,10 +2268,8 @@ function startPreview() {
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
-  
-  fitCameraForRender(renderZoom);
-  loadedModelContainers.forEach(c => c.rotation.y = 0);
-  
+  camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
+  shirtGroup.rotation.y = 0;
   animStartTime = performance.now();
   currentP = 0;
   recordingOverlay.classList.add('active');
@@ -2958,7 +2277,7 @@ function startPreview() {
     if (!isPreviewing) return;
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
-      loadedModelContainers.forEach(c => c.rotation.y = currentP * Math.PI * 2 * rotationSpeed);
+      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
       recordingText.textContent = `Preview... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
       if (currentP >= 1) { stopPreview(); return; }
     }
@@ -2974,9 +2293,7 @@ function stopPreview() {
   btnPreview.classList.remove('playing'); btnPreview.textContent = '▶ Mainkan Preview';
   btnRenderVideo.disabled = false; recordingOverlay.classList.remove('active');
   floatingControls.style.display = 'none';
-  loadedModelContainers.forEach(c => c.rotation.y = 0);
-  transformHelper.visible = true; controls.enabled = true;
-  fitCameraToModels();
+  shirtGroup.rotation.y = 0; transformHelper.visible = true; controls.enabled = true;
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
 
@@ -2999,10 +2316,7 @@ async function startVideoRecord() {
   const tw = container.clientWidth, th = container.clientHeight;
   renderer.setPixelRatio(1); renderer.setSize(tw, th, false);
   camera.aspect = tw / th; camera.updateProjectionMatrix();
-  
-  fitCameraForRender(renderZoom);
-  loadedModelContainers.forEach(c => c.rotation.y = 0);
-  
+  camera.position.set(0, 0.15, 5.2); controls.target.set(0, 0.05, 0); controls.update();
   for (let i = 0; i < 8; i++) {
     renderer.clear(); renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
@@ -3027,10 +2341,8 @@ async function startVideoRecord() {
     transformHelper.visible = true; controls.enabled = true;
     isRecording = false; btnRenderVideo.disabled = false; btnPreview.disabled = false;
     btnRenderVideo.classList.remove('recording'); btnRenderVideo.textContent = '🎥 Render Video';
-    recordingOverlay.classList.remove('active'); 
-    loadedModelContainers.forEach(c => c.rotation.y = 0);
+    recordingOverlay.classList.remove('active'); shirtGroup.rotation.y = 0;
     floatingControls.style.display = 'none';
-    fitCameraToModels();
   };
   isRecording = true; isPaused = false;
   btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
@@ -3038,14 +2350,14 @@ async function startVideoRecord() {
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
-  mediaRecorder.start(100);
+  mediaRecorder.start(100); shirtGroup.rotation.y = 0;
   animStartTime = performance.now();
   currentP = 0;
   function loop(now) {
     if (!isRecording) return;
     if (!isPaused) {
       currentP = Math.min((now - animStartTime) / (recordDuration * 1000), 1);
-      loadedModelContainers.forEach(c => c.rotation.y = currentP * Math.PI * 2 * rotationSpeed);
+      shirtGroup.rotation.y = currentP * Math.PI * 2 * rotationSpeed;
       recordingText.textContent = `Sedang merakam... ${Math.ceil((recordDuration - (now - animStartTime) / 1000))}s`;
     }
     renderer.render(scene, camera);
@@ -3076,11 +2388,8 @@ btnPausePlay.onclick = () => {
 };
 btnSnap.onclick = () => {
   const view = document.getElementById('saveViewSelect').value;
-  if (view === 'current') {
-    document.getElementById('saveBtn').click();
-  } else {
-    showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
-  }
+  if (view === 'current') captureImage('current');
+  else showToast('Sila pilih "Pandangan Semasa" untuk tangkap frame.', true);
 };
 
 // ===== UI =====
@@ -3095,10 +2404,26 @@ document.getElementById('btnTranslate').onclick = () => setMode('translate');
 document.getElementById('btnScale').onclick = () => setMode('scale');
 document.getElementById('btnFree').onclick = () => setMode('free');
 
-document.getElementById('viewFront').onclick = () => { camera.position.set(controls.target.x, controls.target.y, controls.target.z + 4.5); setActive('viewFront'); };
-document.getElementById('viewBack').onclick = () => { camera.position.set(controls.target.x, controls.target.y, controls.target.z - 4.5); setActive('viewBack'); };
-document.getElementById('viewRight').onclick = () => { camera.position.set(controls.target.x + 4.5, controls.target.y, controls.target.z); setActive('viewRight'); };
-document.getElementById('viewLeft').onclick = () => { camera.position.set(controls.target.x - 4.5, controls.target.y, controls.target.z); setActive('viewLeft'); };
+['#ffffff','#171717','#64748b','#dc2626','#2563eb','#16a34a','#ca8a04','#9333ea'].forEach((hex, i) => {
+  const b = document.createElement('button');
+  b.className = 'color-btn' + (i === 0 ? ' active' : '');
+  b.style.background = hex;
+  b.onclick = () => {
+    document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active'); currentShirtColor = hex;
+    shirtMaterials.forEach(m => m.color.set(hex)); pushHistory();
+  };
+  document.getElementById('colorGrid').appendChild(b);
+});
+document.getElementById('customColor').oninput = e => {
+  document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active'));
+  currentShirtColor = e.target.value; shirtMaterials.forEach(m => m.color.set(e.target.value));
+};
+document.getElementById('customColor').onchange = () => pushHistory();
+document.getElementById('viewFront').onclick = () => { camera.position.set(0,0,4.5); controls.target.set(0,0,0); setActive('viewFront'); };
+document.getElementById('viewBack').onclick = () => { camera.position.set(0,0,-4.5); controls.target.set(0,0,0); setActive('viewBack'); };
+document.getElementById('viewRight').onclick = () => { camera.position.set(4.5,0,0); controls.target.set(0,0,0); setActive('viewRight'); };
+document.getElementById('viewLeft').onclick = () => { camera.position.set(-4.5,0,0); controls.target.set(0,0,0); setActive('viewLeft'); };
 function setActive(id) { document.querySelectorAll('#view-toggles button').forEach(b => b.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 window.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
@@ -3119,9 +2444,8 @@ window.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     transformControls.detach(); hideFreeTransform();
-    activeDummy = null; activeModelContainer = null; gizmoControlsUI.classList.remove('active');
+    activeDummy = null; gizmoControlsUI.classList.remove('active');
     propertiesPanel.classList.remove('active');
-    document.querySelectorAll('.layer-group .group-header').forEach(el => el.classList.remove('active'));
   }
 });
 
