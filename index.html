@@ -575,7 +575,11 @@ let isDragging = false;
 transformControls.addEventListener('dragging-changed', e => {
   controls.enabled = !e.value;
   isDragging = e.value;
-  if (!e.value && activeDummy) pushHistory();
+  if (!e.value && activeDummy) {
+    // Lepas drag: bina warp penuh sekali sahaja
+    createDecalNow(activeDummy, true);
+    pushHistory();
+  }
 });
 
 // ===== STATE =====
@@ -1515,19 +1519,21 @@ function isOnSleeve(d) {
 let decalQueuedDummy = null;
 let decalQueued = false;
 let decalTimeout = null;
-function scheduleDecal(dummy) {
+function scheduleDecal(dummy, forceHQ = false) {
   decalQueuedDummy = dummy;
-  if (decalQueued) return;
+  // Semasa drag: throttle lebih lama + preview ringan
+  const delay = (isDragging || ftDragging) ? 90 : 35;
+  if (decalQueued && !forceHQ) return;
   decalQueued = true;
   if (decalTimeout) clearTimeout(decalTimeout);
   decalTimeout = setTimeout(() => {
     decalQueued = false;
-    if (decalQueuedDummy) createDecalNow(decalQueuedDummy);
+    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ || !(isDragging || ftDragging));
     decalQueuedDummy = null;
-  }, 40);
+  }, delay);
 }
 
-function createDecalNow(dummy) {
+function createDecalNow(dummy, highQuality = true) {
   if (dummy.userData.isCanvasGraphic) {
     const canvas = getProcessedCanvas(dummy);
     if (canvas) {
@@ -1550,13 +1556,71 @@ function createDecalNow(dummy) {
   let curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
   const onSleeve = isOnSleeve(dummy);
   if (onSleeve && curve < 0.05) {
-    // Semua model: beri nilai lekung default supaya membalut kiri-kanan
     curve = AUTO_CURVATURE_MODELS.has(currentModelUrl) ? 0.65 : 0.7;
     dummy.userData.curve = curve;
   }
 
+  // Semasa drag: guna preview ringan (tak raycast padat) supaya tak tersekat
+  if (!highQuality && (isDragging || ftDragging)) {
+    if (curve > 0.01) createLightCurvedDecal(dummy, curve);
+    else createFlatDecal(dummy);
+    return;
+  }
+
   if (curve > 0.01) createCurvedDecal(dummy, curve);
   else createFlatDecal(dummy);
+}
+
+// Preview ringan semasa drag — silinder mudah, tiada raycast
+function createLightCurvedDecal(dummy, curve) {
+  const onSleeve = isOnSleeve(dummy);
+  const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
+  dummy.updateMatrixWorld(true);
+  const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).normalize();
+  const isBack = !onSleeve && dummyNormal.z < 0;
+  const tex = getDecalTexture(dummy, isBack);
+  if (!tex) return;
+  const aspect = getDecalAspect(dummy);
+  const w = base * dummy.scale.x;
+  const h = (base / aspect) * dummy.scale.y;
+
+  let orientQuat = dummy.quaternion.clone();
+  if (onSleeve) {
+    const ln = dummyNormal;
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    let right = new THREE.Vector3().crossVectors(worldUp, ln);
+    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+    right.normalize();
+    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+    orientQuat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+  }
+
+  const segX = 12, segY = 4; // sangat ringan
+  const geo = new THREE.PlaneGeometry(w, h, segX, segY);
+  const pos = geo.attributes.position;
+  const halfW = Math.max(0.001, w * 0.5);
+  const maxAngleX = (Math.PI / 2) * Math.max(0.2, Math.min(1, curve));
+  const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const u = x / halfW;
+    const angleX = u * maxAngleX;
+    pos.setX(i, Math.sin(angleX) * Rx);
+    pos.setZ(i, (Math.cos(angleX) - 1) * Rx);
+  }
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex, transparent: true, depthTest: true, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: -6, roughness: 0.85,
+    opacity: dummy.userData.opacity || 1, side: THREE.DoubleSide
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(dummy.position).add(dummyNormal.clone().multiplyScalar(0.015));
+  mesh.quaternion.copy(orientQuat);
+  mesh.renderOrder = 2;
+  mesh.visible = dummy.userData.visible !== false;
+  shirtGroup.add(mesh);
+  dummy.userData.decals.push(mesh);
 }
 
 function createFlatDecal(dummy) {
@@ -1629,9 +1693,9 @@ function createCurvedDecal(dummy, curve) {
     up = new THREE.Vector3().crossVectors(dummyNormal, right).normalize();
   }
 
-  // Grid padat untuk warp tepat ke permukaan mesh baju
-  const segX = Math.max(24, Math.min(56, Math.round(28 * Math.max(1, w * 2.2))));
-  const segY = Math.max(12, Math.min(28, Math.round(14 * Math.max(1, h * 2))));
+  // Grid sederhana — cukup tepat, lebih laju (elak tersekat)
+  const segX = Math.max(14, Math.min(32, Math.round(16 * Math.max(1, w * 1.8))));
+  const segY = Math.max(8, Math.min(16, Math.round(10 * Math.max(1, h * 1.5))));
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
 
@@ -1829,7 +1893,14 @@ window.addEventListener('pointermove', e => {
     updateFreeTransformHandles();
   }
 });
-window.addEventListener('pointerup', () => { if (ftDragging) { ftDragging = null; controls.enabled = true; pushHistory(); } });
+window.addEventListener('pointerup', () => {
+  if (ftDragging) {
+    ftDragging = null;
+    controls.enabled = true;
+    if (activeDummy) createDecalNow(activeDummy, true); // HQ warp selepas free-transform
+    pushHistory();
+  }
+});
 
 // ===== ADD LOGO / TEXT =====
 document.getElementById('logoUpload').onchange = e => {
