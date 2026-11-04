@@ -1418,7 +1418,7 @@ function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
   const worldPos = new THREE.Vector3();
   dummy.getWorldPosition(worldPos);
 
-  const steps = 5;
+  const steps = 7; // 7x7 = 49 sampel
   let maxOffset = 0;
   let minDistToBack = Infinity;
   const tmpP = new THREE.Vector3();
@@ -1459,9 +1459,18 @@ function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
 
   let requiredDepth = maxOffset * 2 + 0.15;
   let curve = 0;
+  const onSleeve = isOnSleeve(dummy);
 
-  // Jika kotak akan menembusi dinding belakang (lengan nipis atau melengkung tinggi)
-  if (minDistToBack !== Infinity && requiredDepth >= minDistToBack * 0.85) {
+  // Khas untuk lengan baju, paksa lengkung 2-paksi (silinder)
+  if (onSleeve && AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
+      let sagitta = Math.max(0.04, maxOffset); 
+      let R = (w * w) / (8 * sagitta) + (sagitta / 2);
+      let maxAngle = Math.asin(Math.min(1, (w / 2) / R));
+      curve = maxAngle / (Math.PI / 2);
+      // Paksa minimum 0.65 untuk dapatkan lengkungan yang cukup kuat membalut lengan
+      curve = Math.max(0.65, Math.min(1.0, curve)); 
+      requiredDepth = baseDepth;
+  } else if (minDistToBack !== Infinity && requiredDepth >= minDistToBack * 0.85) {
       const sagitta = Math.max(0.01, maxOffset);
       const R = (w * w) / (8 * sagitta) + (sagitta / 2);
       const halfW = w / 2;
@@ -1574,35 +1583,34 @@ function createCurvedDecal(dummy, curve) {
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
   
-  const segX = Math.max(16, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
-  const segY = 8;
+  // Naikkan segments untuk lengkungan 2-paksi yang licin
+  const segX = Math.max(24, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
+  const segY = Math.max(16, Math.min(32, Math.round(16 * Math.max(1, h * 2))));
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const halfW = w / 2;
   const halfH = h / 2;
-  const maxAngle = (Math.PI / 2) * curve;
-  const R = halfW / Math.max(0.001, Math.sin(maxAngle));
+  
+  const maxAngleX = (Math.PI / 2) * curve;
+  const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+
+  // Lengkung paksi-Y untuk melengkung ke bawah (lengkung silinder lengan)
+  const maxAngleY = (Math.PI / 2) * curve * 0.8; 
+  const Ry = halfH / Math.max(0.001, Math.sin(maxAngleY));
 
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const y = pos.getY(i);
 
     const u = x / halfW;
-    const angleX = u * maxAngle;
-    const newX = Math.sin(angleX) * R;
-    const newZ_X = (Math.cos(angleX) - 1) * R;
+    const angleX = u * maxAngleX;
+    const newX = Math.sin(angleX) * Rx;
+    const newZ_X = (Math.cos(angleX) - 1) * Rx;
 
-    let newY = y;
-    let newZ_Y = 0;
-    // Jika melengkung tinggi, buatkan ia melengkung 2 paksi (macam cangkerang) untuk peluk lengan
-    if (curve > 0.4) {
-        const v = y / halfH;
-        const maxAngleY = maxAngle * 0.6;
-        const Ry = halfH / Math.max(0.001, Math.sin(maxAngleY));
-        const angleY = v * maxAngleY;
-        newY = Math.sin(angleY) * Ry;
-        newZ_Y = (Math.cos(angleY) - 1) * Ry;
-    }
+    const v = y / halfH;
+    const angleY = v * maxAngleY;
+    const newY = Math.sin(angleY) * Ry;
+    const newZ_Y = (Math.cos(angleY) - 1) * Ry;
 
     pos.setX(i, newX);
     pos.setY(i, newY);
