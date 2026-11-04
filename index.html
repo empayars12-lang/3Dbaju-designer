@@ -97,6 +97,7 @@
     #btnSnap{background:#10b981;color:#fff;}
     #btnSnap:disabled{opacity:0.5;cursor:not-allowed;}
     
+    /* ==== FLOATING EDIT CONTROLS ==== */
     #floating-edit-controls {
       position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 8px; z-index: 60; background: rgba(24,24,27,0.85);
@@ -166,6 +167,7 @@
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
 
+    /* ==== CROP MODAL ==== */
     #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
     #crop-container { position: relative; display: inline-block; background: #000; }
     #crop-image { display: block; max-width: 90vw; max-height: 80vh; }
@@ -386,6 +388,7 @@
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
     
+    <!-- EDIT VIEW CONTROLS -->
     <div id="floating-edit-controls">
       <button id="btnLoopToggle">🔄 Auto Loop</button>
       <button id="btnFitAll">🖼️ Fit to Screen</button>
@@ -425,15 +428,22 @@
     <div id="properties-panel">
       <h3 id="propTitle">Properties</h3>
       
+      <!-- Decal Properties -->
       <div id="decalProps">
         <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
         <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
         <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
+        
+        <div class="prop-row" id="depthRow">
+          <label>Jarak Logo (Z) <span id="propDepthValue" style="color:#a78bfa">0.00</span></label>
+          <input type="range" id="propDepth" min="-0.5" max="0.5" step="0.01" value="0">
+          <div style="font-size:10px;color:#71717a;margin-top:4px">Nilai negatif (-) untuk rapatkan ke baju</div>
+        </div>
 
         <div class="prop-row" id="curveRow">
           <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
           <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
-          <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat (Auto jika di lengan)</div>
+          <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
         </div>
         <div class="align-row">
           <button class="align-btn" id="btnAlignCenterX">Center X</button>
@@ -498,6 +508,7 @@
         </div>
       </div>
 
+      <!-- Model Properties -->
       <div id="modelProps" style="display:none; margin-top:12px;">
         <div class="prop-row"><label>Warna Baju</label><input type="color" id="modelColor" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
         <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
@@ -511,6 +522,7 @@
 </div>
 <div id="toast"></div>
 
+<!-- CROP MODAL -->
 <div id="crop-modal">
   <div id="crop-container">
     <canvas id="crop-image"></canvas>
@@ -890,7 +902,10 @@ function applyModelColorAndEffects(container) {
   const b = (container.userData.brightness ?? 100) / 100;
   const c = (container.userData.contrast ?? 100) / 100;
   
-  base.r *= b; base.g *= b; base.b *= b;
+  base.r *= b;
+  base.g *= b;
+  base.b *= b;
+  
   base.r = Math.max(0, Math.min(1, (base.r - 0.5) * c + 0.5));
   base.g = Math.max(0, Math.min(1, (base.g - 0.5) * c + 0.5));
   base.b = Math.max(0, Math.min(1, (base.b - 0.5) * c + 0.5));
@@ -911,15 +926,21 @@ function loadShirtModel(url, config = {}) {
     new GLTFLoader().load(url, (g) => {
       const model = g.scene;
       
+      // 1. Kira kotak sempadan (bounding box) model
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
       
-      const scaleFactor = 2.4 / (size.y || 1);
-      model.scale.setScalar(scaleFactor);
+      // 2. Skala model
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      model.scale.setScalar(2.4 / maxDim);
       model.updateMatrixWorld(true);
       
+      // 3. Kira semula sempadan selepas skala
       box.setFromObject(model);
       const center2 = box.getCenter(new THREE.Vector3());
+      
+      // 4. Paksa titik tengah geometri model tepat di (0,0,0) pada container
       model.position.set(-center2.x, -center2.y, -center2.z);
       model.updateMatrixWorld(true);
 
@@ -928,15 +949,7 @@ function loadShirtModel(url, config = {}) {
       container.userData.baseColor = config.baseColor || currentShirtColor;
       container.userData.brightness = config.brightness ?? 100;
       container.userData.contrast = config.contrast ?? 100;
-      container.userData.torsoHalfWidth = Math.max(0.24, Math.min(0.55, size.x * scaleFactor * 0.17));
-      
-      if (config.position) {
-        container.position.fromArray(config.position);
-      } else {
-        loadedModelContainers.forEach(c => c.visible = false);
-        container.position.set(0, 0, 0);
-      }
-      
+      if (config.position) container.position.fromArray(config.position);
       container.add(model);
 
       model.traverse(c => {
@@ -954,15 +967,18 @@ function loadShirtModel(url, config = {}) {
       
       applyModelColorAndEffects(container);
 
+      if (!config.position) {
+        const xOffset = loadedModelContainers.length * 2.2;
+        container.position.set(xOffset, 0, 0);
+      }
+      
       shirtGroup.add(container);
       loadedModelContainers.push(container);
       addModelGroup(container, url);
 
-      activeModelContainer = container;
-      
       const newBox = new THREE.Box3().setFromObject(container);
       ground.position.y = newBox.min.y - 0.1;
-      
+
       resolve();
     }, undefined, () => {
       const fallback = createFallbackShirt();
@@ -971,34 +987,21 @@ function loadShirtModel(url, config = {}) {
       container.userData.baseColor = config.baseColor || currentShirtColor;
       container.userData.brightness = config.brightness ?? 100;
       container.userData.contrast = config.contrast ?? 100;
+      if (config.position) container.position.fromArray(config.position);
       
-      if (config.position) {
-        container.position.fromArray(config.position);
-      } else {
-        loadedModelContainers.forEach(c => c.visible = false);
-        container.position.set(0, 0, 0);
-      }
-      
+      // Center fallback
       const box = new THREE.Box3().setFromObject(fallback);
-      const fbSize = box.getSize(new THREE.Vector3());
-      const fbScale = 2.4 / (fbSize.y || 1);
-      fallback.scale.setScalar(fbScale);
-      fallback.updateMatrixWorld(true);
-      const box2 = new THREE.Box3().setFromObject(fallback);
-      const center2 = box2.getCenter(new THREE.Vector3());
-      fallback.position.sub(center2);
-      
-      container.userData.torsoHalfWidth = Math.max(0.24, Math.min(0.55, fbSize.x * fbScale * 0.17));
+      const center = box.getCenter(new THREE.Vector3());
+      fallback.position.sub(center);
       
       container.add(fallback);
       fallback.traverse(c => { if(c.isMesh) shirtMaterials.push(c.material); });
       applyModelColorAndEffects(container);
       
+      if (!config.position) container.position.set(loadedModelContainers.length * 2.2, 0, 0);
       shirtGroup.add(container);
       loadedModelContainers.push(container);
       addModelGroup(container, url);
-      
-      activeModelContainer = container;
       resolve();
     });
   });
@@ -1069,8 +1072,7 @@ function addModelGroup(container, url) {
       layerGroups.delete(id);
       
       if (activeModelContainer === container) {
-        activeModelContainer = loadedModelContainers[0] || null;
-        if (activeModelContainer) activeModelContainer.visible = true;
+        activeModelContainer = null;
         document.getElementById('properties-panel').classList.remove('active');
         document.getElementById('modelProps').style.display = 'none';
       }
@@ -1096,10 +1098,6 @@ function addModelGroup(container, url) {
             d.visible = container.visible && d.userData.visible;
         }
     });
-    if (container.visible) {
-      activeModelContainer = container;
-      fitCameraToModels();
-    }
   };
 }
 
@@ -1126,10 +1124,9 @@ function selectModelGroup(container, groupEl) {
   if (header) header.classList.add('active');
 
   activeModelContainer = container;
-  container.visible = true;
-  
   propertiesPanel.classList.add('active');
   
+  // Auto focus camera to the clicked model
   focusCameraOn(container);
   
   document.getElementById('decalProps').style.display = 'none';
@@ -1151,19 +1148,13 @@ document.getElementById('btnMoveModel').onclick = () => {
 };
 
 function fitCameraToModels() {
-  let targetC = activeModelContainer;
-  if (!targetC || !targetC.visible) {
-    targetC = loadedModelContainers.find(c => c.visible) || loadedModelContainers[0];
-  }
-  
-  if (!targetC) {
+  if (loadedModelContainers.length === 0) {
     camera.position.set(0, 0, 4.5);
     controls.target.set(0, 0, 0);
     controls.update();
     return;
   }
-  
-  const box = new THREE.Box3().setFromObject(targetC);
+  const box = new THREE.Box3().setFromObject(shirtGroup);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   
@@ -1171,7 +1162,7 @@ function fitCameraToModels() {
   const maxDim = Math.max(size.x, size.y);
   const fov = camera.fov * (Math.PI / 180);
   let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-  cameraZ *= 1.7;
+  cameraZ *= 1.8;
   
   camera.position.set(center.x, center.y, center.z + cameraZ);
   camera.updateProjectionMatrix();
@@ -1180,8 +1171,7 @@ function fitCameraToModels() {
 
 function fitCameraForRender(zoomMult) {
   if (loadedModelContainers.length === 0) return;
-  let targetC = activeModelContainer || loadedModelContainers[0];
-  const box = new THREE.Box3().setFromObject(targetC);
+  const box = new THREE.Box3().setFromObject(shirtGroup);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
   
@@ -1227,6 +1217,7 @@ document.getElementById('btnClearModels').onclick = () => {
   showToast('Semua model dibuang');
 };
 
+// Initial Load
 async function setupInitialModel() {
   await loadShirtModel('./T_shirt_gltf.gltf');
   const loadingEl = document.getElementById('loading');
@@ -1265,6 +1256,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   dummy.userData.visible = true;
   dummy.userData.locked = false;
   dummy.userData.curve = dummy.userData.curve || 0;
+  dummy.userData.depthOffset = dummy.userData.depthOffset || 0;
   ensureEffects(dummy);
   
   const el = document.createElement('div');
@@ -1357,12 +1349,17 @@ function selectLayer(dummy, el) {
   document.getElementById('propScaleValue').textContent = dummy.scale.x.toFixed(2);
   document.getElementById('propOpacity').value = dummy.userData.opacity || 1;
   document.getElementById('propOpacityValue').textContent = (dummy.userData.opacity || 1).toFixed(2);
+  
+  document.getElementById('propDepth').value = dummy.userData.depthOffset || 0;
+  document.getElementById('propDepthValue').textContent = (dummy.userData.depthOffset || 0).toFixed(2);
 
   const curveRow = document.getElementById('curveRow');
   if (dummy.userData.isBg || dummy.userData.isCanvasGraphic) {
     curveRow.style.display = 'none';
+    document.getElementById('depthRow').style.display = 'none';
   } else {
     curveRow.style.display = 'block';
+    document.getElementById('depthRow').style.display = 'block';
     const c = dummy.userData.curve || 0;
     document.getElementById('propCurve').value = c;
     document.getElementById('propCurveValue').textContent = c.toFixed(2);
@@ -1621,6 +1618,14 @@ document.getElementById('propOpacity').oninput = e => {
   }
 };
 document.getElementById('propOpacity').onchange = () => pushHistory();
+document.getElementById('propDepth').oninput = e => {
+  if (!activeDummy) return;
+  const v = +e.target.value;
+  activeDummy.userData.depthOffset = v;
+  document.getElementById('propDepthValue').textContent = v.toFixed(2);
+  scheduleDecal(activeDummy);
+};
+document.getElementById('propDepth').onchange = () => pushHistory();
 
 document.getElementById('propCurve').oninput = e => {
   if (!activeDummy || activeDummy.userData.isBg || activeDummy.userData.isCanvasGraphic) return;
@@ -1847,7 +1852,11 @@ document.getElementById('bgResetBtn').onclick = () => {
 // Alignment
 document.getElementById('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked || activeDummy.userData.isBg) return;
-  activeDummy.position.x = 0;
+  if (activeDummy.userData.targetContainer) {
+    activeDummy.position.x = 0;
+  } else {
+    activeDummy.position.x = 0;
+  }
   createDecalNow(activeDummy); pushHistory(); showToast('Center X');
 };
 document.getElementById('btnAlignCenterY').onclick = () => {
@@ -1887,6 +1896,7 @@ document.getElementById('btnDuplicate').onclick = () => {
       textColor: src.userData.textColor, font: src.userData.font, fontSize: src.userData.fontSize,
       opacity: src.userData.opacity, visible: true, locked: false,
       curve: src.userData.curve || 0, targetContainer: src.userData.targetContainer,
+      depthOffset: src.userData.depthOffset || 0,
       effects: { ...ensureEffects(src) }, decals: []
     };
     
@@ -1951,9 +1961,7 @@ const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 
 function isOnSleeve(d) {
-  const container = d.userData.targetContainer;
-  const half = container?.userData.torsoHalfWidth ?? 0.34;
-  return Math.abs(d.position.x) > half;
+  return Math.abs(d.position.x) > 0.34;
 }
 
 let decalQueuedDummy = null;
@@ -2009,18 +2017,16 @@ function createFlatDecal(dummy) {
   let meshesToProject = [];
   const target = dummy.userData.targetContainer;
   if (target) {
-    target.traverse(c => { if (c.isMesh && !c.userData.isDecal) meshesToProject.push(c); });
+    target.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
   }
 
-  dummy.updateMatrixWorld(true);
-  const worldPos = new THREE.Vector3();
-  const worldQuat = new THREE.Quaternion();
-  dummy.getWorldPosition(worldPos);
-  dummy.getWorldQuaternion(worldQuat);
+  // Kira posisi Z untuk mengelakkan logo terapung
+  const localNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
+  const adjustedPos = dummy.position.clone().add(localNormal.clone().multiplyScalar(dummy.userData.depthOffset || 0));
 
   meshesToProject.forEach(mesh => {
     try {
-      const geo = new DecalGeometry(mesh, worldPos, worldQuat, size);
+      const geo = new DecalGeometry(mesh, adjustedPos, dummy.quaternion, size);
       if (geo.attributes.position?.count > 0) {
         const mat = new THREE.MeshStandardMaterial({
           map: tex, transparent: true, depthTest: true, depthWrite: false,
@@ -2033,7 +2039,8 @@ function createFlatDecal(dummy) {
         m.visible = dummy.userData.visible !== false;
         m.userData.isDecal = true; 
         
-        mesh.add(m);
+        if (target) target.add(m);
+        else shirtGroup.add(m);
         
         dummy.userData.decals.push(m);
       } else geo.dispose();
@@ -2078,7 +2085,8 @@ function createCurvedDecal(dummy, curve) {
   });
   const mesh = new THREE.Mesh(geo, mat);
   
-  const offsetPos = dummy.position.clone();
+  // Aplikasikan offset Z untuk logo
+  const offsetPos = dummy.position.clone().add(dummyNormal.clone().multiplyScalar((dummy.userData.depthOffset || 0) + 0.002));
   mesh.position.copy(offsetPos);
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
@@ -2145,17 +2153,6 @@ transformControls.addEventListener('objectChange', () => {
           right.normalize();
           const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
           activeDummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
-          
-          // Auto Curve Logic
-          const onSleeve = isOnSleeve(activeDummy);
-          const targetCurve = onSleeve ? 0.7 : 0;
-          if (Math.abs((activeDummy.userData.curve || 0) - targetCurve) > 0.05) {
-              activeDummy.userData.curve = targetCurve;
-              document.getElementById('propCurve').value = targetCurve;
-              document.getElementById('propCurveValue').textContent = targetCurve.toFixed(2);
-              const el = document.getElementById(activeDummy.userData.layerId);
-              if (el) el.classList.toggle('curve-active', targetCurve > 0.01);
-          }
         }
       }
     }
@@ -2317,22 +2314,11 @@ document.getElementById('addCanvasTextBtn').onclick = async () => {
   document.getElementById('canvasTextInput').value = '';
 };
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
-  const targetC = activeModelContainer || loadedModelContainers[loadedModelContainers.length - 1];
-  
   if (isCanvas) {
     const geo = new THREE.PlaneGeometry(1, 1 / aspect);
     const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
     const mesh = new THREE.Mesh(geo, mat);
-    
-    if (targetC) {
-      const box = new THREE.Box3().setFromObject(targetC);
-      const center = box.getCenter(new THREE.Vector3());
-      mesh.position.copy(center);
-      mesh.position.z += 0.5;
-    } else {
-      mesh.position.set(0, 0, 0.5);
-    }
-    
+    mesh.position.set(-1.2, 0, 0.8);
     mesh.userData = {
       texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
       opacity: 1, visible: true, locked: false, isCanvasGraphic: true,
@@ -2346,31 +2332,20 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     showToast('Grafik Canvas ditambah');
     return;
   }
-  
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
-    opacity: 1, visible: true, locked: false, curve: 0,
+    opacity: 1, visible: true, locked: false, curve: 0, depthOffset: 0,
     effects: defaultEffects(), decals: []
   };
   
   let hits = raycaster.intersectObjects(loadedModelContainers, true);
   
-  if (hits.length === 0) {
-    if (targetC) {
-      dummy.userData.targetContainer = targetC;
-      targetC.add(dummy);
-      
-      const box = new THREE.Box3().setFromObject(targetC);
-      const size = box.getSize(new THREE.Vector3());
-      dummy.position.set(0, 0, size.z / 2 + 0.1);
-      
-      dummy.quaternion.identity();
-    } else {
-      shirtGroup.add(dummy);
-      dummy.position.set(0, 0, 0.4);
-    }
-  } else {
+  if (hits.length === 0 && loadedModelContainers.length > 0) {
+    dummy.userData.targetContainer = loadedModelContainers[0];
+    dummy.userData.targetContainer.add(dummy);
+    dummy.position.set(0, 0.1, 0.4);
+  } else if (hits.length > 0) {
     const hit = hits[0];
     let hitContainer = hit.object;
     while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
@@ -2388,6 +2363,9 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     right.normalize();
     const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
     dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+  } else {
+    shirtGroup.add(dummy);
+    dummy.position.set(0, 0.1, 0.4);
   }
   
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
@@ -2522,7 +2500,7 @@ async function getStateForSave() {
       font: d.userData.font || 'Inter', fontSize: d.userData.fontSize || 120,
       name: d.userData.name || 'Logo', icon: d.userData.icon || '🖼️',
       opacity: d.userData.opacity || 1, visible: d.userData.visible !== false, locked: !!d.userData.locked,
-      curve: d.userData.curve || 0,
+      curve: d.userData.curve || 0, depthOffset: d.userData.depthOffset || 0,
       isCanvasGraphic: !!d.userData.isCanvasGraphic,
       containerIndex: containerIdx,
       effects: { ...ensureEffects(d) }
@@ -2717,12 +2695,6 @@ async function restoreState(state) {
     const config = typeof m === 'object' ? m : {};
     await loadShirtModel(url, config);
   }
-  
-  if (loadedModelContainers.length > 0) {
-    activeModelContainer = loadedModelContainers[0];
-    activeModelContainer.visible = true;
-    loadedModelContainers.forEach((c, i) => { if (i > 0) c.visible = false; });
-  }
   fitCameraToModels();
   
   currentShirtColor = state.color || '#ffffff';
@@ -2794,7 +2766,7 @@ async function restoreState(state) {
               fontSize: ldata.fontSize || 120, name: ldata.name || 'Logo',
               icon: ldata.icon || '🖼️', opacity: ldata.opacity || 1,
               visible: ldata.visible !== false, locked: !!ldata.locked,
-              curve: ldata.curve || 0,
+              curve: ldata.curve || 0, depthOffset: ldata.depthOffset || 0,
               effects: { ...defaultEffects(), ...(ldata.effects || {}) },
               decals: []
             };
@@ -3048,8 +3020,9 @@ function startPreview() {
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
   
+  // Sembunyikan kawalan edit
   document.getElementById('floating-edit-controls').style.display = 'none';
-  controls.autoRotate = false;
+  controls.autoRotate = false; // Matikan loop masa render
   
   fitCameraForRender(renderZoom);
   loadedModelContainers.forEach(c => c.rotation.y = 0);
@@ -3081,6 +3054,7 @@ function stopPreview() {
   transformHelper.visible = true; controls.enabled = true;
   fitCameraToModels();
   
+  // Tunjuk balik kawalan edit
   document.getElementById('floating-edit-controls').style.display = 'flex';
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
@@ -3141,6 +3115,7 @@ async function startVideoRecord() {
     floatingControls.style.display = 'none';
     fitCameraToModels();
     
+    // Tunjuk balik kawalan edit
     document.getElementById('floating-edit-controls').style.display = 'flex';
   };
   isRecording = true; isPaused = false;
@@ -3239,7 +3214,7 @@ window.addEventListener('keydown', e => {
 function animate() {
   requestAnimationFrame(animate);
   if (!isRecording && !isPreviewing) {
-    controls.update();
+    controls.update(); // autoRotate berfungsi di sini
     renderer.render(scene, camera);
     if (currentMode === 'free' && activeDummy && !ftDragging) updateFreeTransformHandles();
   }
