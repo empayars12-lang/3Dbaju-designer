@@ -386,7 +386,6 @@
   <div id="viewer-container">
     <div id="loading">MEMUATKAN STUDIO...</div>
     
-    <!-- EDIT VIEW CONTROLS -->
     <div id="floating-edit-controls">
       <button id="btnLoopToggle">🔄 Auto Loop</button>
       <button id="btnFitAll">🖼️ Fit to Screen</button>
@@ -426,7 +425,6 @@
     <div id="properties-panel">
       <h3 id="propTitle">Properties</h3>
       
-      <!-- Decal Properties -->
       <div id="decalProps">
         <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
         <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
@@ -506,7 +504,6 @@
         </div>
       </div>
 
-      <!-- Model Properties -->
       <div id="modelProps" style="display:none; margin-top:12px;">
         <div class="prop-row"><label>Warna Baju</label><input type="color" id="modelColor" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
         <div class="prop-row"><label>Brightness <span id="modelBrightnessValue">100</span>%</label><input type="range" id="modelBrightness" min="20" max="200" step="5" value="100"></div>
@@ -520,7 +517,6 @@
 </div>
 <div id="toast"></div>
 
-<!-- CROP MODAL -->
 <div id="crop-modal">
   <div id="crop-container">
     <canvas id="crop-image"></canvas>
@@ -561,7 +557,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 });
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v11';
+const DB_NAME = 'ProDesigner3D_v12';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -1996,7 +1992,8 @@ function createDecalNow(dummy) {
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-  const depth = onSleeve ? 0.38 : 0.22;
+  // Tingkatkan ketebalan (depth) untuk pastikan ia menembusi baju lengan panjang
+  const depth = onSleeve ? 0.6 : 0.4; 
   const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
@@ -2011,12 +2008,20 @@ function createFlatDecal(dummy) {
     target.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
   }
 
-  const localNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-  const adjustedPos = dummy.position.clone().add(localNormal.clone().multiplyScalar(dummy.userData.depthOffset || 0));
+  // Dapatkan posisi dan rotasi sebenar di skrin 3D (World Space)
+  dummy.updateMatrixWorld(true);
+  const dummyWorldPos = new THREE.Vector3();
+  dummy.getWorldPosition(dummyWorldPos);
+  const dummyWorldQuat = new THREE.Quaternion();
+  dummy.getWorldQuaternion(dummyWorldQuat);
+
+  const worldNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummyWorldQuat);
+  const adjustedWorldPos = dummyWorldPos.clone().add(worldNormal.clone().multiplyScalar(dummy.userData.depthOffset || 0));
 
   meshesToProject.forEach(mesh => {
     try {
-      const geo = new DecalGeometry(mesh, adjustedPos, dummy.quaternion, size);
+      // DecalGeometry memerlukan World Space posisi!
+      const geo = new DecalGeometry(mesh, adjustedWorldPos, dummyWorldQuat, size);
       if (geo.attributes.position?.count > 0) {
         const mat = new THREE.MeshStandardMaterial({
           map: tex, transparent: true, depthTest: true, depthWrite: false,
@@ -2029,8 +2034,8 @@ function createFlatDecal(dummy) {
         m.visible = dummy.userData.visible !== false;
         m.userData.isDecal = true; 
         
-        if (target) target.add(m);
-        else shirtGroup.add(m);
+        // PENTING: Lekatkan decal pada mesh asal supaya ia melekat tepat pada fabrik
+        mesh.add(m);
         
         dummy.userData.decals.push(m);
       } else geo.dispose();
@@ -2075,6 +2080,7 @@ function createCurvedDecal(dummy, curve) {
   });
   const mesh = new THREE.Mesh(geo, mat);
   
+  // Kedudukan local space untuk curved decal
   const offsetPos = dummy.position.clone().add(dummyNormal.clone().multiplyScalar((dummy.userData.depthOffset || 0) + 0.002));
   mesh.position.copy(offsetPos);
   mesh.quaternion.copy(dummy.quaternion);
