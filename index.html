@@ -1461,14 +1461,13 @@ function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
   let curve = 0;
   const onSleeve = isOnSleeve(dummy);
 
-  // Khas untuk lengan baju, paksa lengkung 2-paksi (silinder)
   if (onSleeve && AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
-      let sagitta = Math.max(0.04, maxOffset); 
+      let sagitta = Math.max(0.02, maxOffset); 
       let R = (w * w) / (8 * sagitta) + (sagitta / 2);
       let maxAngle = Math.asin(Math.min(1, (w / 2) / R));
       curve = maxAngle / (Math.PI / 2);
-      // Paksa minimum 0.65 untuk dapatkan lengkungan yang cukup kuat membalut lengan
-      curve = Math.max(0.65, Math.min(1.0, curve)); 
+      // Let the raycast drive the curve, but ensure a minimum bend to wrap the arm
+      curve = Math.max(0.35, Math.min(1.0, curve)); 
       requiredDepth = baseDepth;
   } else if (minDistToBack !== Infinity && requiredDepth >= minDistToBack * 0.85) {
       const sagitta = Math.max(0.01, maxOffset);
@@ -1583,7 +1582,6 @@ function createCurvedDecal(dummy, curve) {
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
   
-  // Naikkan segments untuk lengkungan 2-paksi yang licin
   const segX = Math.max(24, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
   const segY = Math.max(16, Math.min(32, Math.round(16 * Math.max(1, h * 2))));
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
@@ -1620,13 +1618,14 @@ function createCurvedDecal(dummy, curve) {
 
   const mat = new THREE.MeshStandardMaterial({
     map: tex, transparent: true, depthTest: true, depthWrite: false,
-    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
+    polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10,
     roughness: 0.8, opacity: dummy.userData.opacity || 1,
-    side: THREE.FrontSide // Guna FrontSide untuk elak nampak dari belakang (mirror double)
+    side: THREE.FrontSide // Elak kesan Double Mirror
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
-  mesh.position.add(dummyNormal.clone().multiplyScalar(0.002));
+  // Naikkan offset untuk tolak logo keluar sedikit dari permukaan baju
+  mesh.position.add(dummyNormal.clone().multiplyScalar(0.015));
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
