@@ -1485,7 +1485,32 @@ function computeAutoDepthAndCurve(dummy, w, h, baseDepth) {
   };
 }
 
-function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
+function isOnSleeve(d) {
+  if (!d || d.userData?.isBg || d.userData?.isCanvasGraphic) return false;
+  const px = Math.abs(d.position.x);
+  // Threshold asal untuk T_shirt_gltf.gltf
+  if (px > 0.34) return true;
+
+  // Adaptive berdasarkan bounding box model (baju_baru, polo, long sleeve)
+  if (shirtMeshes.length) {
+    const box = new THREE.Box3();
+    shirtMeshes.forEach(m => box.expandByObject(m));
+    const sizeX = box.max.x - box.min.x;
+    const halfX = Math.max(0.45, sizeX * 0.5);
+    // Lengan biasanya di luar ~38–45% dari separuh lebar badan
+    if (px > halfX * 0.38) return true;
+    // Lebih longgar jika model sangat sempit (polo pendek)
+    if (px > halfX * 0.32 && px > 0.22) return true;
+  }
+
+  // Fallback normal: permukaan sisi (lengan) menghadap lebih ke X
+  const n = new THREE.Vector3(0, 0, 1).applyQuaternion(d.quaternion);
+  if (Math.abs(n.x) > 0.48 && px > 0.16) return true;
+  // Normal hampir horizontal + jauh dari tengah
+  if (Math.abs(n.z) < 0.55 && Math.abs(n.x) > 0.35 && px > 0.20) return true;
+
+  return false;
+}
 
 let decalQueuedDummy = null;
 let decalQueued = false;
@@ -1520,7 +1545,16 @@ function createDecalNow(dummy) {
   }
   if (!shirtMeshes.length || dummy.userData.isBg || !dummy.userData.texture) return;
   disposeDummyDecals(dummy);
-  const curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
+
+  // Auto-aktifkan lekung lengan jika dikesan di lengan & curve masih 0
+  let curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
+  const onSleeve = isOnSleeve(dummy);
+  if (onSleeve && curve < 0.05) {
+    // Semua model: beri nilai lekung default supaya membalut kiri-kanan
+    curve = AUTO_CURVATURE_MODELS.has(currentModelUrl) ? 0.65 : 0.7;
+    dummy.userData.curve = curve;
+  }
+
   if (curve > 0.01) createCurvedDecal(dummy, curve);
   else createFlatDecal(dummy);
 }
@@ -1583,26 +1617,39 @@ function createCurvedDecal(dummy, curve) {
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
-  
-  // Geometri silinder (melengkung pada paksi X sahaja)
-  const segX = Math.max(24, Math.min(64, Math.round(32 * Math.max(1, w * 2))));
-  const segY = 8; 
+
+  // Pada lengan: pastikan paksi lengkung = kiri-kanan (membalut silinder lengan)
+  // Guna world-up supaya lengkung sentiasa horizontal mengelilingi lengan, bukan dari atas
+  let orientQuat = dummy.quaternion.clone();
+  if (onSleeve) {
+    const ln = dummyNormal.clone().normalize();
+    const worldUp = new THREE.Vector3(0, 1, 0);
+    let right = new THREE.Vector3().crossVectors(worldUp, ln);
+    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+    right.normalize();
+    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+    orientQuat.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+  }
+
+  // Geometri silinder — melengkung pada paksi X (kiri ↔ kanan) sahaja
+  const segX = Math.max(28, Math.min(72, Math.round(36 * Math.max(1, w * 2))));
+  const segY = 10;
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const halfW = w / 2;
-  
-  const maxAngleX = (Math.PI / 2) * curve;
+
+  // curve 0..1 → sudut max (≈ 0..90°) supaya membalut permukaan lengan
+  const maxAngleX = (Math.PI / 2) * Math.max(0.15, Math.min(1, curve));
   const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
 
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
-    const u = x / halfW;
+    const u = x / halfW; // -1 .. +1
     const angleX = u * maxAngleX;
+    // Lekung kiri-kanan: X & Z berubah, Y kekal (lurus sepanjang lengan)
     const newX = Math.sin(angleX) * Rx;
     const newZ = (Math.cos(angleX) - 1) * Rx;
-
     pos.setX(i, newX);
-    // pos.setY(i, y) tidak diusik supaya kekal lurus menegak
     pos.setZ(i, newZ);
   }
   geo.computeVertexNormals();
@@ -1611,13 +1658,13 @@ function createCurvedDecal(dummy, curve) {
     map: tex, transparent: true, depthTest: true, depthWrite: false,
     polygonOffset: true, polygonOffsetFactor: -10, polygonOffsetUnits: -10,
     roughness: 0.8, opacity: dummy.userData.opacity || 1,
-    side: THREE.FrontSide // Elak kesan Double Mirror
+    side: THREE.FrontSide
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
-  // Tolak keluar sedikit dari permukaan baju
-  mesh.position.add(dummyNormal.clone().multiplyScalar(0.015));
-  mesh.quaternion.copy(dummy.quaternion);
+  // Tolak keluar sedikit dari permukaan baju supaya tak clip
+  mesh.position.add(dummyNormal.clone().multiplyScalar(0.018));
+  mesh.quaternion.copy(orientQuat);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
   shirtGroup.add(mesh);
