@@ -1105,7 +1105,7 @@ function getDecalTexture(dummy, isBack) {
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = maxAnisotropy;
       t.wrapS = THREE.RepeatWrapping;
-      t.repeat.x = -1;
+      t.repeat.x = -1; // Mirror fix for back
       t.needsUpdate = true;
       dummy.userData._decalTexBack = t;
       dummy.userData._decalTexBackKey = key;
@@ -1528,18 +1528,20 @@ function createDecalNow(dummy) {
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-  const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
+  const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < 0;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
 
-  const baseDepth = onSleeve ? 0.38 : 0.22;
+  // Base depth: deep for back to prevent cut-off, normal for front
+  const baseDepth = onSleeve ? 0.38 : (isBack ? 0.6 : 0.22);
   let depth = baseDepth;
   let autoCurve = 0;
 
-  if (AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
+  // ONLY apply autoCurve for sleeves, NOT for the back
+  if (onSleeve && AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
     const result = computeAutoDepthAndCurve(dummy, w, h, baseDepth);
     depth = result.depth;
     autoCurve = result.curve;
@@ -1575,7 +1577,7 @@ function createCurvedDecal(dummy, curve) {
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
   dummy.updateMatrixWorld(true);
   const dummyNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
-  const isBack = !onSleeve && dummyNormal.z < -0.15;
+  const isBack = !onSleeve && dummyNormal.z < 0;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const aspect = getDecalAspect(dummy);
@@ -1592,7 +1594,6 @@ function createCurvedDecal(dummy, curve) {
   const maxAngleX = (Math.PI / 2) * curve;
   const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
 
-  // Lengkung paksi-Y untuk melengkung ke bawah (lengkung silinder lengan)
   const maxAngleY = (Math.PI / 2) * curve * 0.8; 
   const Ry = halfH / Math.max(0.001, Math.sin(maxAngleY));
 
@@ -1625,7 +1626,7 @@ function createCurvedDecal(dummy, curve) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position);
   // Naikkan offset untuk tolak logo keluar sedikit dari permukaan baju
-  mesh.position.add(dummyNormal.clone().multiplyScalar(0.015));
+  mesh.position.add(dummyNormal.clone().multiplyScalar(0.02));
   mesh.quaternion.copy(dummy.quaternion);
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
