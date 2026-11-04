@@ -233,14 +233,17 @@
       </div>
     </div>
 
-    <div class="accordion-item">
-      <div class="accordion-header">Latar Belakang <span class="arrow">▼</span></div>
+    <div class="accordion-item open">
+      <div class="accordion-header">Latar Studio (Tetap) <span class="arrow">▼</span></div>
       <div class="accordion-body">
+        <div style="font-size:11px;color:#71717a;margin-bottom:8px;line-height:1.4">
+          Latar ini <b style="color:#a1a1aa">tidak berpusing</b> bila baju rotate (preview/video). Opacity, brightness &amp; kesan digunakan semasa save/render.
+        </div>
         <div class="custom-color-wrapper" style="margin-top:0">
           <input type="color" id="bgColor" value="#09090b">
           <span>Warna Latar</span>
         </div>
-        <div class="upload-btn" style="margin-top:8px;padding:10px;font-size:13px">+ Imej Latar<input type="file" id="bgImageUpload" accept="image/*"></div>
+        <div class="upload-btn" style="margin-top:8px;padding:10px;font-size:13px">+ Imej Latar (tetap)<input type="file" id="bgImageUpload" accept="image/*"></div>
         <button class="small-btn" id="btnClearBgImage">Buang Imej Latar</button>
         <div class="toggle-row"><span>Transparent</span><div class="toggle-switch" id="toggleTransparent"></div></div>
         <div id="bgImagePanel" style="display:none;margin-top:10px">
@@ -390,7 +393,11 @@
         <div class="prop-row"><label>Warna Teks</label><input type="color" id="propTextColor" value="#000000" style="width:100%;height:36px;border:none;background:#1f1f23;border-radius:6px"></div>
       </div>
       <div id="fxPanel" style="display:none">
-        <h3 style="margin-top:14px">Kesan Imej</h3>
+        <h3 style="margin-top:14px">Kesan Imej 3D</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+          <button class="small-btn" id="fxPresetRaised" style="margin-top:0;background:#7c3aed;color:#fff">⬆ Timbul + Bayang</button>
+          <button class="small-btn" id="fxPresetFlat" style="margin-top:0">Rata (tiada bayang)</button>
+        </div>
         <div class="fx-group">
           <div class="fx-title">Overlay Warna</div>
           <div class="fx-row">
@@ -400,7 +407,7 @@
           </div>
         </div>
         <div class="fx-group">
-          <div class="fx-title">Stroke (Silhouette Dilation)</div>
+          <div class="fx-title">Stroke (tepi)</div>
           <div class="fx-row">
             <input type="color" id="fxStrokeColor" value="#000000">
             <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
@@ -408,24 +415,24 @@
           </div>
         </div>
         <div class="fx-group">
-          <div class="fx-title">Drop Shadow</div>
+          <div class="fx-title">Drop Shadow (bayang timbul)</div>
           <div class="fx-row">
             <input type="color" id="fxShadowColor" value="#000000">
-            <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="0">
-            <span class="fx-val" id="fxShadowBlurValue">0px</span>
+            <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="10">
+            <span class="fx-val" id="fxShadowBlurValue">10px</span>
           </div>
           <div class="fx-row">
             <span class="fx-val" style="color:#a1a1aa;text-align:left">X</span>
-            <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="0">
-            <span class="fx-val" id="fxShadowXValue">0</span>
+            <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="4">
+            <span class="fx-val" id="fxShadowXValue">4</span>
           </div>
           <div class="fx-row">
             <span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span>
-            <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="0">
-            <span class="fx-val" id="fxShadowYValue">0</span>
+            <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="6">
+            <span class="fx-val" id="fxShadowYValue">6</span>
           </div>
         </div>
-        <button class="small-btn" id="fxReset">↺ Reset Kesan (0)</button>
+        <button class="small-btn" id="fxReset">↺ Reset Kesan</button>
       </div>
     </div>
   </div>
@@ -634,7 +641,12 @@ const btnSnap = document.getElementById('btnSnap');
 
 // ===== KESAN IMEJ =====
 function defaultEffects() {
-  return { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
+  // Default: timbul + bayang lembut (kelihatan 3D pada baju)
+  return {
+    overlayColor: '#ff0000', overlayOpacity: 0,
+    strokeColor: '#000000', strokeWidth: 0,
+    shadowColor: '#000000', shadowBlur: 10, shadowOffsetX: 4, shadowOffsetY: 6
+  };
 }
 function ensureEffects(dummy) {
   if (!dummy.userData.effects) dummy.userData.effects = defaultEffects();
@@ -1254,7 +1266,33 @@ document.getElementById('fxReset').onclick = () => {
   scheduleDecal(activeDummy);
   if (currentMode === 'free') updateFreeTransformHandles();
   pushHistory();
-  showToast('Kesan direset ke 0');
+  showToast('Kesan: timbul + bayang');
+};
+document.getElementById('fxPresetRaised').onclick = () => {
+  if (!activeDummy || activeDummy.userData.isBg) return;
+  activeDummy.userData.effects = {
+    overlayColor: '#ff0000', overlayOpacity: 0,
+    strokeColor: '#000000', strokeWidth: 0,
+    shadowColor: '#000000', shadowBlur: 14, shadowOffsetX: 5, shadowOffsetY: 8
+  };
+  updateFxUI(activeDummy);
+  scheduleDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
+  pushHistory();
+  showToast('⬆ Timbul + bayang diaktifkan');
+};
+document.getElementById('fxPresetFlat').onclick = () => {
+  if (!activeDummy || activeDummy.userData.isBg) return;
+  activeDummy.userData.effects = {
+    overlayColor: '#ff0000', overlayOpacity: 0,
+    strokeColor: '#000000', strokeWidth: 0,
+    shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0
+  };
+  updateFxUI(activeDummy);
+  scheduleDecal(activeDummy);
+  if (currentMode === 'free') updateFreeTransformHandles();
+  pushHistory();
+  showToast('Logo rata (tiada bayang)');
 };
 
 // BG FX UI
