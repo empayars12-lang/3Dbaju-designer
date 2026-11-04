@@ -1881,18 +1881,17 @@ function createDecalNow(dummy) {
   else createFlatDecal(dummy);
 }
 
-// DecalGeometry perlu diunjurkan mengikut ruang tempatan (local space) mesh 3D
+// ✅ PEMBAIKAN UTAMA: Decal sekarang membalut (wrap) mengikut bentuk fizikal baju
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-  const depth = onSleeve ? 0.38 : 0.22;
+  const depth = onSleeve ? 0.35 : 0.15; // Kedalaman sinar untuk kesan 3D
   const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
-  const size = new THREE.Vector3(w, h, depth);
 
   let meshesToProject = [];
   const target = dummy.userData.targetContainer;
@@ -1900,41 +1899,71 @@ function createFlatDecal(dummy) {
     target.traverse(c => { if (c.isMesh && !c.userData.isDecal) meshesToProject.push(c); });
   }
 
-  meshesToProject.forEach(mesh => {
-    try {
-      const localPos = mesh.worldToLocal(dummy.getWorldPosition(new THREE.Vector3()));
-      const worldQuat = dummy.getWorldQuaternion(new THREE.Quaternion());
-      const meshWorldQuat = mesh.getWorldQuaternion(new THREE.Quaternion());
-      const localQuat = meshWorldQuat.invert().multiply(worldQuat);
-      
-      const meshScale = mesh.getWorldScale(new THREE.Vector3());
-      const localSize = new THREE.Vector3(
-        size.x / meshScale.x,
-        size.y / meshScale.y,
-        size.z / meshScale.z
-      );
+  // 1. Sediakan grid untuk menembak sinar (Barycentric Projection)
+  const segX = 32; // Ketumpatan grid untuk membalut bentuk baju
+  const segY = 32;
+  const localGeo = new THREE.PlaneGeometry(w, h, segX, segY);
+  const localPos = localGeo.attributes.position;
+  const newPositions = [];
+  const newUVs = localGeo.attributes.uv.array;
+  const rayOrigin = new THREE.Vector3();
 
-      const geo = new DecalGeometry(mesh, localPos, localQuat, localSize);
-      if (geo.attributes.position?.count > 0) {
-        const mat = new THREE.MeshStandardMaterial({
-          map: tex, transparent: true, depthTest: true, depthWrite: false,
-          polygonOffset: true, polygonOffsetFactor: -4, roughness: 0.8,
-          color: 0xffffff,
-          opacity: dummy.userData.opacity || 1
-        });
-        const m = new THREE.Mesh(geo, mat);
-        m.renderOrder = 2;
-        m.visible = dummy.userData.visible !== false;
-        m.userData.isDecal = true;
-        if (target) target.add(m);
-        else shirtGroup.add(m);
-        dummy.userData.decals.push(m);
-      } else geo.dispose();
-    } catch (e) { console.warn("Decal Error:", e); }
+  dummy.updateMatrixWorld(true);
+  const dummyWorldMat = dummy.matrixWorld;
+  const dummyInverseWorldMat = new THREE.Matrix4().copy(dummyWorldMat).invert();
+
+  // 2. Tembak sinar untuk setiap titik grid
+  for (let i = 0; i < localPos.count; i++) {
+    const x = localPos.getX(i);
+    const y = localPos.getY(i);
+
+    // Titik pada satah rata (dummy)
+    const pLocal = new THREE.Vector3(x, y, 0);
+    const pWorld = pLocal.clone().applyMatrix4(dummyWorldMat);
+    
+    // Arah sinar menembak masuk ke dalam baju
+    const rayDir = new THREE.Vector3(0, 0, -1).transformDirection(dummyWorldMat);
+    rayOrigin.copy(pWorld).addScaledVector(rayDir, 0.5); // Mula sedikit di luar baju
+
+    const raycaster = new THREE.Raycaster(rayOrigin, rayDir, 0, depth + 0.5);
+    const hits = raycaster.intersectObjects(meshesToProject, false);
+
+    if (hits.length > 0) {
+      const hit = hits[0];
+      // Tukar titik hentaman ke koordinat tempatan dummy (untuk mesh baharu)
+      const hitPointLocal = hit.point.clone().applyMatrix4(dummyInverseWorldMat);
+      newPositions.push(hitPointLocal.x, hitPointLocal.y, hitPointLocal.z);
+    } else {
+      // Jika tiada hentaman, kekalkan posisi rata asal
+      newPositions.push(x, y, 0);
+    }
+  }
+
+  // 3. Bina geometri baharu berdasarkan titik yang ditemui
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+  geo.setIndex(localGeo.index);
+  geo.computeVertexNormals();
+
+  const mat = new THREE.MeshStandardMaterial({
+    map: tex, transparent: true, depthTest: true, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
+    roughness: 0.8, color: 0xffffff,
+    opacity: dummy.userData.opacity || 1,
+    side: THREE.DoubleSide
   });
+  const m = new THREE.Mesh(geo, mat);
+  m.renderOrder = 2;
+  m.visible = dummy.userData.visible !== false;
+  m.userData.isDecal = true;
+  
+  if (target) target.add(m);
+  else shirtGroup.add(m);
+  
+  dummy.userData.decals.push(m);
 }
 
-// ✅ KEMASKINI: Arc boleh menerima nilai negatif (-1) untuk cekung dan positif (+1) untuk cembung
 function createCurvedDecal(dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -1951,7 +1980,6 @@ function createCurvedDecal(dummy, curve) {
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const halfW = w / 2;
-  // Guna Math.abs(curve) untuk kiraan radius, dan arah berdasarkan sign curve
   const maxAngle = (Math.PI / 2) * Math.abs(curve);
   const R = halfW / Math.max(0.001, Math.sin(maxAngle));
   const sign = curve >= 0 ? 1 : -1;
@@ -1961,7 +1989,6 @@ function createCurvedDecal(dummy, curve) {
     const u = x / halfW;
     const angle = u * maxAngle;
     const newX = Math.sin(angle) * R;
-    // Jika sign negatif, lengkung membengkok ke arah bertentangan
     const newZ = (Math.cos(angle) - 1) * R * sign;
     pos.setX(i, newX);
     pos.setZ(i, newZ);
