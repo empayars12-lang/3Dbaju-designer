@@ -676,7 +676,7 @@ function defaultBgEffects() {
 let bgEffects = defaultBgEffects();
 let bgImageSource = null;
 
-// ===== RASTER MOUSE TRACKING (untuk raycast tambah logo) =====
+// ===== RASTER MOUSE TRACKING =====
 let lastMousePos = null;
 renderer.domElement.addEventListener('pointermove', (e) => {
   const rect = renderer.domElement.getBoundingClientRect();
@@ -1829,8 +1829,15 @@ async function updateTextLayer(dummy) {
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 
+// ✅ PEMBAIKAN: Kira isOnSleeve berdasarkan bounding box model, bukan nilai hardcoded (0.34)
 function isOnSleeve(d) {
-  return Math.abs(d.position.x) > 0.34;
+  if (!d.userData.targetContainer) return false;
+  const box = new THREE.Box3().setFromObject(d.userData.targetContainer);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const worldPos = d.getWorldPosition(new THREE.Vector3());
+  const relX = (worldPos.x - center.x) / (size.x / 2);
+  return Math.abs(relX) > 0.45;
 }
 
 let decalQueuedDummy = null;
@@ -1871,6 +1878,7 @@ function createDecalNow(dummy) {
   else createFlatDecal(dummy);
 }
 
+// ✅ PEMBAIKAN: DecalGeometry perlu diunjurkan mengikut ruang tempatan (local space) mesh 3D
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -1891,7 +1899,20 @@ function createFlatDecal(dummy) {
 
   meshesToProject.forEach(mesh => {
     try {
-      const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
+      // Tukar posisi, rotasi dan saiz dummy ke dalam coordinate system mesh asal
+      const localPos = mesh.worldToLocal(dummy.getWorldPosition(new THREE.Vector3()));
+      const worldQuat = dummy.getWorldQuaternion(new THREE.Quaternion());
+      const meshWorldQuat = mesh.getWorldQuaternion(new THREE.Quaternion());
+      const localQuat = meshWorldQuat.invert().multiply(worldQuat);
+      
+      const meshScale = mesh.getWorldScale(new THREE.Vector3());
+      const localSize = new THREE.Vector3(
+        size.x / meshScale.x,
+        size.y / meshScale.y,
+        size.z / meshScale.z
+      );
+
+      const geo = new DecalGeometry(mesh, localPos, localQuat, localSize);
       if (geo.attributes.position?.count > 0) {
         const mat = new THREE.MeshStandardMaterial({
           map: tex, transparent: true, depthTest: true, depthWrite: false,
@@ -1907,7 +1928,7 @@ function createFlatDecal(dummy) {
         else shirtGroup.add(m);
         dummy.userData.decals.push(m);
       } else geo.dispose();
-    } catch (e) {}
+    } catch (e) { console.warn("Decal Error:", e); }
   });
 }
 
@@ -2163,12 +2184,7 @@ document.getElementById('addCanvasTextBtn').onclick = async () => {
   document.getElementById('canvasTextInput').value = '';
 };
 
-/**
- * ✅ FIX UTAMA: Raycast betul dari kamera untuk tentukan model mana yang dituju
- * User expectation: "ikut pandangan saya sedang view"
- */
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
-  // ===== CANVAS GRAPHIC (bebas, bukan decal) =====
   if (isCanvas) {
     const geo = new THREE.PlaneGeometry(1, 1 / aspect);
     const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
@@ -2188,7 +2204,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     return;
   }
 
-  // ===== DECAL PADA MODEL 3D =====
   const dummy = new THREE.Object3D();
   dummy.userData = {
     texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
@@ -2196,11 +2211,8 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     effects: defaultEffects(), decals: []
   };
 
-  // --- 1. Cari model sasaran & titik permukaan melalui raycast ---
   const testRay = new THREE.Raycaster();
   let hits = [];
-
-  // (a) Cuba dari posisi mouse terakhir
   if (lastMousePos) {
     const ndc = new THREE.Vector2(
       (lastMousePos.x / container.clientWidth) * 2 - 1,
@@ -2209,14 +2221,10 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     testRay.setFromCamera(ndc, camera);
     hits = testRay.intersectObjects(loadedModelContainers, true);
   }
-
-  // (b) Cuba dari tengah skrin (pandangan semasa)
   if (hits.length === 0) {
     testRay.setFromCamera(new THREE.Vector2(0, 0), camera);
     hits = testRay.intersectObjects(loadedModelContainers, true);
   }
-
-  // (c) Cuba dari kamera ke arah model aktif / pertama
   if (hits.length === 0 && loadedModelContainers.length > 0) {
     const target = activeModelContainer || loadedModelContainers[0];
     const box = new THREE.Box3().setFromObject(target);
@@ -2226,42 +2234,34 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     hits = r2.intersectObject(target, true);
   }
 
-  // --- 2. Kira posisi & orientasi decal ---
   let targetContainer = null;
   let hitPoint = null;
-  let hitNormal = null;
-
   if (hits.length > 0) {
     const hit = hits[0];
     let hc = hit.object;
     while (hc.parent && hc.parent !== shirtGroup) hc = hc.parent;
     targetContainer = hc;
     hitPoint = hit.point.clone();
-    if (hit.face && hit.face.normal) {
-      hitNormal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    } else {
-      hitNormal = camera.position.clone().sub(hitPoint).normalize();
-    }
   }
 
-  // --- 3. Letak dummy ---
   if (targetContainer && hitPoint) {
     dummy.userData.targetContainer = targetContainer;
     targetContainer.add(dummy);
     dummy.position.copy(targetContainer.worldToLocal(hitPoint.clone()));
 
-    if (hitNormal) {
-      const invMat = new THREE.Matrix4().copy(targetContainer.matrixWorld).invert();
-      const ln = hitNormal.clone().transformDirection(invMat).normalize();
-      const up = new THREE.Vector3(0, 1, 0);
-      let right = new THREE.Vector3().crossVectors(up, ln);
-      if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-      right.normalize();
-      const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
-      dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
-    }
+    // ✅ PEMBAIKAN: Logik Quaternion supaya logo menghadap tepat ke arah kamera
+    const camDir = hitPoint.clone().sub(camera.position).normalize();
+    const invMat = new THREE.Matrix4().copy(targetContainer.matrixWorld).invert();
+    const localCamDir = camDir.clone().transformDirection(invMat).normalize();
+    
+    const up = new THREE.Vector3(0, 1, 0);
+    let right = new THREE.Vector3().crossVectors(up, localCamDir);
+    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+    right.normalize();
+    const actualUp = new THREE.Vector3().crossVectors(localCamDir, right).normalize();
+    
+    dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, localCamDir));
   } else {
-    // Fallback terakhir
     const target = activeModelContainer || loadedModelContainers[0];
     if (target) {
       dummy.userData.targetContainer = target;
