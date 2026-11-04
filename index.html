@@ -402,11 +402,14 @@
         <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
         <div class="prop-row"><label>Scale</label><input type="range" id="propScale" min="0.15" max="4" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propScaleValue">1.00</div></div>
         <div class="prop-row"><label>Opacity</label><input type="range" id="propOpacity" min="0.1" max="1" step="0.05" value="1"><div style="font-size:11px;color:#71717a;margin-top:3px" id="propOpacityValue">1.00</div></div>
+        
+        <!-- ARC SLIDER -1 HINGGA 1 -->
         <div class="prop-row" id="curveRow">
-          <label>Lekung Lengan (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
-          <input type="range" id="propCurve" min="0" max="1" step="0.05" value="0">
-          <div style="font-size:10px;color:#71717a;margin-top:4px">0 = rata · 1 = melengkung kuat</div>
+          <label>Lekung (Arc) <span id="propCurveValue" style="color:#a78bfa">0.00</span></label>
+          <input type="range" id="propCurve" min="-1" max="1" step="0.05" value="0">
+          <div style="font-size:10px;color:#71717a;margin-top:4px">-1 = cekung · 0 = rata · +1 = cembung</div>
         </div>
+
         <div class="align-row">
           <button class="align-btn" id="btnAlignCenterX">Center X</button>
           <button class="align-btn" id="btnAlignCenterY">Center Y</button>
@@ -1184,7 +1187,7 @@ function addDesignLayer(dummy, name, icon, isBg = false) {
   ensureEffects(dummy);
   const el = document.createElement('div');
   el.className = 'layer-item'; el.id = id;
-  if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve > 0.01) el.classList.add('curve-active');
+  if (!isBg && !dummy.userData.isCanvasGraphic && dummy.userData.curve !== 0) el.classList.add('curve-active');
   const info = document.createElement('div'); info.className = 'layer-info';
   const ic = document.createElement('span'); ic.textContent = icon;
   const nm = document.createElement('span'); nm.className = 'layer-name'; nm.textContent = name;
@@ -1517,7 +1520,7 @@ document.getElementById('propCurve').oninput = e => {
   activeDummy.userData.curve = c;
   document.getElementById('propCurveValue').textContent = c.toFixed(2);
   const el = document.getElementById(activeDummy.userData.layerId);
-  if (el) el.classList.toggle('curve-active', c > 0.01);
+  if (el) el.classList.toggle('curve-active', c !== 0);
   scheduleDecal(activeDummy);
 };
 document.getElementById('propCurve').onchange = () => pushHistory();
@@ -1829,7 +1832,7 @@ async function updateTextLayer(dummy) {
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 
-// ✅ PEMBAIKAN: Kira isOnSleeve berdasarkan bounding box model, bukan nilai hardcoded (0.34)
+// Kira isOnSleeve berdasarkan bounding box model, bukan nilai hardcoded (0.34)
 function isOnSleeve(d) {
   if (!d.userData.targetContainer) return false;
   const box = new THREE.Box3().setFromObject(d.userData.targetContainer);
@@ -1873,12 +1876,12 @@ function createDecalNow(dummy) {
   }
   if (loadedModelContainers.length === 0 || dummy.userData.isBg || !dummy.userData.texture) return;
   disposeDummyDecals(dummy);
-  const curve = Math.max(0, Math.min(1, dummy.userData.curve || 0));
-  if (curve > 0.01) createCurvedDecal(dummy, curve);
+  const curve = dummy.userData.curve || 0;
+  if (Math.abs(curve) > 0.01) createCurvedDecal(dummy, curve);
   else createFlatDecal(dummy);
 }
 
-// ✅ PEMBAIKAN: DecalGeometry perlu diunjurkan mengikut ruang tempatan (local space) mesh 3D
+// DecalGeometry perlu diunjurkan mengikut ruang tempatan (local space) mesh 3D
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -1899,7 +1902,6 @@ function createFlatDecal(dummy) {
 
   meshesToProject.forEach(mesh => {
     try {
-      // Tukar posisi, rotasi dan saiz dummy ke dalam coordinate system mesh asal
       const localPos = mesh.worldToLocal(dummy.getWorldPosition(new THREE.Vector3()));
       const worldQuat = dummy.getWorldQuaternion(new THREE.Quaternion());
       const meshWorldQuat = mesh.getWorldQuaternion(new THREE.Quaternion());
@@ -1932,6 +1934,7 @@ function createFlatDecal(dummy) {
   });
 }
 
+// ✅ KEMASKINI: Arc boleh menerima nilai negatif (-1) untuk cekung dan positif (+1) untuk cembung
 function createCurvedDecal(dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -1948,14 +1951,18 @@ function createCurvedDecal(dummy, curve) {
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const halfW = w / 2;
-  const maxAngle = (Math.PI / 2) * curve;
+  // Guna Math.abs(curve) untuk kiraan radius, dan arah berdasarkan sign curve
+  const maxAngle = (Math.PI / 2) * Math.abs(curve);
   const R = halfW / Math.max(0.001, Math.sin(maxAngle));
+  const sign = curve >= 0 ? 1 : -1;
+
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
     const u = x / halfW;
     const angle = u * maxAngle;
     const newX = Math.sin(angle) * R;
-    const newZ = (Math.cos(angle) - 1) * R;
+    // Jika sign negatif, lengkung membengkok ke arah bertentangan
+    const newZ = (Math.cos(angle) - 1) * R * sign;
     pos.setX(i, newX);
     pos.setZ(i, newZ);
   }
@@ -2249,7 +2256,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     targetContainer.add(dummy);
     dummy.position.copy(targetContainer.worldToLocal(hitPoint.clone()));
 
-    // ✅ PEMBAIKAN: Logik Quaternion supaya logo menghadap tepat ke arah kamera
     const camDir = hitPoint.clone().sub(camera.position).normalize();
     const invMat = new THREE.Matrix4().copy(targetContainer.matrixWorld).invert();
     const localCamDir = camDir.clone().transformDirection(invMat).normalize();
@@ -2279,7 +2285,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   layers.push(dummy);
   addDesignLayer(dummy, isText ? `Teks ${logoCount}` : `Logo ${logoCount}`, isText ? '📝' : '🖼️');
   pushHistory();
-  if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
+  if (Math.abs(dummy.userData.curve) > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
 }
 
 // ===== BACKGROUND =====
