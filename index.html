@@ -159,7 +159,6 @@
       </div>
     </div>
 
-    <!-- ===== MODEL BAJU 3D DROPDOWN ===== -->
     <div class="accordion-item open">
       <div class="accordion-header">Model Baju 3D <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -167,7 +166,7 @@
           <option value="./T_shirt_gltf.gltf">👕 Baju Asal (GLTF)</option>
           <option value="./baju_baru.glb">👕 Baju Baru (GLB)</option>
           <option value="./long_sleeve_t-_shirt.glb">🧥 Lengan Panjang (GLB)</option>
-          <option value="./short_sleeve_polo.glb">👔 Polo Shirt (GLB)</option> <!-- PILIHAN BAHARU -->
+          <option value="./short_sleeve_polo.glb">👔 Polo Shirt (GLB)</option>
         </select>
         <div style="font-size:11px;color:#71717a;margin-top:8px;line-height:1.5">
           Tukar model 3D. Design sedia ada akan dikekalkan automatik.
@@ -1400,6 +1399,76 @@ async function updateTextLayer(dummy) {
 // ===== DECAL SYSTEM =====
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
+
+// ===== AUTO-DETECT CURVATURE (untuk 3 model GLB baru sahaja) =====
+// Model asal './T_shirt_gltf.gltf' TIDAK diusik — kekal guna depth statik asal.
+const AUTO_CURVATURE_MODELS = new Set([
+  './baju_baru.glb',
+  './long_sleeve_t-_shirt.glb',
+  './short_sleeve_polo.glb'
+]);
+const _autoRayc = new THREE.Raycaster();
+
+function computeAutoDepth(dummy, w, h, baseDepth) {
+  dummy.updateMatrixWorld(true);
+  const wq = new THREE.Quaternion();
+  dummy.getWorldQuaternion(wq);
+  const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(wq);
+  const up     = new THREE.Vector3(0, 1, 0).applyQuaternion(wq);
+  const right  = new THREE.Vector3(1, 0, 0).applyQuaternion(wq);
+  const worldPos = new THREE.Vector3();
+  dummy.getWorldPosition(worldPos);
+
+  // 9 titik sampel: 4 penjuru + 4 tepi tengah + 1 tengah
+  const samples = [
+    [-0.5,-0.5],[0,-0.5],[0.5,-0.5],
+    [-0.5, 0  ],[0, 0  ],[0.5, 0  ],
+    [-0.5, 0.5],[0, 0.5],[0.5, 0.5]
+  ];
+
+  let maxOffset = 0;
+  const tmpP = new THREE.Vector3();
+
+  for (const [u, v] of samples) {
+    tmpP.copy(worldPos)
+      .addScaledVector(right, u * w)
+      .addScaledVector(up,    v * h);
+
+    let found = false;
+
+    // Cuba tembak ke arah viewer (+normal) — untuk permukaan yang menonjol keluar
+    _autoRayc.set(tmpP, normal);
+    let hits = _autoRayc.intersectObjects(shirtMeshes, true);
+    if (hits.length && hits[0].distance < 0.8) {
+      const hit = hits[0];
+      const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
+      // Hanya terima jika permukaan hadap arah sama (bukan belakang baju)
+      if (!fn || fn.dot(normal) > 0.1) {
+        if (hit.distance > maxOffset) maxOffset = hit.distance;
+        found = true;
+      }
+    }
+
+    // Kalau tak jumpa, cuba tembak menjauhi viewer (-normal) — untuk permukaan yang melengkung masuk
+    if (!found) {
+      const nn = normal.clone().negate();
+      _autoRayc.set(tmpP, nn);
+      hits = _autoRayc.intersectObjects(shirtMeshes, true);
+      if (hits.length && hits[0].distance < 0.8) {
+        const hit = hits[0];
+        const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
+        if (!fn || fn.dot(normal) > 0.1) {
+          if (hit.distance > maxOffset) maxOffset = hit.distance;
+        }
+      }
+    }
+  }
+
+  // depth = 2 × offset maksimum (kotak berpusat di dummy.position) + margin keselamatan
+  const requiredDepth = maxOffset * 2 + 0.12;
+  return Math.max(baseDepth, Math.min(requiredDepth, 1.0));
+}
+
 function isOnSleeve(d) { return Math.abs(d.position.x) > 0.34; }
 
 let decalQueuedDummy = null;
@@ -1443,13 +1512,24 @@ function createDecalNow(dummy) {
 function createFlatDecal(dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
-  const depth = onSleeve ? 0.38 : 0.22;
   const isBack = !onSleeve && new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion).z < -0.15;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const aspect = getDecalAspect(dummy);
   const w = base * dummy.scale.x;
   const h = (base / aspect) * dummy.scale.y;
+
+  // ===== AUTO-DEPTH =====
+  const baseDepth = onSleeve ? 0.38 : 0.22;
+  let depth;
+  if (AUTO_CURVATURE_MODELS.has(currentModelUrl)) {
+    // 3 model GLB baru — guna auto-detect ikut curvature mesh
+    depth = computeAutoDepth(dummy, w, h, baseDepth);
+  } else {
+    // Model asal T_shirt_gltf.gltf — kekal seperti asal (sudah OK)
+    depth = baseDepth;
+  }
+
   const size = new THREE.Vector3(w, h, depth);
   shirtMeshes.forEach(mesh => {
     try {
