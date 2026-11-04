@@ -97,7 +97,6 @@
     #btnSnap{background:#10b981;color:#fff;}
     #btnSnap:disabled{opacity:0.5;cursor:not-allowed;}
     
-    /* ==== FLOATING EDIT CONTROLS ==== */
     #floating-edit-controls {
       position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
       display: flex; gap: 8px; z-index: 60; background: rgba(24,24,27,0.85);
@@ -167,7 +166,6 @@
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
 
-    /* ==== CROP MODAL ==== */
     #crop-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
     #crop-container { position: relative; display: inline-block; background: #000; }
     #crop-image { display: block; max-width: 90vw; max-height: 80vh; }
@@ -563,7 +561,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
 });
 
 // ===== INDEXEDDB =====
-const DB_NAME = 'ProDesigner3D_v10';
+const DB_NAME = 'ProDesigner3D_v11';
 const DB_VERSION = 1;
 const STORE = 'projects';
 function openDB() {
@@ -926,21 +924,17 @@ function loadShirtModel(url, config = {}) {
     new GLTFLoader().load(url, (g) => {
       const model = g.scene;
       
-      // 1. Kira kotak sempadan (bounding box) model
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
       
-      // 2. Skala model
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
       model.scale.setScalar(2.4 / maxDim);
       model.updateMatrixWorld(true);
       
-      // 3. Kira semula sempadan selepas skala
       box.setFromObject(model);
       const center2 = box.getCenter(new THREE.Vector3());
       
-      // 4. Paksa titik tengah geometri model tepat di (0,0,0) pada container
       model.position.set(-center2.x, -center2.y, -center2.z);
       model.updateMatrixWorld(true);
 
@@ -989,7 +983,6 @@ function loadShirtModel(url, config = {}) {
       container.userData.contrast = config.contrast ?? 100;
       if (config.position) container.position.fromArray(config.position);
       
-      // Center fallback
       const box = new THREE.Box3().setFromObject(fallback);
       const center = box.getCenter(new THREE.Vector3());
       fallback.position.sub(center);
@@ -1126,7 +1119,6 @@ function selectModelGroup(container, groupEl) {
   activeModelContainer = container;
   propertiesPanel.classList.add('active');
   
-  // Auto focus camera to the clicked model
   focusCameraOn(container);
   
   document.getElementById('decalProps').style.display = 'none';
@@ -1217,7 +1209,6 @@ document.getElementById('btnClearModels').onclick = () => {
   showToast('Semua model dibuang');
 };
 
-// Initial Load
 async function setupInitialModel() {
   await loadShirtModel('./T_shirt_gltf.gltf');
   const loadingEl = document.getElementById('loading');
@@ -2020,7 +2011,6 @@ function createFlatDecal(dummy) {
     target.traverse(c => { if (c.isMesh) meshesToProject.push(c); });
   }
 
-  // Kira posisi Z untuk mengelakkan logo terapung
   const localNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(dummy.quaternion);
   const adjustedPos = dummy.position.clone().add(localNormal.clone().multiplyScalar(dummy.userData.depthOffset || 0));
 
@@ -2085,7 +2075,6 @@ function createCurvedDecal(dummy, curve) {
   });
   const mesh = new THREE.Mesh(geo, mat);
   
-  // Aplikasikan offset Z untuk logo
   const offsetPos = dummy.position.clone().add(dummyNormal.clone().multiplyScalar((dummy.userData.depthOffset || 0) + 0.002));
   mesh.position.copy(offsetPos);
   mesh.quaternion.copy(dummy.quaternion);
@@ -2339,33 +2328,58 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     effects: defaultEffects(), decals: []
   };
   
-  let hits = raycaster.intersectObjects(loadedModelContainers, true);
-  
-  if (hits.length === 0 && loadedModelContainers.length > 0) {
-    dummy.userData.targetContainer = loadedModelContainers[0];
-    dummy.userData.targetContainer.add(dummy);
-    dummy.position.set(0, 0.1, 0.4);
-  } else if (hits.length > 0) {
-    const hit = hits[0];
-    let hitContainer = hit.object;
-    while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
-      hitContainer = hitContainer.parent;
+  let targetContainer = activeModelContainer;
+  let hitPoint = null;
+  let hitNormal = null;
+
+  // 1. Cuba letak pada baju yang sedang aktif (jika ada)
+  if (targetContainer) {
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const hits = raycaster.intersectObject(targetContainer, true);
+    if (hits.length > 0) {
+      hitPoint = hits[0].point;
+      hitNormal = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
     }
-    dummy.userData.targetContainer = hitContainer;
-    hitContainer.add(dummy);
-    dummy.position.copy(hitContainer.worldToLocal(hit.point.clone()));
-    
-    const n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
-    const ln = n.clone().transformDirection(new THREE.Matrix4().copy(hitContainer.matrixWorld).invert()).normalize();
-    const up = new THREE.Vector3(0, 1, 0);
-    let right = new THREE.Vector3().crossVectors(up, ln);
-    if (right.lengthSq() < 0.001) right.set(1, 0, 0);
-    right.normalize();
-    const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
-    dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
-  } else {
+  }
+
+  // 2. Jika tiada baju aktif, cari baju di tengah skrin
+  if (!targetContainer) {
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const hits = raycaster.intersectObjects(loadedModelContainers, true);
+    if (hits.length > 0) {
+      let hitContainer = hits[0].object;
+      while (hitContainer.parent && hitContainer.parent !== shirtGroup) {
+        hitContainer = hitContainer.parent;
+      }
+      targetContainer = hitContainer;
+      hitPoint = hits[0].point;
+      hitNormal = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
+    } else if (loadedModelContainers.length > 0) {
+      targetContainer = loadedModelContainers[0];
+    }
+  }
+
+  // 3. Tetapkan posisi
+  if (!targetContainer) {
     shirtGroup.add(dummy);
     dummy.position.set(0, 0.1, 0.4);
+  } else {
+    dummy.userData.targetContainer = targetContainer;
+    targetContainer.add(dummy);
+
+    if (hitPoint && hitNormal) {
+      dummy.position.copy(targetContainer.worldToLocal(hitPoint.clone()));
+      
+      const ln = hitNormal.clone().transformDirection(new THREE.Matrix4().copy(targetContainer.matrixWorld).invert()).normalize();
+      const up = new THREE.Vector3(0, 1, 0);
+      let right = new THREE.Vector3().crossVectors(up, ln);
+      if (right.lengthSq() < 0.001) right.set(1, 0, 0);
+      right.normalize();
+      const actualUp = new THREE.Vector3().crossVectors(ln, right).normalize();
+      dummy.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, actualUp, ln));
+    } else {
+      dummy.position.set(0, 0.1, 0.4);
+    }
   }
   
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
@@ -3020,9 +3034,8 @@ function startPreview() {
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
   
-  // Sembunyikan kawalan edit
   document.getElementById('floating-edit-controls').style.display = 'none';
-  controls.autoRotate = false; // Matikan loop masa render
+  controls.autoRotate = false; 
   
   fitCameraForRender(renderZoom);
   loadedModelContainers.forEach(c => c.rotation.y = 0);
@@ -3054,7 +3067,6 @@ function stopPreview() {
   transformHelper.visible = true; controls.enabled = true;
   fitCameraToModels();
   
-  // Tunjuk balik kawalan edit
   document.getElementById('floating-edit-controls').style.display = 'flex';
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing) startVideoRecord(); };
@@ -3115,7 +3127,6 @@ async function startVideoRecord() {
     floatingControls.style.display = 'none';
     fitCameraToModels();
     
-    // Tunjuk balik kawalan edit
     document.getElementById('floating-edit-controls').style.display = 'flex';
   };
   isRecording = true; isPaused = false;
@@ -3214,7 +3225,7 @@ window.addEventListener('keydown', e => {
 function animate() {
   requestAnimationFrame(animate);
   if (!isRecording && !isPreviewing) {
-    controls.update(); // autoRotate berfungsi di sini
+    controls.update(); 
     renderer.render(scene, camera);
     if (currentMode === 'free' && activeDummy && !ftDragging) updateFreeTransformHandles();
   }
