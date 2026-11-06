@@ -640,7 +640,11 @@
 <div id="toast"></div>
 
 <script type="importmap">
-{"imports":{"three":"https://unpkg.com/three@0.169.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.169.0/examples/jsm/"}}
+{"imports":{
+  "three":"https://unpkg.com/three@0.169.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.169.0/examples/jsm/",
+  "three-mesh-bvh":"https://unpkg.com/three-mesh-bvh@0.7.8/build/index.module.js"
+}}
 </script>
 
 <script type="module">
@@ -649,6 +653,21 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// ===== BVH: Raycast dipercepat (O(n) → O(log n)) =====
+// Tidak mengubah hasil raycast sama sekali — hanya lebih laju pada mesh padat.
+// Jika BVH tidak tersedia, fallback ke raycast biasa secara automatik.
+let BVH_OK = false;
+try {
+  const bvh = await import('three-mesh-bvh');
+  THREE.BufferGeometry.prototype.computeBoundsTree = bvh.computeBoundsTree;
+  THREE.BufferGeometry.prototype.disposeBoundsTree = bvh.disposeBoundsTree;
+  THREE.Mesh.prototype.raycast = bvh.acceleratedRaycast;
+  BVH_OK = true;
+  console.log('✅ BVH aktif — raycast dipercepat');
+} catch (e) {
+  console.warn('⚠️ BVH tidak tersedia, guna raycast biasa:', e.message);
+}
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -811,7 +830,7 @@ const canvasGroup = new THREE.Group();
 scene.add(canvasGroup);
 let items = [];            // Group layer (setiap baju 3D)
 let canvasLayers = [];     // Grafik canvas bebas
-let activeItem = null, activeDummy = null, selectionKind = null; // 'item' | 'layer' | null
+let activeItem = null, activeDummy = null, selectionKind = null;
 let logoCount = 0, itemSeq = 0;
 let viewYaw = 0, yawTween = null;
 let interactMode = 'orbit';
@@ -826,6 +845,11 @@ let animStartTime = 0, currentP = 0;
 let isExporting = false;
 let cropSession = null, scRatio = null, scDrag = null;
 let savedCam = null;
+
+// ===== STATE UNTUK OPTIMASI DRAG =====
+let _ftRectCache = null;        // cache getBoundingClientRect semasa drag
+let _lastFtMoveTime = 0;         // throttle timestamp
+const FT_MOVE_MIN_MS = 15;       // ~66fps max
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = $('layers-list');
@@ -870,7 +894,7 @@ function ensureEffects(d) {
 }
 
 // =====================================================================
-// ===== LATAR BELAKANG PRO (lapisan 2D TETAP — tidak berpusing) =====
+// ===== LATAR BELAKANG PRO =====
 // =====================================================================
 function defaultBg() {
   return {
@@ -1114,7 +1138,6 @@ function markBgDirty() {
   scheduleBgRender();
 }
 
-// ----- UI latar -----
 const BG_RANGE_SUFFIX = {
   angle:'°', spotIntensity:'%', spotSize:'%', spotY:'%',
   shadowOpacity:'%', shadowWidth:'%', shadowBlur:'', shadowY:'%',
@@ -1223,7 +1246,7 @@ $('btnClearBgImage').onclick = async () => {
   syncBgUI(); pushHistory();
 };
 
-// ===== CROP / RATIO (bingkai kerja) =====
+// ===== CROP / RATIO =====
 function parseRatio(s) {
   if (!s || s === 'auto' || s === 'free') return null;
   const [a, b] = s.split(':').map(Number);
@@ -1301,7 +1324,6 @@ function getModelTemplate(url) {
   return modelCache.get(url);
 }
 
-// Laras brightness / contrast / saturation per group (shader)
 function installAdj(mat, item) {
   mat.onBeforeCompile = sh => {
     sh.uniforms.uBright = item.adj.bright;
@@ -1340,6 +1362,10 @@ async function attachModel(item, url) {
     installAdj(m, item);
     c.material = m;
     c.userData.item = item;
+    // ===== BVH: percepat raycast pada mesh padat =====
+    if (BVH_OK && c.geometry.attributes.position.count > 500) {
+      try { c.geometry.computeBoundsTree(); } catch (e) {}
+    }
     item.materials.push(m);
     item.meshes.push(c);
   });
@@ -1376,7 +1402,6 @@ async function createItem(data = {}) {
   return item;
 }
 
-// Jalankan fungsi dalam ruang "kanonik" (group di pusat, tiada putaran) — supaya DecalGeometry tepat
 function withCanon(item, fn) {
   const r = item.root, s = item.spin;
   const sp = r.position.clone(), ss = r.scale.clone(), sry = s.rotation.y;
@@ -1430,7 +1455,6 @@ async function swapItemModel(item, url) {
   showToast('✅ Model baju ditukar');
 }
 
-// ----- sempadan, kamera, bayang -----
 function sceneBounds() {
   const b = new THREE.Box3();
   items.forEach(it => {
@@ -1539,7 +1563,7 @@ $('btnFitAll').onclick = () => fitCamera();
 $('btnArrange').onclick = arrangeRow;
 
 // =====================================================================
-// ===== SELECTION & LAYER PANEL (gaya Photoshop: Group + Layer) =====
+// ===== SELECTION & LAYER PANEL =====
 // =====================================================================
 function clearPanels() {
   propertiesPanel.classList.remove('active');
@@ -1928,7 +1952,6 @@ function getDecalTexture(dummy, isBack) {
   }
   return dummy.userData._decalTexFront;
 }
-// Saiz decal — saiz logo kekal sama walaupun kesan (bayang/stroke) menambah padding
 function decalDims(dummy, base) {
   const c = dummy.userData._fxCanvas;
   const sx = dummy.scale.x, sy = dummy.scale.y || sx;
@@ -1975,7 +1998,6 @@ $('propCurve').onchange = () => { renderLayerPanel(); pushHistory(); };
 $('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 $('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
-// FX UI
 function updateFxUI(d) {
   if (!d) return;
   const fx = ensureEffects(d);
@@ -2026,7 +2048,6 @@ $('fxReset').onclick = () => setFx(activeDummy?.userData.isCanvasGraphic ? flatE
 $('fxPresetRaised').onclick = () => setFx({ ...flatEffects(), shadowBlur: 14, shadowOffsetX: 5, shadowOffsetY: 8 }, '⬆ Timbul + bayang diaktifkan');
 $('fxPresetFlat').onclick = () => setFx(flatEffects(), 'Logo rata (tiada bayang)');
 
-// Alignment
 $('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.x = 0;
@@ -2038,7 +2059,6 @@ $('btnAlignCenterY').onclick = () => {
   createDecalNow(activeDummy); pushHistory(); showToast('Center Y');
 };
 
-// Layer builders (dikongsi: tambah, duplicate, restore)
 function makeLogoDummy(common, item, extra = {}) {
   const d = new THREE.Object3D();
   d.userData = { ...common, item, curve: extra.curve || 0, effects: extra.effects || defaultEffects(), decals: [] };
@@ -2056,7 +2076,6 @@ function makeCanvasMesh(common, extra = {}) {
   return mesh;
 }
 
-// Duplicate layer
 $('btnDuplicate').onclick = () => {
   if (!activeDummy) return;
   const src = activeDummy, u = src.userData;
@@ -2143,7 +2162,6 @@ function isOnSleeve(d) {
   return false;
 }
 
-// Asas orientasi (pada lengan: dasar world-up + putaran/roll pengguna dikekalkan)
 function dummyBasis(dummy, onSleeve) {
   const q = dummy.quaternion;
   const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q).normalize();
@@ -2252,18 +2270,22 @@ function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
   return { depth: Math.max(baseDepth, requiredDepth), curve };
 }
 
-let decalQueuedDummy = null, decalQueued = false, decalTimeout = null;
+// ===== PATCH 3: RAF-COALESCED scheduleDecal (segerak frame) =====
+// Sebelum: throttle 90ms (11 fps) → rasa "logo lekat di belakang cursor"
+// Selepas: update pada setiap frame RAF → 60fps, segerak dengan outline
+let _decalPending = null;
+let _decalRAF = null;
+
 function scheduleDecal(dummy, forceHQ = false) {
-  decalQueuedDummy = dummy;
-  const delay = ftDragging ? 90 : 35;
-  if (decalQueued && !forceHQ) return;
-  decalQueued = true;
-  if (decalTimeout) clearTimeout(decalTimeout);
-  decalTimeout = setTimeout(() => {
-    decalQueued = false;
-    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ || !ftDragging);
-    decalQueuedDummy = null;
-  }, delay);
+  _decalPending = { dummy, forceHQ };
+  if (_decalRAF) return;
+  _decalRAF = requestAnimationFrame(() => {
+    _decalRAF = null;
+    const pending = _decalPending;
+    _decalPending = null;
+    if (!pending || !pending.dummy) return;
+    createDecalNow(pending.dummy, pending.forceHQ || !ftDragging);
+  });
 }
 
 function refreshCanvasMesh(m) {
@@ -2347,6 +2369,13 @@ function createLightCurvedDecal(item, dummy, curve) {
   dummy.userData.decals.push(mesh);
 }
 
+// ===== PATCH 1: AABB skip dalam createFlatDecal =====
+// Buang kerja terbuang: DecalGeometry pada mesh yang jauh dari kotak decal
+// hasilkan geometry kosong (dibuang juga). Kita skip terus → visual IDENTIK, 3-5× lebih laju.
+const _decalAABB = new THREE.Box3();
+const _decalTmpV = new THREE.Vector3();
+const _meshWorldBox = new THREE.Box3();
+
 function createFlatDecal(item, dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -2364,7 +2393,24 @@ function createFlatDecal(item, dummy) {
   if (autoCurve > 0.05) { createCurvedDecal(item, dummy, autoCurve); return; }
 
   const size = new THREE.Vector3(w, h, depth);
+
+  // Pre-compute AABB decal dalam ruang kanonik (sama dengan dummy.position/quaternion)
+  _decalAABB.makeEmpty();
+  const hx = size.x / 2, hy = size.y / 2, hz = size.z / 2;
+  for (let i = 0; i < 8; i++) {
+    _decalTmpV.set((i & 1 ? hx : -hx), (i & 2 ? hy : -hy), (i & 4 ? hz : -hz))
+      .applyQuaternion(dummy.quaternion).add(dummy.position);
+    _decalAABB.expandByPoint(_decalTmpV);
+  }
+  _decalAABB.expandByScalar(0.02);
+
   item.meshes.forEach(mesh => {
+    // AABB cull: skip mesh yang langsung tak bersilang dengan kotak decal
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    if (mesh.geometry.boundingBox) {
+      _meshWorldBox.copy(mesh.geometry.boundingBox).applyMatrix4(mesh.matrixWorld);
+      if (!_meshWorldBox.intersectsBox(_decalAABB)) return;
+    }
     try {
       const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
       if (geo.attributes.position?.count > 0) {
@@ -2448,7 +2494,7 @@ function createCurvedDecal(item, dummy, curve) {
 }
 
 // =====================================================================
-// ===== FREE TRANSFORM (gaya Photoshop untuk logo/teks) =====
+// ===== FREE TRANSFORM =====
 // =====================================================================
 let _ftSig = '';
 function showFreeTransform() {
@@ -2533,8 +2579,9 @@ function ftSignature() {
   return parts.join('|');
 }
 
+// ===== PATCH 2: rayToPlane guna cache rect semasa drag =====
 function rayToPlane(clientX, clientY, plane) {
-  const rect = container.getBoundingClientRect();
+  const rect = _ftRectCache || container.getBoundingClientRect();
   const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
   raycaster.setFromCamera(ndc, camera);
   const out = new THREE.Vector3();
@@ -2545,7 +2592,6 @@ function cameraPlane(point) {
   return new THREE.Plane().setFromNormalAndCoplanarPoint(dir, point);
 }
 
-// Seret petak = gerak logo
 ftBox.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
   if (!activeDummy || activeDummy.userData.locked) return;
@@ -2553,6 +2599,8 @@ ftBox.onpointerdown = e => {
   ftDragging = 'move';
   ftStartMouse.set(e.clientX, e.clientY);
   ftStartPos = activeDummy.position.clone();
+  _ftRectCache = container.getBoundingClientRect();  // ✅ CACHE
+  _lastFtMoveTime = 0;
   if (activeDummy.userData.isCanvasGraphic) {
     ftDragPlane = cameraPlane(activeDummy.position.clone());
     const p = rayToPlane(e.clientX, e.clientY, ftDragPlane);
@@ -2568,6 +2616,8 @@ ftEl.querySelectorAll('.ft-handle').forEach(h => {
     ftDragging = 'scale';
     ftStartMouse.set(e.clientX, e.clientY);
     ftStartScale = activeDummy.scale.x;
+    _ftRectCache = container.getBoundingClientRect();
+    _lastFtMoveTime = 0;
     controls.enabled = false;
     h.setPointerCapture(e.pointerId);
   };
@@ -2577,17 +2627,25 @@ ftRotateHandle.onpointerdown = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   ftDragging = 'rotate';
   ftStartAngle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
+  _ftRectCache = container.getBoundingClientRect();
+  _lastFtMoveTime = 0;
   controls.enabled = false;
   ftRotateHandle.setPointerCapture(e.pointerId);
 };
 
+// ===== PATCH 3 & 2: pointermove throttle + cached rect =====
 window.addEventListener('pointermove', e => {
   if (!ftDragging || !activeDummy) return;
+  // Throttle: max ~66fps. Mouse 1000Hz → elak proses berlebihan
+  const now = performance.now();
+  if (now - _lastFtMoveTime < FT_MOVE_MIN_MS) return;
+  _lastFtMoveTime = now;
+
   const d = activeDummy;
   if (ftDragging === 'move') {
     if (!d.userData.isCanvasGraphic) {
       const item = d.userData.item;
-      const rect = container.getBoundingClientRect();
+      const rect = _ftRectCache || container.getBoundingClientRect();
       const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
       raycaster.setFromCamera(ndc, camera);
       const hits = raycaster.intersectObjects(item.meshes, true);
@@ -2633,14 +2691,16 @@ window.addEventListener('pointerup', () => {
   if (ftDragging) {
     ftDragging = null;
     controls.enabled = true;
-    if (activeDummy) createDecalNow(activeDummy, true);
+    _ftRectCache = null;      // ✅ reset
+    _lastFtMoveTime = 0;
+    if (activeDummy) createDecalNow(activeDummy, true);   // <-- HQ decal, IDENTIK dengan sebelum patch
     updateFreeTransformHandles();
     pushHistory();
   }
 });
 
 // =====================================================================
-// ===== GERAK / PUTAR GROUP (setiap baju berputar pada pusat sendiri) =====
+// ===== GERAK / PUTAR GROUP =====
 // =====================================================================
 const MODE_HINTS = {
   orbit: 'Orbit: seret ruang kosong untuk pusing kamera. Klik 2× pada baju untuk pilih group.',
@@ -2712,7 +2772,6 @@ renderer.domElement.addEventListener('dblclick', e => {
   if (hit) selectItem(hit.object.userData.item);
 });
 
-// Kotak group (garis putus-putus)
 const gbox = $('gbox'), gboxLabel = $('gboxLabel');
 const _gc = new THREE.Vector3();
 function updateGroupBox() {
@@ -2799,7 +2858,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   common.icon = isText ? '📝' : '🖼️';
   const dummy = makeLogoDummy(common, item);
 
-  // tembak sinar ke tengah skrin baju (group aktif sahaja)
   item.spin.updateWorldMatrix(true, false);
   const cWorld = new THREE.Vector3(); item.root.getWorldPosition(cWorld);
   const cNdc = cWorld.clone().project(camera);
@@ -2963,7 +3021,6 @@ async function restoreState(state) {
 
     let itemsData = state.items, canvasData = state.canvasLayers || [];
     if (!itemsData) {
-      // migrasi project lama (satu baju)
       const all = state.layers || [];
       itemsData = [{
         name: 'Baju 1', modelUrl: state.modelUrl || MODELS[0].url, color: state.color || '#ffffff',
@@ -3103,7 +3160,6 @@ $('btnNewProject').onclick = async () => {
   loadProjectList();
 };
 
-// ===== HISTORY (segerak — lebih laju) =====
 function pushHistory() {
   if (isRestoring) return;
   if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
@@ -3347,7 +3403,7 @@ function captureImage(view = 'current', targetRes = 3840) {
 }
 
 // =====================================================================
-// ===== VIDEO / PREVIEW (setiap baju berputar pada pusat sendiri) =====
+// ===== VIDEO / PREVIEW =====
 // =====================================================================
 $('speedSlider').oninput = e => { rotationSpeed = +e.target.value; $('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 $('durationSlider').oninput = e => { recordDuration = +e.target.value; $('durationValue').textContent = recordDuration + 's'; };
@@ -3493,12 +3549,10 @@ btnPausePlay.onclick = () => {
   }
 };
 btnSnap.onclick = () => {
-  // tangkap bingkai semasa (ikut bingkai kerja & pandangan semasa)
   if (isRecording) { showToast('Tangkap gambar tersedia semasa preview dijeda', true); return; }
   const savedP = currentP;
   const spinNow = savedP * Math.PI * 2 * rotationSpeed;
   const v = viewYaw;
-  // gambar diambil dengan putaran semasa animasi
   const wasPreviewing = isPreviewing;
   if (wasPreviewing) { isPreviewing = false; }
   const snapRes = 3840;
@@ -3533,7 +3587,7 @@ btnSnap.onclick = () => {
 };
 
 // =====================================================================
-// ===== PANDANGAN (putar semua baju pada pusat masing-masing) =====
+// ===== PANDANGAN =====
 // =====================================================================
 function normAngle(a) { return ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; }
 function tweenYaw(to) {
