@@ -104,7 +104,7 @@
     .ft-rotate-line{position:absolute;width:1.5px;background:#38bdf8;pointer-events:none}
     #gbox{position:absolute;border:1.5px dashed #a78bfa;pointer-events:none;z-index:18;display:none;border-radius:4px}
     #gbox span{position:absolute;top:-21px;left:-1px;background:#7c3aed;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;white-space:nowrap}
-    #view-toggles{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(24,24,27,.85);padding:8px;border-radius:12px;z-index:15}
+    #view-toggles{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(24,24,27,.85);padding:8px;border-radius:12px;z-index:15}
     #view-toggles button{background:#3f3f46;color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
     #view-toggles button.active{background:#38bdf8;color:#000}
     #mode-toggles{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;z-index:15;background:rgba(24,24,27,.88);padding:8px;border-radius:12px;border:1px solid #2e2e32}
@@ -224,7 +224,9 @@
     #loupe canvas{width:100%;height:100%;display:block}
     #loupe::after{content:'';position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1px solid rgba(255,255,255,.7);border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
     body.hand-mode #viewer-container canvas{cursor:grab}
-    #statusbar{position:absolute;left:12px;bottom:20px;z-index:16;background:rgba(24,24,27,.92);border:1px solid #2e2e32;border-radius:12px;padding:7px 12px;font-size:11px;color:#d4d4d8;display:flex;flex-direction:column;gap:5px;cursor:pointer;user-select:none;min-width:210px;max-width:260px}
+    
+    /* Statusbar dipindahkan ke atas kanan */
+    #statusbar{position:absolute;right:12px;top:60px;z-index:16;background:rgba(24,24,27,.92);border:1px solid #2e2e32;border-radius:12px;padding:7px 12px;font-size:11px;color:#d4d4d8;display:flex;flex-direction:column;gap:5px;cursor:pointer;user-select:none;min-width:210px;max-width:260px}
     #statusbar .l1{display:flex;justify-content:space-between;gap:10px}
     #statusbar b{color:#e4e4e7;font-weight:600}
     #memBar{height:6px;border-radius:3px;background:#3f3f46;overflow:hidden}
@@ -1749,8 +1751,8 @@ function setSpins(extra = 0) {
   items.forEach(it => { it.spin.rotation.y = it.rotY + viewYaw + extra * it.spinMul; });
 }
 function refreshAllDecals() {
-  items.forEach(it => it.layers.forEach(d => createDecalNow(d)));
-  canvasLayers.forEach(d => createDecalNow(d));
+  items.forEach(it => it.layers.forEach(d => createDecalNow(d, true)));
+  canvasLayers.forEach(d => createDecalNow(d, true));
 }
 function destroyItem(item) {
   item.layers.forEach(d => { disposeDummyDecals(d); disposeDummyTextures(d); });
@@ -1779,7 +1781,7 @@ async function swapItemModel(item, url) {
   item.materials.forEach(m => m.dispose?.());
   item.parts.meshMap = {};
   await attachModel(item, url);
-  item.layers.forEach(d => createDecalNow(d));
+  item.layers.forEach(d => createDecalNow(d, true));
   updateGround();
   syncPartsUI(item);
   renderLayerPanel();
@@ -2606,14 +2608,21 @@ function decalDims(dummy, base) {
 
 // ===== PROPERTIES LAYER =====
 $('propName').onchange = e => { if (!activeDummy) return; activeDummy.userData.name = e.target.value; renderLayerPanel(); pushHistory(); };
+
 $('propScale').oninput = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   const s = +e.target.value;
   $('propScaleValue').textContent = s.toFixed(2);
   activeDummy.scale.setScalar(s);
-  if (!activeDummy.userData.isCanvasGraphic) scheduleDecal(activeDummy);
+  // Fast update while dragging
+  if (!activeDummy.userData.isCanvasGraphic) scheduleDecal(activeDummy, false);
 };
-$('propScale').onchange = () => pushHistory();
+$('propScale').onchange = () => {
+  pushHistory();
+  // High quality update after release
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) createDecalNow(activeDummy, true);
+};
+
 $('propOpacity').oninput = e => {
   if (!activeDummy) return;
   const op = +e.target.value;
@@ -2623,14 +2632,22 @@ $('propOpacity').oninput = e => {
   else (activeDummy.userData.decals || []).forEach(d => d.material.opacity = op);
 };
 $('propOpacity').onchange = () => pushHistory();
+
 $('propCurve').oninput = e => {
   if (!activeDummy || activeDummy.userData.isCanvasGraphic) return;
   const c = +e.target.value;
   activeDummy.userData.curve = c;
   $('propCurveValue').textContent = c.toFixed(2);
-  scheduleDecal(activeDummy);
+  // Fast update while dragging
+  scheduleDecal(activeDummy, false);
 };
-$('propCurve').onchange = () => { renderLayerPanel(); pushHistory(); };
+$('propCurve').onchange = () => {
+  renderLayerPanel();
+  pushHistory();
+  // High quality update after release
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) createDecalNow(activeDummy, true);
+};
+
 $('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 $('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
@@ -2654,7 +2671,7 @@ function updateFxUI(d) {
 function fxOnInput(key, value) {
   if (!activeDummy) return;
   ensureEffects(activeDummy)[key] = value;
-  scheduleDecal(activeDummy);
+  scheduleDecal(activeDummy, false);
 }
 function fxBind(id, key, valId, fmt, conv = v => v) {
   const el = $(id);
@@ -2662,7 +2679,10 @@ function fxBind(id, key, valId, fmt, conv = v => v) {
     if (valId) $(valId).textContent = fmt(e.target.value);
     fxOnInput(key, conv(e.target.type === 'color' ? e.target.value : +e.target.value));
   };
-  el.onchange = () => pushHistory();
+  el.onchange = () => {
+    pushHistory();
+    if (activeDummy) createDecalNow(activeDummy, true);
+  };
 }
 fxBind('fxOverlayColor', 'overlayColor');
 fxBind('fxOverlayOpacity', 'overlayOpacity', 'fxOverlayOpacityValue', v => v + '%', v => v / 100);
@@ -2676,23 +2696,25 @@ function setFx(fx, msg) {
   if (!activeDummy) return;
   activeDummy.userData.effects = fx;
   updateFxUI(activeDummy);
-  scheduleDecal(activeDummy);
+  createDecalNow(activeDummy, true); // final update
   pushHistory();
   showToast(msg);
 }
 $('fxReset').onclick = () => setFx(activeDummy?.userData.isCanvasGraphic ? flatEffects() : defaultEffects(), 'Kesan direset');
 $('fxPresetRaised').onclick = () => setFx({ ...flatEffects(), shadowBlur: 14, shadowOffsetX: 5, shadowOffsetY: 8 }, '⬆ Timbul + bayang diaktifkan');
 $('fxPresetFlat').onclick = () => setFx(flatEffects(), 'Logo rata (tiada bayang)');
+
 $('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.x = 0;
-  createDecalNow(activeDummy); pushHistory(); showToast('Center X');
+  createDecalNow(activeDummy, true); pushHistory(); showToast('Center X');
 };
 $('btnAlignCenterY').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.y = activeDummy.userData.isCanvasGraphic ? activeDummy.position.y : 0.15;
-  createDecalNow(activeDummy); pushHistory(); showToast('Center Y');
+  createDecalNow(activeDummy, true); pushHistory(); showToast('Center Y');
 };
+
 function makeLogoDummy(common, item, extra = {}) {
   const d = new THREE.Object3D();
   d.userData = { ...common, item, curve: extra.curve || 0, effects: extra.effects || defaultEffects(), decals: [] };
@@ -2730,10 +2752,11 @@ $('btnDuplicate').onclick = () => {
   copy.quaternion.copy(src.quaternion);
   copy.scale.copy(src.scale);
   logoCount++;
-  createDecalNow(copy);
+  createDecalNow(copy, true);
   selectLayer(copy);
   pushHistory(); showToast('Layer diduplicate');
 };
+
 async function makeTextCanvas(text, color, font, size) {
   await ensureFontLoaded(font);
   const m = document.createElement('canvas').getContext('2d');
@@ -2761,7 +2784,7 @@ async function updateTextLayer(d) {
   u.texture = tex; u.textContent = text; u.textColor = color;
   u.dataURL = c.toDataURL('image/png');
   u.aspect = c.width / c.height;
-  createDecalNow(d);
+  createDecalNow(d, true);
   pushHistory();
 }
 
@@ -2877,19 +2900,21 @@ function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
   }
   return { depth: Math.max(baseDepth, requiredDepth), curve };
 }
+
 let decalQueuedDummy = null, decalQueued = false, decalTimeout = null;
 function scheduleDecal(dummy, forceHQ = false) {
   decalQueuedDummy = dummy;
-  const delay = ftDragging ? 90 : 35;
+  const delay = ftDragging ? 90 : 30;
   if (decalQueued && !forceHQ) return;
   decalQueued = true;
   if (decalTimeout) clearTimeout(decalTimeout);
   decalTimeout = setTimeout(() => {
     decalQueued = false;
-    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ || !ftDragging);
+    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ);
     decalQueuedDummy = null;
   }, delay);
 }
+
 function refreshCanvasMesh(m) {
   const c = getProcessedCanvas(m);
   if (!c) return;
@@ -2903,6 +2928,7 @@ function refreshCanvasMesh(m) {
   m.geometry.dispose();
   m.geometry = new THREE.PlaneGeometry(c.width / bw, c.height / bw);
 }
+
 function decalMaterial(item, tex, dummy, o) {
   const m = new THREE.MeshStandardMaterial({
     map: tex, transparent: true, depthTest: true, depthWrite: false,
@@ -2913,7 +2939,8 @@ function decalMaterial(item, tex, dummy, o) {
   installAdj(m, item);
   return m;
 }
-function createDecalNow(dummy, highQuality = true) {
+
+function createDecalNow(dummy, highQuality = false) {
   const u = dummy.userData;
   if (u.isCanvasGraphic) { refreshCanvasMesh(dummy); return; }
   const item = u.item;
@@ -2926,15 +2953,15 @@ function createDecalNow(dummy, highQuality = true) {
       curve = isAutoCurveModel(item.modelUrl) ? 0.65 : 0.7;
       u.curve = curve;
     }
-    if (!highQuality && ftDragging) {
-      if (curve > 0.01) createLightCurvedDecal(item, dummy, curve);
-      else createFlatDecal(item, dummy);
+    if (!highQuality) {
+      createLightCurvedDecal(item, dummy, curve);
       return;
     }
     if (curve > 0.01) createCurvedDecal(item, dummy, curve);
     else createFlatDecal(item, dummy);
   });
 }
+
 function createLightCurvedDecal(item, dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -2945,16 +2972,20 @@ function createLightCurvedDecal(item, dummy, curve) {
   if (!tex) return;
   const { w, h } = decalDims(dummy, base);
   const orientQuat = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, n));
-  const geo = new THREE.PlaneGeometry(w, h, 12, 4);
+
+  const isCurved = curve > 0.01;
+  const geo = new THREE.PlaneGeometry(w, h, isCurved ? 12 : 1, isCurved ? 4 : 1);
   const pos = geo.attributes.position;
-  const halfW = Math.max(0.001, w * 0.5);
-  const maxAngleX = (Math.PI / 2) * clamp(curve, 0.2, 1);
-  const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    const angleX = (x / halfW) * maxAngleX;
-    pos.setX(i, Math.sin(angleX) * Rx);
-    pos.setZ(i, (Math.cos(angleX) - 1) * Rx);
+  if (isCurved) {
+    const halfW = Math.max(0.001, w * 0.5);
+    const maxAngleX = (Math.PI / 2) * clamp(curve, 0.2, 1);
+    const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const angleX = (x / halfW) * maxAngleX;
+      pos.setX(i, Math.sin(angleX) * Rx);
+      pos.setZ(i, (Math.cos(angleX) - 1) * Rx);
+    }
   }
   geo.computeVertexNormals();
   const mat = decalMaterial(item, tex, dummy, { pof: -6, double: true });
@@ -2966,6 +2997,7 @@ function createLightCurvedDecal(item, dummy, curve) {
   item.spin.add(mesh);
   dummy.userData.decals.push(mesh);
 }
+
 function createFlatDecal(item, dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -2994,6 +3026,7 @@ function createFlatDecal(item, dummy) {
     } catch (e) {}
   });
 }
+
 function createCurvedDecal(item, dummy, curve) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -3203,7 +3236,7 @@ window.addEventListener('pointermove', e => {
       const p = rayToPlane(e.clientX, e.clientY, ftDragPlane);
       if (p) d.position.copy(p.add(ftDragOffset));
     }
-    scheduleDecal(d);
+    scheduleDecal(d, false);
     updateFreeTransformHandles();
     return;
   }
@@ -3214,7 +3247,7 @@ window.addEventListener('pointermove', e => {
     $('propScale').value = ns;
     $('propScaleValue').textContent = ns.toFixed(2);
     d.scale.setScalar(ns);
-    if (!d.userData.isCanvasGraphic) scheduleDecal(d);
+    if (!d.userData.isCanvasGraphic) scheduleDecal(d, false);
     updateFreeTransformHandles();
     return;
   }
@@ -3227,7 +3260,7 @@ window.addEventListener('pointermove', e => {
     const facing = nW.dot(camera.position.clone().sub(wp)) >= 0 ? 1 : -1;
     d.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -delta * facing));
     ftStartAngle = ang;
-    scheduleDecal(d);
+    scheduleDecal(d, false);
     updateFreeTransformHandles();
   }
 });
@@ -3235,7 +3268,7 @@ window.addEventListener('pointerup', () => {
   if (ftDragging) {
     ftDragging = null;
     controls.enabled = true;
-    if (activeDummy) createDecalNow(activeDummy, true);
+    if (activeDummy) createDecalNow(activeDummy, true); // High quality finalize
     updateFreeTransformHandles();
     pushHistory();
   }
@@ -3376,7 +3409,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
     const mesh = makeCanvasMesh(common);
     mesh.position.set(controls.target.x, controls.target.y, controls.target.z + 1.2);
     logoCount++;
-    createDecalNow(mesh);
+    createDecalNow(mesh, true);
     selectLayer(mesh);
     pushHistory();
     showToast('Grafik Canvas ditambah');
@@ -3408,7 +3441,7 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   } else dummy.position.set(0, 0.1, 0.4);
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
   logoCount++;
-  createDecalNow(dummy);
+  createDecalNow(dummy, true);
   selectLayer(dummy);
   pushHistory();
   if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
@@ -3497,7 +3530,7 @@ async function restoreLayer(ld, item) {
     d.scale.setScalar(Math.max(0.12, Math.max(...(ld.scale || [1, 1, 1]))));
   }
   logoCount++;
-  createDecalNow(d);
+  createDecalNow(d, true);
   return d;
 }
 async function restoreItem(data) {
