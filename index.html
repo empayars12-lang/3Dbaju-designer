@@ -225,7 +225,6 @@
     #loupe::after{content:'';position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1px solid rgba(255,255,255,.7);border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
     body.hand-mode #viewer-container canvas{cursor:grab}
     
-    /* Statusbar dipindahkan ke atas kanan */
     #statusbar{position:absolute;right:12px;top:60px;z-index:16;background:rgba(24,24,27,.92);border:1px solid #2e2e32;border-radius:12px;padding:7px 12px;font-size:11px;color:#d4d4d8;display:flex;flex-direction:column;gap:5px;cursor:pointer;user-select:none;min-width:210px;max-width:260px}
     #statusbar .l1{display:flex;justify-content:space-between;gap:10px}
     #statusbar b{color:#e4e4e7;font-weight:600}
@@ -2594,16 +2593,19 @@ function getDecalTexture(dummy, isBack) {
   }
   return dummy.userData._decalTexFront;
 }
-function decalDims(dummy, base) {
+function getBaseDims(dummy, base) {
   const c = dummy.userData._fxCanvas;
-  const sx = dummy.scale.x, sy = dummy.scale.y || sx;
   if (!c || !c._baseW) {
     const ar = Math.max(0.05, dummy.userData.aspect || 1);
-    return { w: base * sx, h: (base / ar) * sy };
+    return { w: base, h: base / ar };
   }
   const ar = c._baseW / c._baseH;
-  const wB = base * sx, hB = (base / ar) * sy;
-  return { w: wB * (c.width / c._baseW), h: hB * (c.height / c._baseH) };
+  return { w: base * (c.width / c._baseW), h: (base / ar) * (c.height / c._baseH) };
+}
+function decalDims(dummy, base) {
+  const { w, h } = getBaseDims(dummy, base);
+  const sx = dummy.scale.x, sy = dummy.scale.y || sx;
+  return { w: w * sx, h: h * sy };
 }
 
 // ===== PROPERTIES LAYER =====
@@ -2613,14 +2615,37 @@ $('propScale').oninput = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   const s = +e.target.value;
   $('propScaleValue').textContent = s.toFixed(2);
+  
   activeDummy.scale.setScalar(s);
-  // Fast update while dragging
-  if (!activeDummy.userData.isCanvasGraphic) scheduleDecal(activeDummy, false);
+
+  if (!activeDummy.userData.isCanvasGraphic) {
+    // Fast scale update: replace heavy decals with light ones and instantly scale
+    let allLight = true;
+    if (activeDummy.userData.decals && activeDummy.userData.decals.length > 0) {
+      for (const mesh of activeDummy.userData.decals) {
+        if (!mesh.userData.isLightCurved) { allLight = false; break; }
+      }
+    } else {
+      allLight = false;
+    }
+
+    if (!allLight) {
+      createDecalNow(activeDummy, false); // synchronous light decal creation
+    }
+
+    activeDummy.userData.decals.forEach(m => {
+      if (m.userData.isLightCurved) m.scale.setScalar(s);
+    });
+    
+    updateFreeTransformHandles();
+  }
 };
+
 $('propScale').onchange = () => {
   pushHistory();
-  // High quality update after release
-  if (activeDummy && !activeDummy.userData.isCanvasGraphic) createDecalNow(activeDummy, true);
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) {
+    createDecalNow(activeDummy, true); // High quality update after release
+  }
 };
 
 $('propOpacity').oninput = e => {
@@ -2638,14 +2663,15 @@ $('propCurve').oninput = e => {
   const c = +e.target.value;
   activeDummy.userData.curve = c;
   $('propCurveValue').textContent = c.toFixed(2);
-  // Fast update while dragging
-  scheduleDecal(activeDummy, false);
+  // Synchronous light update for zero lag
+  createDecalNow(activeDummy, false);
 };
 $('propCurve').onchange = () => {
   renderLayerPanel();
   pushHistory();
-  // High quality update after release
-  if (activeDummy && !activeDummy.userData.isCanvasGraphic) createDecalNow(activeDummy, true);
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) {
+    createDecalNow(activeDummy, true); // High quality update after release
+  }
 };
 
 $('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
@@ -2970,7 +2996,8 @@ function createLightCurvedDecal(item, dummy, curve) {
   const isBack = !onSleeve && n.z < 0;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
-  const { w, h } = decalDims(dummy, base);
+  
+  const { w, h } = getBaseDims(dummy, base);
   const orientQuat = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, n));
 
   const isCurved = curve > 0.01;
@@ -2992,6 +3019,10 @@ function createLightCurvedDecal(item, dummy, curve) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position).add(n.clone().multiplyScalar(0.015));
   mesh.quaternion.copy(orientQuat);
+  
+  mesh.scale.setScalar(dummy.scale.x); // Apply scale
+  mesh.userData.isLightCurved = true;  // Mark for instant scaling
+  
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
   item.spin.add(mesh);
@@ -3020,6 +3051,7 @@ function createFlatDecal(item, dummy) {
         const m = new THREE.Mesh(geo, decalMaterial(item, tex, dummy, { pof: -4, rough: 0.8 }));
         m.renderOrder = 2;
         m.visible = dummy.userData.visible !== false;
+        m.userData.isLightCurved = false;
         item.spin.add(m);
         dummy.userData.decals.push(m);
       } else geo.dispose();
@@ -3083,6 +3115,7 @@ function createCurvedDecal(item, dummy, curve) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(0, 0, 0);
   mesh.quaternion.identity();
+  mesh.userData.isLightCurved = false;
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
   item.spin.add(mesh);
@@ -3247,7 +3280,22 @@ window.addEventListener('pointermove', e => {
     $('propScale').value = ns;
     $('propScaleValue').textContent = ns.toFixed(2);
     d.scale.setScalar(ns);
-    if (!d.userData.isCanvasGraphic) scheduleDecal(d, false);
+    
+    if (!d.userData.isCanvasGraphic) {
+      let allLight = true;
+      if (d.userData.decals && d.userData.decals.length > 0) {
+        for (const mesh of d.userData.decals) {
+          if (!mesh.userData.isLightCurved) { allLight = false; break; }
+        }
+      } else {
+        allLight = false;
+      }
+      if (!allLight) createDecalNow(d, false);
+      d.userData.decals.forEach(m => {
+        if (m.userData.isLightCurved) m.scale.setScalar(ns);
+      });
+    }
+    
     updateFreeTransformHandles();
     return;
   }
