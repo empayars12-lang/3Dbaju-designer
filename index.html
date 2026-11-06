@@ -4,8 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Pro Designer 3D - Studio Multi</title>
+  <meta name="theme-color" content="#18181b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Pro Designer 3D" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@400;700&family=Oswald:wght@400;600&family=Playfair+Display:wght@400;700&display=swap');
+    @import url('./vendor/fonts/fonts.css');
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
     #app{display:flex;height:100vh}
@@ -82,12 +89,10 @@
     #viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden;min-width:0}
     #viewer-container canvas{display:block}
 
-    /* ===== LAPISAN LATAR TETAP (2D) ===== */
     #bgCanvas,#fgCanvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
     #bgCanvas{z-index:0}
     #fgCanvas{z-index:2}
 
-    /* ===== PRESET LATAR ===== */
     .preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
     .preset-btn{aspect-ratio:1;border-radius:8px;border:2px solid #3f3f46;cursor:pointer;font-size:9px;font-weight:600;color:#fff;
       text-shadow:0 1px 2px rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;padding:3px 1px;font-family:inherit;transition:.15s}
@@ -111,11 +116,9 @@
     .ft-rotate-handle{position:absolute;width:18px;height:18px;background:#38bdf8;border:2px solid #fff;border-radius:50%;pointer-events:auto;cursor:grab;transform:translate(-50%,-50%);touch-action:none}
     .ft-rotate-line{position:absolute;width:1.5px;background:#38bdf8;pointer-events:none}
 
-    /* ===== KOTAK GROUP ===== */
     #gbox{position:absolute;border:1.5px dashed #a78bfa;pointer-events:none;z-index:18;display:none;border-radius:4px}
     #gbox span{position:absolute;top:-21px;left:-1px;background:#7c3aed;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;white-space:nowrap}
 
-    /* ===== TOOLBAR VIEWER ===== */
     #view-toggles{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(24,24,27,.85);padding:8px;border-radius:12px;z-index:15}
     #view-toggles button{background:#3f3f46;color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
     #view-toggles button.active{background:#38bdf8;color:#000}
@@ -167,7 +170,6 @@
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
 
-    /* ===== CROP SIMPAN HD ===== */
     #savecrop{position:absolute;inset:0;z-index:70;display:none;pointer-events:none}
     #savecrop.active{display:block}
     #sc-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.66);border:1.5px solid #fff;pointer-events:auto;cursor:move;touch-action:none;
@@ -196,6 +198,21 @@
     #scOk{background:#10b981;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;flex:1;font-family:inherit}
     #scCancel{background:#3f3f46;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit}
     .sc-info{font-size:11px;color:#71717a}
+
+    .accordion-header.teal{background:#0f766e}
+    .accordion-header.teal:hover{background:#0d9488}
+    .accordion-header.teal .arrow{color:#99f6e4}
+    .upload-btn.glb{background:#14b8a6;color:#04201d}
+    #customModelList{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto}
+    .cm-item{background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;font-size:12px}
+    .cm-item:hover{border-color:#14b8a6}
+    .cm-item .cm-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e4e4e7}
+    .cm-item .cm-size{font-size:10px;color:#71717a;flex-shrink:0}
+    .cm-item button{background:#3f3f46;color:#d4d4d8;border:none;border-radius:5px;padding:3px 7px;font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0}
+    .cm-item button:hover{background:#52525b}
+    .cm-item button.add{background:#14b8a6;color:#04201d;font-weight:700}
+    .cm-item button.del:hover{background:#dc2626;color:#fff}
+    .status-pill{font-size:11px;line-height:1.5;color:#d4d4d8;background:#27272a;border:1px solid #3f3f46;border-radius:8px;padding:8px 10px;margin-bottom:6px}
   </style>
 </head>
 <body>
@@ -218,7 +235,6 @@
       </div>
     </div>
 
-    <!-- ================= GABUNG DESIGN 3D ================= -->
     <div class="accordion-item open">
       <div class="accordion-header violet">🧩 Gabung Design 3D <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -231,6 +247,22 @@
         </div>
         <div class="slider-row" style="margin-top:10px"><label><span>Jarak Susunan</span><span id="arrangeGapValue">0.30</span></label><input type="range" id="arrangeGap" min="0" max="2" step="0.05" value="0.3"></div>
         <div class="hint" style="margin-bottom:0">Gerak baju: guna mod <b style="color:#a1a1aa">✥ Gerak Baju</b> di atas viewer (Shift + seret = dekat/jauh), atau slider X/Y/Z dalam Properties Group.</div>
+      </div>
+    </div>
+
+    <div class="accordion-item open">
+      <div class="accordion-header teal">🧰 Tools Tambahan <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="sub-title">Upload Model Baju 3D (GLB)</div>
+        <div class="hint">Upload fail <b style="color:#a1a1aa">.glb</b> baju anda sendiri. Ia disimpan dalam app ini dan masuk ke <b style="color:#a1a1aa">senarai pilihan baju 3D</b> (kekal selepas tutup app &amp; boleh guna offline).</div>
+        <div class="upload-btn glb">+ Upload Fail GLB<input type="file" id="glbUpload" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" multiple></div>
+        <div class="toggle-row" style="margin-top:10px"><span>Terus tambah ke artwork</span><div class="toggle-switch" id="toggleAutoAddGlb"></div></div>
+        <div class="sub-title">Model Saya</div>
+        <div id="customModelList"></div>
+        <div class="sub-title">App &amp; Offline</div>
+        <div class="status-pill" id="pwaStatus">Menyemak status...</div>
+        <button class="small-btn" id="btnInstallPwa" style="display:none;margin-top:0;background:#0ea5e9;color:#fff;border-color:#0ea5e9">📲 Pasang App di PC</button>
+        <button class="small-btn" id="btnCheckOffline">🔄 Kemas kini cache offline</button>
       </div>
     </div>
 
@@ -295,7 +327,6 @@
       </div>
     </div>
 
-    <!-- ================= LATAR BELAKANG PRO ================= -->
     <div class="accordion-item open">
       <div class="accordion-header">🎨 Preset Latar Pro <span class="arrow">▼</span></div>
       <div class="accordion-body">
@@ -542,7 +573,6 @@
     <div id="layers-list"></div>
     <div id="properties-panel">
 
-      <!-- ===== PROPERTIES GROUP ===== -->
       <div id="groupProps" style="display:none">
         <h3>Properties Group</h3>
         <div class="prop-row"><label>Nama Group</label><input type="text" id="gName" class="prop-input"></div>
@@ -571,7 +601,6 @@
         </div>
       </div>
 
-      <!-- ===== PROPERTIES LAYER ===== -->
       <div id="layerProps" style="display:none">
         <h3>Properties Layer</h3>
         <div class="prop-row"><label>Nama Layer</label><input type="text" id="propName" class="prop-input"></div>
@@ -640,11 +669,7 @@
 <div id="toast"></div>
 
 <script type="importmap">
-{"imports":{
-  "three":"https://unpkg.com/three@0.169.0/build/three.module.js",
-  "three/addons/":"https://unpkg.com/three@0.169.0/examples/jsm/",
-  "three-mesh-bvh":"https://unpkg.com/three-mesh-bvh@0.7.8/build/index.module.js"
-}}
+{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/"}}
 </script>
 
 <script type="module">
@@ -654,53 +679,54 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-// ===== BVH: Raycast dipercepat (O(n) → O(log n)) =====
-// Tidak mengubah hasil raycast sama sekali — hanya lebih laju pada mesh padat.
-// Jika BVH tidak tersedia, fallback ke raycast biasa secara automatik.
-let BVH_OK = false;
-try {
-  const bvh = await import('three-mesh-bvh');
-  THREE.BufferGeometry.prototype.computeBoundsTree = bvh.computeBoundsTree;
-  THREE.BufferGeometry.prototype.disposeBoundsTree = bvh.disposeBoundsTree;
-  THREE.Mesh.prototype.raycast = bvh.acceleratedRaycast;
-  BVH_OK = true;
-  console.log('✅ BVH aktif — raycast dipercepat');
-} catch (e) {
-  console.warn('⚠️ BVH tidak tersedia, guna raycast biasa:', e.message);
-}
-
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const nextFrame = () => new Promise(r => requestAnimationFrame(() => r()));
 
-// ===== ACCORDION =====
 document.querySelectorAll('.accordion-header').forEach(header => {
   header.addEventListener('click', () => header.parentElement.classList.toggle('open'));
 });
 
-// ===== SENARAI MODEL =====
 const MODELS = [
   { url: './T_shirt_gltf.gltf', label: '👕 Baju Asal (GLTF)' },
   { url: './baju_baru.glb', label: '👕 Baju Baru (GLB)' },
   { url: './long_sleeve_t-_shirt.glb', label: '🧥 Lengan Panjang (GLB)' },
   { url: './short_sleeve_polo.glb', label: '👔 Polo Shirt (GLB)' }
 ];
-const shortName = url => (MODELS.find(m => m.url === url)?.label || 'Baju').replace(/^\S+\s+/, '').replace(/\s*\(.*\)$/, '');
-['modelSelect', 'gModel'].forEach(id => {
-  const sel = $(id);
-  MODELS.forEach(m => { const o = document.createElement('option'); o.value = m.url; o.textContent = m.label; sel.appendChild(o); });
-});
+let customModels = [];
+const customUrl = id => 'custom:' + id;
+const isCustomUrl = u => typeof u === 'string' && u.startsWith('custom:');
+const customIdOf = u => Number(String(u).slice(7));
+const allModels = () => [
+  ...MODELS,
+  ...customModels.map(m => ({ url: customUrl(m.id), label: '⭐ ' + m.name + ' (GLB saya)' }))
+];
+const shortName = url => {
+  if (isCustomUrl(url)) return customModels.find(m => customUrl(m.id) === url)?.name || 'Baju Custom';
+  return (MODELS.find(m => m.url === url)?.label || 'Baju').replace(/^\S+\s+/, '').replace(/\s*\(.*\)$/, '');
+};
+function populateModelSelects() {
+  ['modelSelect', 'gModel'].forEach(id => {
+    const sel = $(id);
+    const prev = sel.value;
+    sel.innerHTML = '';
+    allModels().forEach(m => { const o = document.createElement('option'); o.value = m.url; o.textContent = m.label; sel.appendChild(o); });
+    if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+  });
+}
+populateModelSelects();
 
-// ===== INDEXEDDB =====
 const DB_NAME = 'ProDesigner3D_v5';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE = 'projects';
+const STORE_MODELS = 'models';
 function openDB() {
   return new Promise((resolve, reject) => {
     const r = indexedDB.open(DB_NAME, DB_VERSION);
     r.onupgradeneeded = e => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+      if (!db.objectStoreNames.contains(STORE_MODELS)) db.createObjectStore(STORE_MODELS, { keyPath: 'id', autoIncrement: true });
     };
     r.onsuccess = () => resolve(r.result);
     r.onerror = () => reject(r.error);
@@ -729,6 +755,60 @@ async function dbDelete(id) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbModelAdd(rec) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_MODELS, 'readwrite');
+    const req = tx.objectStore(STORE_MODELS).add(rec);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+    tx.onabort = () => reject(tx.error || new Error('Simpanan penuh / dibatalkan'));
+  });
+}
+async function dbModelGet(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(STORE_MODELS, 'readonly').objectStore(STORE_MODELS).get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbModelList() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const out = [];
+    const req = db.transaction(STORE_MODELS, 'readonly').objectStore(STORE_MODELS).openCursor();
+    req.onsuccess = () => {
+      const c = req.result;
+      if (!c) return resolve(out);
+      const { id, name, size, added } = c.value;
+      out.push({ id, name, size, added });
+      c.continue();
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbModelRename(id, name) {
+  const rec = await dbModelGet(id);
+  if (!rec) return;
+  rec.name = name;
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_MODELS, 'readwrite');
+    tx.objectStore(STORE_MODELS).put(rec);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function dbModelDelete(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_MODELS, 'readwrite');
+    tx.objectStore(STORE_MODELS).delete(id);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -778,7 +858,6 @@ async function ensureFontLoaded(font) {
 }
 ['Inter', 'Roboto', 'Oswald', 'Playfair Display'].forEach(ensureFontLoaded);
 
-// ===== THREE SETUP =====
 const container = $('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 300);
@@ -825,11 +904,10 @@ controls.enablePan = false;
 controls.minDistance = 1;
 controls.maxDistance = 80;
 
-// ===== STATE =====
 const canvasGroup = new THREE.Group();
 scene.add(canvasGroup);
-let items = [];            // Group layer (setiap baju 3D)
-let canvasLayers = [];     // Grafik canvas bebas
+let items = [];
+let canvasLayers = [];
 let activeItem = null, activeDummy = null, selectionKind = null;
 let logoCount = 0, itemSeq = 0;
 let viewYaw = 0, yawTween = null;
@@ -845,11 +923,6 @@ let animStartTime = 0, currentP = 0;
 let isExporting = false;
 let cropSession = null, scRatio = null, scDrag = null;
 let savedCam = null;
-
-// ===== STATE UNTUK OPTIMASI DRAG =====
-let _ftRectCache = null;        // cache getBoundingClientRect semasa drag
-let _lastFtMoveTime = 0;         // throttle timestamp
-const FT_MOVE_MIN_MS = 15;       // ~66fps max
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = $('layers-list');
@@ -869,11 +942,18 @@ const ftRotateHandle = $('ftRotateHandle');
 const ftRotateLine = $('ftRotateLine');
 let ftDragging = null, ftStartMouse = new THREE.Vector2(), ftStartScale = 1, ftStartAngle = 0, ftCenterScreen = new THREE.Vector2();
 let ftStartPos = null, ftDragPlane = null, ftDragOffset = null;
+
+// ===== DRAG PROXY — untuk elak app hang semasa seret logo =====
+// Fail asal rebuild DecalGeometry 11×/saat semasa seret → 100-300ms setiap kali → hang.
+// Gantian: pakai plane plane ringan semasa drag, rebuild HQ sekali pada pointerup.
+let dragProxyMesh = null;
+let lastDragRaycast = 0;
+const DRAG_RAYCAST_MS = 33;   // throttle raycast untuk logo badan (30fps)
+
 const floatingControls = $('floating-controls');
 const btnPausePlay = $('btnPausePlay');
 const btnSnap = $('btnSnap');
 
-// ===== KESAN IMEJ =====
 function defaultEffects() {
   return {
     overlayColor: '#ff0000', overlayOpacity: 0,
@@ -893,9 +973,7 @@ function ensureEffects(d) {
   return d.userData.effects;
 }
 
-// =====================================================================
-// ===== LATAR BELAKANG PRO =====
-// =====================================================================
+// ===== LATAR =====
 function defaultBg() {
   return {
     type: 'solid', color: '#09090b', color2: '#27272a', angle: 180,
@@ -1246,7 +1324,6 @@ $('btnClearBgImage').onclick = async () => {
   syncBgUI(); pushHistory();
 };
 
-// ===== CROP / RATIO =====
 function parseRatio(s) {
   if (!s || s === 'auto' || s === 'free') return null;
   const [a, b] = s.split(':').map(Number);
@@ -1286,9 +1363,6 @@ document.querySelectorAll('.ratio-btn').forEach(btn => {
   };
 });
 
-// =====================================================================
-// ===== MODEL / GROUP LAYER (ITEM) =====
-// =====================================================================
 function createFallbackShirt() {
   const g = new THREE.Group();
   const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide });
@@ -1310,16 +1384,34 @@ function normalizeModel(model) {
   return model;
 }
 const modelCache = new Map();
+function isGlbBuffer(buf) {
+  const u = new Uint8Array(buf, 0, Math.min(4, buf.byteLength));
+  return u.length === 4 && u[0] === 0x67 && u[1] === 0x6C && u[2] === 0x54 && u[3] === 0x46;
+}
+function parseGLTFBuffer(buf) {
+  return new Promise((resolve, reject) => {
+    const data = isGlbBuffer(buf) ? buf : new TextDecoder().decode(buf);
+    new GLTFLoader().parse(data, '', g => resolve(g.scene), reject);
+  });
+}
+function loadGLTFScene(url) {
+  if (isCustomUrl(url)) {
+    return dbModelGet(customIdOf(url)).then(rec => {
+      if (!rec) throw new Error('Model custom tiada dalam simpanan');
+      return parseGLTFBuffer(rec.data);
+    });
+  }
+  return new Promise((resolve, reject) => new GLTFLoader().load(url, g => resolve(g.scene), undefined, reject));
+}
 function getModelTemplate(url) {
   if (!modelCache.has(url)) {
-    modelCache.set(url, new Promise(resolve => {
-      new GLTFLoader().load(
-        url,
-        g => resolve(normalizeModel(g.scene)),
-        undefined,
-        () => { console.warn('Model gagal load, guna fallback:', url); resolve(normalizeModel(createFallbackShirt())); }
-      );
-    }));
+    modelCache.set(url, loadGLTFScene(url)
+      .then(scene => normalizeModel(scene))
+      .catch(err => {
+        console.warn('Model gagal load, guna fallback:', url, err);
+        if (isCustomUrl(url)) showToast('Model GLB custom tidak dijumpai / rosak — baju ganti digunakan', true);
+        return normalizeModel(createFallbackShirt());
+      }));
   }
   return modelCache.get(url);
 }
@@ -1362,10 +1454,6 @@ async function attachModel(item, url) {
     installAdj(m, item);
     c.material = m;
     c.userData.item = item;
-    // ===== BVH: percepat raycast pada mesh padat =====
-    if (BVH_OK && c.geometry.attributes.position.count > 500) {
-      try { c.geometry.computeBoundsTree(); } catch (e) {}
-    }
     item.materials.push(m);
     item.meshes.push(c);
   });
@@ -1562,9 +1650,162 @@ $('btnAddItem2').onclick = () => addItem($('modelSelect').value);
 $('btnFitAll').onclick = () => fitCamera();
 $('btnArrange').onclick = arrangeRow;
 
-// =====================================================================
-// ===== SELECTION & LAYER PANEL =====
-// =====================================================================
+let autoAddGlb = false;
+$('toggleAutoAddGlb').onclick = function () {
+  autoAddGlb = !autoAddGlb;
+  this.classList.toggle('active', autoAddGlb);
+};
+const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+
+$('glbUpload').onchange = async e => {
+  const files = [...e.target.files];
+  e.target.value = '';
+  if (!files.length) return;
+  let ok = 0, lastUrl = null, lastName = '';
+  for (const f of files) {
+    try {
+      if (f.size > 150 * 1024 * 1024) throw new Error('Fail terlalu besar (maks 150 MB)');
+      showToast(`Membaca ${f.name}...`);
+      const buf = await f.arrayBuffer();
+      const scene = await parseGLTFBuffer(buf);
+      let meshes = 0;
+      scene.traverse(c => { if (c.isMesh) meshes++; });
+      if (!meshes) throw new Error('Tiada mesh 3D dalam fail');
+      const name = f.name.replace(/\.(glb|gltf)$/i, '').replace(/_+/g, ' ').trim() || 'Model';
+      const rec = { name, size: f.size, added: Date.now(), data: buf };
+      const id = await dbModelAdd(rec);
+      const url = customUrl(id);
+      modelCache.set(url, Promise.resolve(normalizeModel(scene)));
+      customModels.push({ id, name, size: f.size, added: rec.added });
+      lastUrl = url; lastName = name; ok++;
+    } catch (err) {
+      console.error(err);
+      showToast(`❌ "${f.name}" gagal: ${err?.message || 'fail tidak sah'}`, true);
+      await new Promise(r => setTimeout(r, 900));
+    }
+  }
+  if (!ok) return;
+  populateModelSelects();
+  renderCustomModelList();
+  $('modelSelect').value = lastUrl;
+  if (autoAddGlb) await addItem(lastUrl);
+  else showToast(ok > 1 ? `✅ ${ok} model ditambah` : `✅ "${lastName}" ditambah`);
+};
+
+function renderCustomModelList() {
+  const box = $('customModelList');
+  box.innerHTML = '';
+  if (!customModels.length) {
+    const h = document.createElement('div');
+    h.className = 'hint';
+    h.textContent = 'Belum ada model. Upload fail GLB di atas.';
+    box.appendChild(h);
+    return;
+  }
+  customModels.slice().reverse().forEach(m => {
+    const row = document.createElement('div'); row.className = 'cm-item';
+    const nm = document.createElement('span'); nm.className = 'cm-name'; nm.textContent = m.name; nm.title = m.name;
+    const sz = document.createElement('span'); sz.className = 'cm-size'; sz.textContent = fmtSize(m.size || 0);
+    const add = document.createElement('button'); add.className = 'add'; add.textContent = '➕'; add.title = 'Tambah';
+    add.onclick = () => { $('modelSelect').value = customUrl(m.id); addItem(customUrl(m.id)); };
+    const ren = document.createElement('button'); ren.textContent = '✎'; ren.title = 'Tukar nama';
+    ren.onclick = async () => {
+      const nn = (prompt('Nama baru:', m.name) || '').trim();
+      if (!nn || nn === m.name) return;
+      await dbModelRename(m.id, nn);
+      m.name = nn;
+      populateModelSelects(); renderCustomModelList();
+    };
+    const del = document.createElement('button'); del.className = 'del'; del.textContent = '🗑'; del.title = 'Padam';
+    del.onclick = async () => {
+      const url = customUrl(m.id);
+      const user = items.find(i => i.modelUrl === url);
+      if (user) { showToast(`Model digunakan oleh group "${user.name}"`, true); return; }
+      if (!confirm(`Padam model "${m.name}"?`)) return;
+      await dbModelDelete(m.id);
+      customModels = customModels.filter(x => x.id !== m.id);
+      modelCache.delete(url);
+      populateModelSelects(); renderCustomModelList();
+      showToast('Model dipadam');
+    };
+    row.append(nm, sz, add, ren, del);
+    box.appendChild(row);
+  });
+}
+
+const THREE_CHECK_URL = 'https://unpkg.com/three@0.169.0/build/three.module.js';
+let deferredInstall = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+async function refreshOfflineStatus(extra = '') {
+  const pill = $('pwaStatus');
+  let ready = false;
+  try { ready = !!(await caches.match(THREE_CHECK_URL, { ignoreVary: true })); } catch (e) {}
+  const net = navigator.onLine ? '🟢 Online' : '🔴 Offline';
+  const off = ready ? '✅ Sedia untuk guna offline' : '⏳ Belum sedia offline';
+  pill.textContent = `${net} · ${off}${isStandalone() ? ' · 📲 Mod app' : ''}${extra ? ' · ' + extra : ''}`;
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  $('btnInstallPwa').style.display = 'block';
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstall = null;
+  $('btnInstallPwa').style.display = 'none';
+  showToast('✅ App berjaya dipasang');
+  refreshOfflineStatus();
+});
+$('btnInstallPwa').onclick = async () => {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  try { await deferredInstall.userChoice; } catch (e) {}
+  deferredInstall = null;
+  $('btnInstallPwa').style.display = 'none';
+};
+$('btnCheckOffline').onclick = async () => {
+  if (!('serviceWorker' in navigator)) { showToast('Pelayar ini tidak menyokong mod offline', true); return; }
+  if (!navigator.onLine) { showToast('Perlu internet', true); return; }
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg || !reg.active) { showToast('Service worker belum aktif', true); return; }
+  try { await reg.update(); } catch (e) {}
+  (reg.waiting || reg.active).postMessage({ type: 'REFRESH_CACHE' });
+  showToast('Mengemas kini cache offline...');
+};
+async function setupPWA() {
+  /* ELECTRON */ if (navigator.userAgent.includes('Electron')) { $('pwaStatus').textContent = '🖥 Versi desktop (.exe) — semua fail disertakan, sentiasa boleh guna offline.'; $('btnCheckOffline').style.display = 'none'; return; }
+  const pill = $('pwaStatus');
+  if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
+    pill.textContent = '⚠ Mod offline/PWA tidak aktif: buka melalui http://localhost atau https (bukan file://).';
+    return;
+  }
+  navigator.serviceWorker.addEventListener('message', ev => {
+    if (ev.data?.type === 'CACHE_DONE') {
+      showToast(`✅ Cache offline dikemas kini (${ev.data.ok} fail${ev.data.fail ? `, ${ev.data.fail} tidak dijumpai` : ''})`);
+      refreshOfflineStatus();
+    }
+  });
+  window.addEventListener('online', () => refreshOfflineStatus());
+  window.addEventListener('offline', () => refreshOfflineStatus());
+  try {
+    const reg = await navigator.serviceWorker.register('./sw.js');
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      nw?.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) showToast('Versi baru sedia — tutup & buka semula');
+      });
+    });
+    await navigator.serviceWorker.ready;
+    navigator.storage?.persist?.().catch(() => {});
+    setTimeout(refreshOfflineStatus, 1500);
+    setTimeout(refreshOfflineStatus, 6000);
+  } catch (err) {
+    console.error(err);
+    pill.textContent = '⚠ Gagal mendaftar service worker: ' + (err?.message || err);
+    return;
+  }
+  refreshOfflineStatus();
+}
+
 function clearPanels() {
   propertiesPanel.classList.remove('active');
   groupPropsEl.style.display = 'none';
@@ -1741,7 +1982,6 @@ function disposeDummyTextures(dummy) {
   dummy.userData._fxKey = null;
 }
 
-// ===== PROPERTIES GROUP =====
 function syncGroupPos() {
   if (selectionKind !== 'item' || !activeItem) return;
   const p = activeItem.root.position;
@@ -1803,7 +2043,6 @@ $('gCenter').onclick = () => {
 };
 $('gDuplicate').onclick = () => duplicateItem(activeItem);
 
-// ===== WARNA BAJU =====
 const SHIRT_COLORS = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 SHIRT_COLORS.forEach((hex, i) => {
   const b = document.createElement('button');
@@ -1829,7 +2068,6 @@ function syncColorUI(item) {
 $('customColor').oninput = e => { if (activeItem) setItemColor(activeItem, e.target.value); };
 $('customColor').onchange = () => { if (activeItem) pushHistory(); };
 
-// ===== IMAGE EFFECTS =====
 function applyLayerEffects(img, fx) {
   const W0 = img.width || img.naturalWidth || 512;
   const H0 = img.height || img.naturalHeight || 512;
@@ -1964,7 +2202,6 @@ function decalDims(dummy, base) {
   return { w: wB * (c.width / c._baseW), h: hB * (c.height / c._baseH) };
 }
 
-// ===== PROPERTIES LAYER =====
 $('propName').onchange = e => {
   if (!activeDummy) return;
   activeDummy.userData.name = e.target.value;
@@ -2133,9 +2370,6 @@ async function updateTextLayer(d) {
   pushHistory();
 }
 
-// =====================================================================
-// ===== DECAL SYSTEM =====
-// =====================================================================
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
 const AUTO_CURVATURE_MODELS = new Set([
@@ -2144,6 +2378,7 @@ const AUTO_CURVATURE_MODELS = new Set([
   './short_sleeve_polo.glb'
 ]);
 const _autoRayc = new THREE.Raycaster();
+const isAutoCurveModel = url => AUTO_CURVATURE_MODELS.has(url) || isCustomUrl(url);
 
 function isOnSleeve(d) {
   if (!d || d.userData?.isCanvasGraphic) return false;
@@ -2252,7 +2487,7 @@ function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
   let curve = 0;
   const onSleeve = isOnSleeve(dummy);
 
-  if (onSleeve && AUTO_CURVATURE_MODELS.has(item.modelUrl)) {
+  if (onSleeve && isAutoCurveModel(item.modelUrl)) {
     const sagitta = Math.max(0.02, maxOffset);
     const R = (w * w) / (8 * sagitta) + (sagitta / 2);
     const maxAngle = Math.asin(Math.min(1, (w / 2) / R));
@@ -2270,22 +2505,74 @@ function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
   return { depth: Math.max(baseDepth, requiredDepth), curve };
 }
 
-// ===== PATCH 3: RAF-COALESCED scheduleDecal (segerak frame) =====
-// Sebelum: throttle 90ms (11 fps) → rasa "logo lekat di belakang cursor"
-// Selepas: update pada setiap frame RAF → 60fps, segerak dengan outline
-let _decalPending = null;
-let _decalRAF = null;
-
+let decalQueuedDummy = null, decalQueued = false, decalTimeout = null;
 function scheduleDecal(dummy, forceHQ = false) {
-  _decalPending = { dummy, forceHQ };
-  if (_decalRAF) return;
-  _decalRAF = requestAnimationFrame(() => {
-    _decalRAF = null;
-    const pending = _decalPending;
-    _decalPending = null;
-    if (!pending || !pending.dummy) return;
-    createDecalNow(pending.dummy, pending.forceHQ || !ftDragging);
+  decalQueuedDummy = dummy;
+  const delay = ftDragging ? 90 : 35;
+  if (decalQueued && !forceHQ) return;
+  decalQueued = true;
+  if (decalTimeout) clearTimeout(decalTimeout);
+  decalTimeout = setTimeout(() => {
+    decalQueued = false;
+    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ || !ftDragging);
+    decalQueuedDummy = null;
+  }, delay);
+}
+
+// ===== DRAG PROXY SYSTEM — PENYELESAIAN HANG =====
+// Body logo guna plane ringan semasa drag (bukan DecalGeometry).
+// Sleeve logo + canvas graphic kekal guna laluan asal (tiada perubahan).
+function needsProxy(d) {
+  if (d.userData.isCanvasGraphic) return false;
+  if (isOnSleeve(d)) return false;
+  return (d.userData.curve || 0) < 0.01;
+}
+
+function showDragProxy(d) {
+  if (!d || !needsProxy(d)) return;
+  if (dragProxyMesh) return;
+  const nZ = new THREE.Vector3(0, 0, 1).applyQuaternion(d.quaternion).z;
+  const tex = getDecalTexture(d, nZ < 0);
+  if (!tex) return;
+  const { w, h } = decalDims(d, SHIRT_BASE_SIZE);
+  const geo = new THREE.PlaneGeometry(w, h);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex, transparent: true, depthWrite: false,
+    side: THREE.DoubleSide, polygonOffset: true,
+    polygonOffsetFactor: -8, polygonOffsetUnits: -8,
+    opacity: d.userData.opacity ?? 1
   });
+  dragProxyMesh = new THREE.Mesh(geo, mat);
+  dragProxyMesh.renderOrder = 3;
+  d.userData.item.spin.add(dragProxyMesh);
+  (d.userData.decals || []).forEach(m => m.visible = false);
+}
+
+function updateDragProxy(d) {
+  if (!dragProxyMesh || !d) return;
+  dragProxyMesh.position.copy(d.position);
+  dragProxyMesh.quaternion.copy(d.quaternion);
+  dragProxyMesh.material.opacity = d.userData.opacity ?? 1;
+  const nZ = new THREE.Vector3(0, 0, 1).applyQuaternion(d.quaternion).z;
+  const tex = getDecalTexture(d, nZ < 0);
+  if (tex && dragProxyMesh.material.map !== tex) {
+    dragProxyMesh.material.map = tex;
+    dragProxyMesh.material.needsUpdate = true;
+  }
+}
+
+function hideDragProxy() {
+  if (!dragProxyMesh) return;
+  dragProxyMesh.parent?.remove(dragProxyMesh);
+  dragProxyMesh.geometry?.dispose();
+  dragProxyMesh.material?.dispose();
+  dragProxyMesh = null;
+}
+
+function dragUpdate(d) {
+  if (dragProxyMesh) updateDragProxy(d);
+  else if (!needsProxy(d)) scheduleDecal(d);
+  // needsProxy true tapi tiada proxy → tunggu rebuild pada pointerup
 }
 
 function refreshCanvasMesh(m) {
@@ -2323,7 +2610,7 @@ function createDecalNow(dummy, highQuality = true) {
     let curve = clamp(u.curve || 0, 0, 1);
     const onSleeve = isOnSleeve(dummy);
     if (onSleeve && curve < 0.05) {
-      curve = AUTO_CURVATURE_MODELS.has(item.modelUrl) ? 0.65 : 0.7;
+      curve = isAutoCurveModel(item.modelUrl) ? 0.65 : 0.7;
       u.curve = curve;
     }
     if (!highQuality && ftDragging) {
@@ -2369,13 +2656,6 @@ function createLightCurvedDecal(item, dummy, curve) {
   dummy.userData.decals.push(mesh);
 }
 
-// ===== PATCH 1: AABB skip dalam createFlatDecal =====
-// Buang kerja terbuang: DecalGeometry pada mesh yang jauh dari kotak decal
-// hasilkan geometry kosong (dibuang juga). Kita skip terus → visual IDENTIK, 3-5× lebih laju.
-const _decalAABB = new THREE.Box3();
-const _decalTmpV = new THREE.Vector3();
-const _meshWorldBox = new THREE.Box3();
-
 function createFlatDecal(item, dummy) {
   const onSleeve = isOnSleeve(dummy);
   const base = onSleeve ? SLEEVE_BASE_SIZE : SHIRT_BASE_SIZE;
@@ -2386,31 +2666,14 @@ function createFlatDecal(item, dummy) {
 
   const baseDepth = onSleeve ? 0.38 : (isBack ? 0.6 : 0.22);
   let depth = baseDepth, autoCurve = 0;
-  if (onSleeve && AUTO_CURVATURE_MODELS.has(item.modelUrl)) {
+  if (onSleeve && isAutoCurveModel(item.modelUrl)) {
     const r = computeAutoDepthAndCurve(item, dummy, w, h, baseDepth);
     depth = r.depth; autoCurve = r.curve;
   }
   if (autoCurve > 0.05) { createCurvedDecal(item, dummy, autoCurve); return; }
 
   const size = new THREE.Vector3(w, h, depth);
-
-  // Pre-compute AABB decal dalam ruang kanonik (sama dengan dummy.position/quaternion)
-  _decalAABB.makeEmpty();
-  const hx = size.x / 2, hy = size.y / 2, hz = size.z / 2;
-  for (let i = 0; i < 8; i++) {
-    _decalTmpV.set((i & 1 ? hx : -hx), (i & 2 ? hy : -hy), (i & 4 ? hz : -hz))
-      .applyQuaternion(dummy.quaternion).add(dummy.position);
-    _decalAABB.expandByPoint(_decalTmpV);
-  }
-  _decalAABB.expandByScalar(0.02);
-
   item.meshes.forEach(mesh => {
-    // AABB cull: skip mesh yang langsung tak bersilang dengan kotak decal
-    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
-    if (mesh.geometry.boundingBox) {
-      _meshWorldBox.copy(mesh.geometry.boundingBox).applyMatrix4(mesh.matrixWorld);
-      if (!_meshWorldBox.intersectsBox(_decalAABB)) return;
-    }
     try {
       const geo = new DecalGeometry(mesh, dummy.position, dummy.quaternion, size);
       if (geo.attributes.position?.count > 0) {
@@ -2493,9 +2756,7 @@ function createCurvedDecal(item, dummy, curve) {
   dummy.userData.decals.push(mesh);
 }
 
-// =====================================================================
 // ===== FREE TRANSFORM =====
-// =====================================================================
 let _ftSig = '';
 function showFreeTransform() {
   if (activeDummy && !activeDummy.userData.locked) {
@@ -2579,9 +2840,8 @@ function ftSignature() {
   return parts.join('|');
 }
 
-// ===== PATCH 2: rayToPlane guna cache rect semasa drag =====
 function rayToPlane(clientX, clientY, plane) {
-  const rect = _ftRectCache || container.getBoundingClientRect();
+  const rect = container.getBoundingClientRect();
   const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
   raycaster.setFromCamera(ndc, camera);
   const out = new THREE.Vector3();
@@ -2599,14 +2859,13 @@ ftBox.onpointerdown = e => {
   ftDragging = 'move';
   ftStartMouse.set(e.clientX, e.clientY);
   ftStartPos = activeDummy.position.clone();
-  _ftRectCache = container.getBoundingClientRect();  // ✅ CACHE
-  _lastFtMoveTime = 0;
   if (activeDummy.userData.isCanvasGraphic) {
     ftDragPlane = cameraPlane(activeDummy.position.clone());
     const p = rayToPlane(e.clientX, e.clientY, ftDragPlane);
     ftDragOffset = p ? activeDummy.position.clone().sub(p) : new THREE.Vector3();
   }
   controls.enabled = false;
+  showDragProxy(activeDummy);   // ← tunjuk proxy (body logo sahaja)
   ftBox.setPointerCapture(e.pointerId);
 };
 ftEl.querySelectorAll('.ft-handle').forEach(h => {
@@ -2616,9 +2875,8 @@ ftEl.querySelectorAll('.ft-handle').forEach(h => {
     ftDragging = 'scale';
     ftStartMouse.set(e.clientX, e.clientY);
     ftStartScale = activeDummy.scale.x;
-    _ftRectCache = container.getBoundingClientRect();
-    _lastFtMoveTime = 0;
     controls.enabled = false;
+    showDragProxy(activeDummy);
     h.setPointerCapture(e.pointerId);
   };
 });
@@ -2627,42 +2885,46 @@ ftRotateHandle.onpointerdown = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   ftDragging = 'rotate';
   ftStartAngle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
-  _ftRectCache = container.getBoundingClientRect();
-  _lastFtMoveTime = 0;
   controls.enabled = false;
+  showDragProxy(activeDummy);
   ftRotateHandle.setPointerCapture(e.pointerId);
 };
 
-// ===== PATCH 3 & 2: pointermove throttle + cached rect =====
 window.addEventListener('pointermove', e => {
   if (!ftDragging || !activeDummy) return;
-  // Throttle: max ~66fps. Mouse 1000Hz → elak proses berlebihan
-  const now = performance.now();
-  if (now - _lastFtMoveTime < FT_MOVE_MIN_MS) return;
-  _lastFtMoveTime = now;
-
   const d = activeDummy;
+
   if (ftDragging === 'move') {
     if (!d.userData.isCanvasGraphic) {
-      const item = d.userData.item;
-      const rect = _ftRectCache || container.getBoundingClientRect();
-      const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-      raycaster.setFromCamera(ndc, camera);
-      const hits = raycaster.intersectObjects(item.meshes, true);
-      if (hits.length && hits[0].face) {
-        const { pos, ln } = localHit(item, hits[0]);
-        const roll = getRoll(d);
-        d.position.copy(pos);
-        alignToSurface(d, ln, roll);
+      // Throttle raycast untuk body logo sahaja. Sleeve logo kekal 60fps seperti asal.
+      const isBody = needsProxy(d);
+      const now = performance.now();
+      if (!isBody || now - lastDragRaycast >= DRAG_RAYCAST_MS) {
+        lastDragRaycast = now;
+        const item = d.userData.item;
+        const rect = container.getBoundingClientRect();
+        const ndc = new THREE.Vector2(
+          ((e.clientX - rect.left) / rect.width) * 2 - 1,
+          -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObjects(item.meshes, true);
+        if (hits.length && hits[0].face) {
+          const { pos, ln } = localHit(item, hits[0]);
+          const roll = getRoll(d);
+          d.position.copy(pos);
+          alignToSurface(d, ln, roll);
+          dragUpdate(d);
+        }
       }
     } else {
       const p = rayToPlane(e.clientX, e.clientY, ftDragPlane);
-      if (p) d.position.copy(p.add(ftDragOffset));
+      if (p) { d.position.copy(p.add(ftDragOffset)); dragUpdate(d); }
     }
-    scheduleDecal(d);
     updateFreeTransformHandles();
     return;
   }
+
   if (ftDragging === 'scale') {
     const dist = Math.hypot(e.clientX - ftCenterScreen.x, e.clientY - ftCenterScreen.y);
     const startDist = Math.hypot(ftStartMouse.x - ftCenterScreen.x, ftStartMouse.y - ftCenterScreen.y) || 1;
@@ -2670,10 +2932,17 @@ window.addEventListener('pointermove', e => {
     $('propScale').value = ns;
     $('propScaleValue').textContent = ns.toFixed(2);
     d.scale.setScalar(ns);
-    if (!d.userData.isCanvasGraphic) scheduleDecal(d);
+    if (dragProxyMesh) {
+      const { w, h } = decalDims(d, SHIRT_BASE_SIZE);
+      dragProxyMesh.geometry.dispose();
+      dragProxyMesh.geometry = new THREE.PlaneGeometry(w, h);
+    } else if (!d.userData.isCanvasGraphic) {
+      scheduleDecal(d);
+    }
     updateFreeTransformHandles();
     return;
   }
+
   if (ftDragging === 'rotate') {
     const ang = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
     const delta = ang - ftStartAngle;
@@ -2683,7 +2952,7 @@ window.addEventListener('pointermove', e => {
     const facing = nW.dot(camera.position.clone().sub(wp)) >= 0 ? 1 : -1;
     d.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -delta * facing));
     ftStartAngle = ang;
-    scheduleDecal(d);
+    dragUpdate(d);
     updateFreeTransformHandles();
   }
 });
@@ -2691,17 +2960,13 @@ window.addEventListener('pointerup', () => {
   if (ftDragging) {
     ftDragging = null;
     controls.enabled = true;
-    _ftRectCache = null;      // ✅ reset
-    _lastFtMoveTime = 0;
-    if (activeDummy) createDecalNow(activeDummy, true);   // <-- HQ decal, IDENTIK dengan sebelum patch
+    hideDragProxy();                                  // ← buang proxy
+    if (activeDummy) createDecalNow(activeDummy, true);  // ← rebuild HQ SEKALI — sama seperti asal
     updateFreeTransformHandles();
     pushHistory();
   }
 });
 
-// =====================================================================
-// ===== GERAK / PUTAR GROUP =====
-// =====================================================================
 const MODE_HINTS = {
   orbit: 'Orbit: seret ruang kosong untuk pusing kamera. Klik 2× pada baju untuk pilih group.',
   rotate: 'Putar Baju: seret pada baju ke kiri/kanan — baju berputar pada pusatnya sendiri.',
@@ -2791,9 +3056,6 @@ function updateGroupBox() {
   if (gboxLabel.textContent !== activeItem.name) gboxLabel.textContent = activeItem.name;
 }
 
-// =====================================================================
-// ===== TAMBAH LOGO / TEKS =====
-// =====================================================================
 function readImageFiles(e, isCanvas) {
   [...e.target.files].forEach(file => {
     const r = new FileReader();
@@ -2884,7 +3146,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
 }
 
-// ===== LIGHT =====
 $('ambientSlider').oninput = e => { ambientLight.intensity = +e.target.value; $('ambientValue').textContent = ambientLight.intensity.toFixed(2); };
 $('ambientSlider').onchange = () => pushHistory();
 $('dirSlider').oninput = e => { mainLight.intensity = +e.target.value; $('dirValue').textContent = mainLight.intensity.toFixed(2); };
@@ -2895,9 +3156,6 @@ $('shadowSlider').oninput = e => {
 };
 $('shadowSlider').onchange = () => pushHistory();
 
-// =====================================================================
-// ===== SERIALIZE / RESTORE / PROJECT =====
-// =====================================================================
 function serializeLayer(d) {
   const u = d.userData;
   return {
@@ -3119,7 +3377,9 @@ $('btnExportProject').onclick = async () => {
     a.download = `${$('projectNameInput').value.trim() || 'design'}.json`;
     a.href = url; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    showToast('✅ Fail projek berjaya dieksport');
+    showToast(items.some(i => isCustomUrl(i.modelUrl))
+      ? '✅ Fail dieksport. Nota: model GLB custom tidak termasuk — upload semula di peranti lain.'
+      : '✅ Fail projek berjaya dieksport');
   } catch (err) { console.error(err); showToast('❌ Gagal eksport fail', true); }
 };
 $('importProjectFile').onchange = e => {
@@ -3184,9 +3444,6 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
-// =====================================================================
-// ===== SIMPAN HD DENGAN CROP INTERAKTIF =====
-// =====================================================================
 const scEl = $('savecrop'), scFrame = $('sc-frame');
 function resolutionInfo() {
   const res = +$('scRes').value || 3840;
@@ -3322,7 +3579,7 @@ $('saveBtn').onclick = () => openSaveCrop();
 
 function downloadCanvas(c, name) {
   c.toBlob(b => {
-    if (!b) { showToast('❌ Imej terlalu besar, kurangkan resolusi', true); return; }
+    if (!b) { showToast('❌ Imej terlalu besar', true); return; }
     const a = document.createElement('a');
     a.download = name;
     a.href = URL.createObjectURL(b);
@@ -3402,9 +3659,6 @@ function captureImage(view = 'current', targetRes = 3840) {
   showToast('✅ Imej HD berjaya disimpan');
 }
 
-// =====================================================================
-// ===== VIDEO / PREVIEW =====
-// =====================================================================
 $('speedSlider').oninput = e => { rotationSpeed = +e.target.value; $('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 $('durationSlider').oninput = e => { recordDuration = +e.target.value; $('durationValue').textContent = recordDuration + 's'; };
 $('qualitySlider').oninput = e => { recordQuality = +e.target.value; $('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait'; };
@@ -3586,9 +3840,6 @@ btnSnap.onclick = () => {
   showToast('✅ Gambar ditangkap');
 };
 
-// =====================================================================
-// ===== PANDANGAN =====
-// =====================================================================
 function normAngle(a) { return ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; }
 function tweenYaw(to) {
   const from = viewYaw;
@@ -3616,7 +3867,6 @@ Object.entries(VIEWBTNS).forEach(([id, yaw]) => {
   };
 });
 
-// ===== KEYBOARD =====
 window.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
   const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
@@ -3656,7 +3906,6 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Escape') deselectAll();
 });
 
-// ===== LOOP =====
 function animate(now) {
   requestAnimationFrame(animate);
   if (yawTween && !isPreviewing && !isRecording) stepYawTween(now || performance.now());
@@ -3678,8 +3927,11 @@ window.addEventListener('resize', () => {
   updateCropFrame();
 });
 
-// ===== MULA =====
 async function init() {
+  try { customModels = await dbModelList(); } catch (err) { console.error(err); customModels = []; }
+  populateModelSelects();
+  renderCustomModelList();
+  setupPWA();
   syncBgUI();
   updateCropFrame();
   markBgDirty();
