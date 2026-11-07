@@ -3126,10 +3126,8 @@ function createCurvedDecal(item, dummy, curve) {
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const { w, h } = decalDims(dummy, base);
-  
   const segX = Math.max(24, Math.min(48, Math.round(24 * Math.max(1, w * 1.8))));
   const segY = Math.max(12, Math.min(32, Math.round(16 * Math.max(1, h * 1.5))));
-  
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const worldPos = new THREE.Vector3();
@@ -3138,24 +3136,18 @@ function createCurvedDecal(item, dummy, curve) {
   const invShirt = new THREE.Matrix4().copy(item.spin.matrixWorld).invert();
   const ray = new THREE.Raycaster();
   const rayDir = dummyNormal.clone().negate();
-  
-  const lift = 0.03;
-  const maxRay = 2.0;
-  
+  const lift = 0.015;
+  const maxRay = 2.5;
   let hitCount = 0;
   const tmpWorld = new THREE.Vector3();
-  
   for (let i = 0; i < pos.count; i++) {
     const lx = pos.getX(i), ly = pos.getY(i);
-    tmpWorld.copy(worldPos).addScaledVector(right, lx).addScaledVector(up, ly).addScaledVector(dummyNormal, 1.5); 
-    
+    tmpWorld.copy(worldPos).addScaledVector(right, lx).addScaledVector(up, ly).addScaledVector(dummyNormal, 0.8); 
     ray.set(tmpWorld, rayDir);
     const hits = ray.intersectObjects(item.meshes, true);
-    
     if (hits.length && hits[0].distance < maxRay) {
       const faceN = hits[0].face ? hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld).normalize() : dummyNormal.clone();
-      
-      if (faceN.dot(dummyNormal) > -0.1) {
+      if (faceN.dot(dummyNormal) > -0.5) {
         const hitWorld = hits[0].point.clone().addScaledVector(faceN, lift);
         const hitLocal = hitWorld.applyMatrix4(invShirt);
         pos.setXYZ(i, hitLocal.x, hitLocal.y, hitLocal.z);
@@ -3163,29 +3155,19 @@ function createCurvedDecal(item, dummy, curve) {
         continue; 
       }
     }
-    
     const halfW = Math.max(0.001, w * 0.5);
     const maxAngleX = (Math.PI / 2) * clamp(curve || 0.65, 0.25, 1);
     const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
     const angleX = (lx / halfW) * maxAngleX;
     const cx = Math.sin(angleX) * Rx;
     const cz = (Math.cos(angleX) - 1) * Rx;
-    
-    const fbWorld = worldPos.clone().addScaledVector(right, cx).addScaledVector(up, ly).addScaledVector(dummyNormal, cz + lift + 0.02);
+    const fbWorld = worldPos.clone().addScaledVector(right, cx).addScaledVector(up, ly).addScaledVector(dummyNormal, cz + lift + 0.01);
     const fbLocal = fbWorld.applyMatrix4(invShirt);
     pos.setXYZ(i, fbLocal.x, fbLocal.y, fbLocal.z);
   }
-  
-  if (hitCount < pos.count * 0.2) {
-    geo.dispose();
-    createFlatDecal(item, dummy);
-    return;
-  }
-  
+  if (hitCount < pos.count * 0.2) { geo.dispose(); createFlatDecal(item, dummy); return; }
   geo.computeVertexNormals();
-  
-  const mat = decalMaterial(item, tex, dummy, { pof: -15, pou: -15, double: true });
-  
+  const mat = decalMaterial(item, tex, dummy, { pof: -10, pou: -10, double: true });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(0, 0, 0);
   mesh.quaternion.identity();
@@ -5339,7 +5321,6 @@ window.addEventListener('resize', () => {
 
 // ===== MULA =====
 async function init() {
-  // BVH: cuba aktifkan dulu. Kalau tiada, app tetap jalan (lambat).
   try { bvhReady = await setupBVH(); } catch (e) { console.warn('[BVH] setup gagal:', e); bvhReady = false; }
   try { customModels = await dbModelList(); } catch (err) { console.error(err); customModels = []; }
   populateModelSelects();
