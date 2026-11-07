@@ -3126,8 +3126,8 @@ function createCurvedDecal(item, dummy, curve) {
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const { w, h } = decalDims(dummy, base);
-  const segX = Math.max(14, Math.min(32, Math.round(16 * Math.max(1, w * 1.8))));
-  const segY = Math.max(8, Math.min(16, Math.round(10 * Math.max(1, h * 1.5))));
+  const segX = Math.max(20, Math.min(40, Math.round(20 * Math.max(1, w * 1.8))));
+  const segY = Math.max(10, Math.min(24, Math.round(12 * Math.max(1, h * 1.5))));
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const worldPos = new THREE.Vector3();
@@ -3136,13 +3136,13 @@ function createCurvedDecal(item, dummy, curve) {
   const invShirt = new THREE.Matrix4().copy(item.spin.matrixWorld).invert();
   const ray = new THREE.Raycaster();
   const rayDir = dummyNormal.clone().negate();
-  const lift = 0.008;
-  const maxRay = 1.0;
+  const lift = 0.02;
+  const maxRay = 3.0;
   let hitCount = 0;
   const tmpWorld = new THREE.Vector3();
   for (let i = 0; i < pos.count; i++) {
     const lx = pos.getX(i), ly = pos.getY(i);
-    tmpWorld.copy(worldPos).addScaledVector(right, lx).addScaledVector(up, ly).addScaledVector(dummyNormal, 0.35);
+    tmpWorld.copy(worldPos).addScaledVector(right, lx).addScaledVector(up, ly).addScaledVector(dummyNormal, 1.5);
     ray.set(tmpWorld, rayDir);
     const hits = ray.intersectObjects(item.meshes, true);
     if (hits.length && hits[0].distance < maxRay) {
@@ -3163,11 +3163,13 @@ function createCurvedDecal(item, dummy, curve) {
       pos.setXYZ(i, fbLocal.x, fbLocal.y, fbLocal.z);
     }
   }
+  
   if (hitCount < pos.count * 0.2) {
     geo.dispose();
     createFlatDecal(item, dummy);
     return;
   }
+  
   geo.computeVertexNormals();
   const mat = decalMaterial(item, tex, dummy, { pof: -8, pou: -8, double: true });
   const mesh = new THREE.Mesh(geo, mat);
