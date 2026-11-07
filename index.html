@@ -294,6 +294,11 @@
     .cm-item button.add{background:#14b8a6;color:#04201d;font-weight:700}
     .cm-item button.del:hover{background:#dc2626;color:#fff}
     .status-pill{font-size:11px;line-height:1.5;color:#d4d4d8;background:#27272a;border:1px solid #3f3f46;border-radius:8px;padding:8px 10px;margin-bottom:6px}
+    #videoSaveModal .modal{width:min(920px,96vw)}
+    .vs-body{padding:18px;display:flex;gap:18px;flex-wrap:wrap;overflow-y:auto}
+    .vs-preview-wrap{flex:1;min-width:280px;display:flex;flex-direction:column;gap:8px}
+    .vs-preview-wrap video{width:100%;border-radius:10px;background:#000;max-height:400px}
+    .vs-controls{flex:1;min-width:260px;display:flex;flex-direction:column;gap:12px}
   </style>
 </head>
 <body>
@@ -546,7 +551,7 @@
     <div class="accordion-item">
       <div class="accordion-header">Render Video <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="hint">Setiap baju berputar pada titik tengahnya sendiri.</div>
+        <div class="hint">Setiap baju berputar pada titik tengahnya sendiri. Selepas render, dialog simpan akan keluar.</div>
         <div class="slider-row"><label><span>Kelajuan</span><span id="speedValue">1.0x</span></label><input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1"></div>
         <div class="slider-row"><label><span>Tempoh</span><span id="durationValue">6s</span></label><input type="range" id="durationSlider" min="4" max="12" step="1" value="6"></div>
         <div class="slider-row"><label><span>Kualiti</span><span id="qualityValue">720p Portrait</span></label><input type="range" id="qualitySlider" min="0" max="1" step="1" value="0"></div>
@@ -805,6 +810,38 @@
   </div>
 </div>
 
+<div class="modal-back" id="videoSaveModal">
+  <div class="modal">
+    <div class="modal-head"><span>🎥 Simpan Video — Preview &amp; Tetapan</span><button id="vsClose" title="Tutup">✕</button></div>
+    <div class="vs-body">
+      <div class="vs-preview-wrap">
+        <video id="vsPreview" controls playsinline preload="auto"></video>
+      </div>
+      <div class="vs-controls">
+        <div class="sizebox">
+          <div class="ec-title">Maklumat Video</div>
+          <div id="vsSize" style="font-size:24px;font-weight:800;color:#34d399;font-variant-numeric:tabular-nums">—</div>
+          <div id="vsInfo" style="font-size:11.5px;color:#a1a1aa;line-height:1.6"></div>
+        </div>
+        <div class="ec-group">
+          <div class="ec-title">Nama Fail</div>
+          <input type="text" id="vsName" class="prop-input" placeholder="nama-video">
+        </div>
+        <div class="ec-note" style="font-size:11px;color:#71717a;line-height:1.55">
+          💡 Jika video <b style="color:#fbbf24">tersekat</b> semasa dimainkan:
+          cuba simpan sebagai <b>MP4</b> (jika ada). WebM memerlukan pengekodan semula di sesetengah peranti
+          (termasuk WhatsApp) dan boleh menyebabkan playback tersekat.
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="vsShare" style="display:none">📤 Kongsi</button>
+      <button class="btn" id="vsCancel">Batal</button>
+      <button class="btn primary" id="vsSave">⬇ Simpan Video</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-back" id="closeModal">
   <div class="modal">
     <div class="modal-head"><span>⚠ Adobe-style — Tutup Aplikasi</span><button id="cmX">✕</button></div>
@@ -845,6 +882,39 @@ const nextFrame = () => new Promise(r => requestAnimationFrame(() => r()));
 document.querySelectorAll('.accordion-header').forEach(header => {
   header.addEventListener('click', () => header.parentElement.classList.toggle('open'));
 });
+
+// ===== BVH (dinamik, fallback selamat) =====
+let bvhReady = false;
+async function tryLoadBVH() {
+  const paths = [
+    './vendor/three-mesh-bvh/index.module.js',
+    './vendor/three-mesh-bvh/three-mesh-bvh.module.js',
+    './vendor/three-mesh-bvh/build/index.module.js',
+    'three/addons/math/three-mesh-bvh.js',
+    'three/addons/libs/three-mesh-bvh.js',
+  ];
+  for (const path of paths) {
+    try {
+      const mod = await import(/* @vite-ignore */ path);
+      if (mod && typeof mod.computeBoundsTree === 'function' && typeof mod.acceleratedRaycast === 'function') {
+        return mod;
+      }
+    } catch (e) { /* cuba laluan seterusnya */ }
+  }
+  return null;
+}
+async function setupBVH() {
+  const mod = await tryLoadBVH();
+  if (!mod) {
+    console.warn('[ProDesigner] three-mesh-bvh tidak dijumpai. Fallback ke raycast biasa (lebih lambat).');
+    return false;
+  }
+  THREE.BufferGeometry.prototype.computeBoundsTree = mod.computeBoundsTree;
+  THREE.BufferGeometry.prototype.disposeBoundsTree = mod.disposeBoundsTree;
+  THREE.Mesh.prototype.raycast = mod.acceleratedRaycast;
+  console.log('[ProDesigner] ✅ BVH diaktifkan — raycast 10-100× lebih laju');
+  return true;
+}
 
 // ===== SENARAI MODEL =====
 const MODELS = [
@@ -1103,6 +1173,7 @@ const ftRotateHandle = $('ftRotateHandle');
 const ftRotateLine = $('ftRotateLine');
 let ftDragging = null, ftStartMouse = new THREE.Vector2(), ftStartScale = 1, ftStartAngle = 0, ftCenterScreen = new THREE.Vector2();
 let ftStartPos = null, ftDragPlane = null, ftDragOffset = null;
+let ftStartSnapshot = null;
 const floatingControls = $('floating-controls');
 const btnPausePlay = $('btnPausePlay');
 const btnSnap = $('btnSnap');
@@ -1695,6 +1766,9 @@ async function attachModel(item, url) {
     c.userData.item = item;
     c.userData.meshKey = (c.name || 'mesh') + '#' + item.meshes.length;
     ensurePartAttr(c, item.localBox);
+    if (c.geometry && typeof c.geometry.computeBoundsTree === 'function' && !c.geometry.boundsTree) {
+      try { c.geometry.computeBoundsTree(); } catch (e) { console.warn('[BVH] gagal bina:', c.name, e); }
+    }
     item.materials.push(m);
     item.meshes.push(c);
   });
@@ -2012,7 +2086,7 @@ $('btnCheckOffline').onclick = async () => {
   showToast('Mengemas kini cache offline...');
 };
 async function setupPWA() {
-  /* ELECTRON */ if (navigator.userAgent.includes('Electron')) { $('pwaStatus').textContent = '🖥 Versi desktop (.exe) — semua fail disertakan, sentiasa boleh guna offline.'; $('btnCheckOffline').style.display = 'none'; return; }
+  if (navigator.userAgent.includes('Electron')) { $('pwaStatus').textContent = '🖥 Versi desktop (.exe) — semua fail disertakan, sentiasa boleh guna offline.'; $('btnCheckOffline').style.display = 'none'; return; }
   const pill = $('pwaStatus');
   if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
     pill.textContent = '⚠ Mod offline/PWA tidak aktif: buka melalui http://localhost atau https.';
@@ -2616,11 +2690,8 @@ $('propScale').oninput = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   const s = +e.target.value;
   $('propScaleValue').textContent = s.toFixed(2);
-  
   activeDummy.scale.setScalar(s);
-
   if (!activeDummy.userData.isCanvasGraphic) {
-    // Fast scale update: replace heavy decals with light ones and instantly scale
     let allLight = true;
     if (activeDummy.userData.decals && activeDummy.userData.decals.length > 0) {
       for (const mesh of activeDummy.userData.decals) {
@@ -2629,24 +2700,17 @@ $('propScale').oninput = e => {
     } else {
       allLight = false;
     }
-
-    if (!allLight) {
-      createDecalNow(activeDummy, false); // synchronous light decal creation
-    }
-
+    if (!allLight) createDecalNow(activeDummy, false);
     activeDummy.userData.decals.forEach(m => {
       if (m.userData.isLightCurved) m.scale.setScalar(s);
     });
-    
     updateFreeTransformHandles();
   }
 };
 
 $('propScale').onchange = () => {
   pushHistory();
-  if (activeDummy && !activeDummy.userData.isCanvasGraphic) {
-    createDecalNow(activeDummy, true); // High quality update after release
-  }
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) queueHQ(activeDummy, 300);
 };
 
 $('propOpacity').oninput = e => {
@@ -2664,15 +2728,12 @@ $('propCurve').oninput = e => {
   const c = +e.target.value;
   activeDummy.userData.curve = c;
   $('propCurveValue').textContent = c.toFixed(2);
-  // Synchronous light update for zero lag
   createDecalNow(activeDummy, false);
 };
 $('propCurve').onchange = () => {
   renderLayerPanel();
   pushHistory();
-  if (activeDummy && !activeDummy.userData.isCanvasGraphic) {
-    createDecalNow(activeDummy, true); // High quality update after release
-  }
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) queueHQ(activeDummy, 300);
 };
 
 $('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
@@ -2708,7 +2769,7 @@ function fxBind(id, key, valId, fmt, conv = v => v) {
   };
   el.onchange = () => {
     pushHistory();
-    if (activeDummy) createDecalNow(activeDummy, true);
+    if (activeDummy) queueHQ(activeDummy, 300);
   };
 }
 fxBind('fxOverlayColor', 'overlayColor');
@@ -2723,7 +2784,7 @@ function setFx(fx, msg) {
   if (!activeDummy) return;
   activeDummy.userData.effects = fx;
   updateFxUI(activeDummy);
-  createDecalNow(activeDummy, true); // final update
+  createDecalNow(activeDummy, true);
   pushHistory();
   showToast(msg);
 }
@@ -2734,12 +2795,12 @@ $('fxPresetFlat').onclick = () => setFx(flatEffects(), 'Logo rata (tiada bayang)
 $('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.x = 0;
-  createDecalNow(activeDummy, true); pushHistory(); showToast('Center X');
+  queueHQ(activeDummy, 0); pushHistory(); showToast('Center X');
 };
 $('btnAlignCenterY').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.y = activeDummy.userData.isCanvasGraphic ? activeDummy.position.y : 0.15;
-  createDecalNow(activeDummy, true); pushHistory(); showToast('Center Y');
+  queueHQ(activeDummy, 0); pushHistory(); showToast('Center Y');
 };
 
 function makeLogoDummy(common, item, extra = {}) {
@@ -2887,7 +2948,7 @@ function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
   const right  = new THREE.Vector3(1, 0, 0).applyQuaternion(wq);
   const worldPos = new THREE.Vector3();
   dummy.getWorldPosition(worldPos);
-  const steps = 5;
+  const steps = 7;
   let maxOffset = 0, minDistToBack = Infinity;
   const tmpP = new THREE.Vector3();
   for (let i = 0; i < steps; i++) for (let j = 0; j < steps; j++) {
@@ -2997,10 +3058,8 @@ function createLightCurvedDecal(item, dummy, curve) {
   const isBack = !onSleeve && n.z < 0;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
-  
   const { w, h } = getBaseDims(dummy, base);
   const orientQuat = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, n));
-
   const isCurved = curve > 0.01;
   const geo = new THREE.PlaneGeometry(w, h, isCurved ? 12 : 1, isCurved ? 4 : 1);
   const pos = geo.attributes.position;
@@ -3020,10 +3079,8 @@ function createLightCurvedDecal(item, dummy, curve) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position).add(n.clone().multiplyScalar(0.015));
   mesh.quaternion.copy(orientQuat);
-  
-  mesh.scale.setScalar(dummy.scale.x); // Apply scale
-  mesh.userData.isLightCurved = true;  // Mark for instant scaling
-  
+  mesh.scale.setScalar(dummy.scale.x);
+  mesh.userData.isLightCurved = true;
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
   item.spin.add(mesh);
@@ -3069,8 +3126,8 @@ function createCurvedDecal(item, dummy, curve) {
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const { w, h } = decalDims(dummy, base);
-  const segX = Math.max(10, Math.min(20, Math.round(12 * Math.max(1, w * 1.8))));
-  const segY = Math.max(6, Math.min(12, Math.round(8 * Math.max(1, h * 1.5))));
+  const segX = Math.max(14, Math.min(32, Math.round(16 * Math.max(1, w * 1.8))));
+  const segY = Math.max(8, Math.min(16, Math.round(10 * Math.max(1, h * 1.5))));
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
   const worldPos = new THREE.Vector3();
@@ -3132,26 +3189,53 @@ function showFreeTransform() {
     updateFreeTransformHandles();
   }
 }
-function hideFreeTransform() { ftEl.classList.remove('active'); ftDragging = null; _ftSig = ''; }
+function hideFreeTransform() { ftEl.classList.remove('active'); ftDragging = null; _ftSig = ''; cancelPendingHQ(); }
 
-// ===== HQ DEBOUNCE (fixes lag pada pointerup) =====
-let hqTimer = null, hqTarget = null;
+// ===== HQ DEBOUNCE (BVH-aware, dengan pintu pagar & idle callback) =====
+let hqTimer = null, hqTarget = null, hqIdle = null;
 function cancelPendingHQ() {
-  clearTimeout(hqTimer);
-  hqTimer = null;
+  if (hqTimer) { clearTimeout(hqTimer); hqTimer = null; }
+  if (hqIdle && typeof cancelIdleCallback === 'function') {
+    try { cancelIdleCallback(hqIdle); } catch(e) {}
+  }
+  hqIdle = null;
   hqTarget = null;
 }
-function queueHQ(dummy, delayMs) {
+function queueHQ(dummy, delayMs = 300) {
   cancelPendingHQ();
   if (!dummy) return;
   hqTarget = dummy;
   hqTimer = setTimeout(() => {
-    if (hqTarget === dummy && !ftDragging && !gDrag) {
-      createDecalNow(dummy, true);
+    if (hqTarget !== dummy) return;
+    if (ftDragging || gDrag) { hqTarget = null; hqTimer = null; return; }
+    const doWork = () => {
+      if (hqTarget === dummy && !ftDragging && !gDrag) {
+        try { createDecalNow(dummy, true); } catch (e) { console.error('HQ rebuild gagal', e); }
+      }
+      hqTarget = null;
+      hqTimer = null;
+      hqIdle = null;
+    };
+    if (typeof requestIdleCallback === 'function') {
+      hqIdle = requestIdleCallback(doWork, { timeout: 400 });
+    } else {
+      doWork();
     }
-    hqTarget = null;
-    hqTimer = null;
   }, delayMs);
+}
+
+// Pintu pagar: adakah logo betul-betul bergerak?
+function logoActuallyMoved(d, snap) {
+  if (!snap) return true;
+  const posDelta = d.position.distanceTo(snap.pos);
+  const quatDelta = Math.abs(d.quaternion.angleTo(snap.quat));
+  const scaleDelta = Math.abs(d.scale.x - snap.scale);
+  const wp = new THREE.Vector3();
+  d.getWorldPosition(wp);
+  const camDist = camera.position.distanceTo(wp);
+  const pixelsPerUnit = container.clientHeight / (2 * camDist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+  const posThreshold = 2 / Math.max(1, pixelsPerUnit);
+  return posDelta > posThreshold || quatDelta > 0.008 || scaleDelta > 0.004;
 }
 
 function worldToScreen(p) {
@@ -3237,11 +3321,15 @@ function cameraPlane(point) {
   const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
   return new THREE.Plane().setFromNormalAndCoplanarPoint(dir, point);
 }
+function snapshotDummy(d) {
+  return { pos: d.position.clone(), quat: d.quaternion.clone(), scale: d.scale.x };
+}
 ftBox.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
   if (!activeDummy || activeDummy.userData.locked) return;
   if (e.target !== ftBox) return;
   cancelPendingHQ();
+  ftStartSnapshot = snapshotDummy(activeDummy);
   ftDragging = 'move';
   ftStartMouse.set(e.clientX, e.clientY);
   ftStartPos = activeDummy.position.clone();
@@ -3258,6 +3346,7 @@ ftEl.querySelectorAll('.ft-handle').forEach(h => {
     e.preventDefault(); e.stopPropagation();
     if (!activeDummy || activeDummy.userData.locked) return;
     cancelPendingHQ();
+    ftStartSnapshot = snapshotDummy(activeDummy);
     ftDragging = 'scale';
     ftStartMouse.set(e.clientX, e.clientY);
     ftStartScale = activeDummy.scale.x;
@@ -3269,6 +3358,7 @@ ftRotateHandle.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
   if (!activeDummy || activeDummy.userData.locked) return;
   cancelPendingHQ();
+  ftStartSnapshot = snapshotDummy(activeDummy);
   ftDragging = 'rotate';
   ftStartAngle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
   controls.enabled = false;
@@ -3305,7 +3395,6 @@ window.addEventListener('pointermove', e => {
     $('propScale').value = ns;
     $('propScaleValue').textContent = ns.toFixed(2);
     d.scale.setScalar(ns);
-    
     if (!d.userData.isCanvasGraphic) {
       let allLight = true;
       if (d.userData.decals && d.userData.decals.length > 0) {
@@ -3320,7 +3409,6 @@ window.addEventListener('pointermove', e => {
         if (m.userData.isLightCurved) m.scale.setScalar(ns);
       });
     }
-    
     updateFreeTransformHandles();
     return;
   }
@@ -3339,11 +3427,14 @@ window.addEventListener('pointermove', e => {
 });
 window.addEventListener('pointerup', () => {
   if (ftDragging) {
+    const wasDragging = ftDragging;
     ftDragging = null;
     controls.enabled = true;
-    // Debounce HQ: tunggu 0.5s idle sebelum upgrade kualiti penuh.
-    // Light decal semasa drag kekal sebagai paparan sementara.
-    queueHQ(activeDummy, 500);
+    const d = activeDummy;
+    if (d && ftStartSnapshot && logoActuallyMoved(d, ftStartSnapshot)) {
+      queueHQ(d, 300);
+    }
+    ftStartSnapshot = null;
     updateFreeTransformHandles();
     pushHistory();
   }
@@ -4078,18 +4169,27 @@ function stopPreview() {
   controls.enabled = true;
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing && !cropSession) startVideoRecord(); };
+
+// ===== VIDEO RECORDING (fixed 30fps + modal save) =====
+const VIDEO = {
+  blob: null, url: null, format: 'webm', mime: '', duration: 0, width: 0, height: 0, fps: 30, quality: 0
+};
+
 async function startVideoRecord() {
   if (isRecording) return;
   isExporting = true; yawTween = null;
   hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
   refreshAllDecals();
+
   const targetRes = recordQuality === 0 ? 1080 : 1920;
   const scale = targetRes / Math.max(cropRect.w, cropRect.h);
   let recW = Math.round(cropRect.w * scale), recH = Math.round(cropRect.h * scale);
   recW += recW % 2; recH += recH % 2;
+
   const recordCanvas = document.createElement('canvas');
   recordCanvas.width = recW; recordCanvas.height = recH;
   const rctx = recordCanvas.getContext('2d');
+
   const oldSize = new THREE.Vector2(); renderer.getSize(oldSize);
   const oldPR = renderer.getPixelRatio();
   const tw = container.clientWidth, th = container.clientHeight;
@@ -4097,45 +4197,71 @@ async function startVideoRecord() {
   camera.aspect = tw / th; camera.updateProjectionMatrix();
   enterAnimCamera();
   setSpins(0);
+
+  // Warm-up
   for (let i = 0; i < 8; i++) {
     renderer.clear(); renderer.render(scene, camera);
     rctx.clearRect(0, 0, recW, recH);
     drawCropped(rctx, recW, recH);
   }
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  const stream = recordCanvas.captureStream(60);
-  const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+
+  // Setup capture stream (manual frame control untuk frame pacing konsisten)
+  const recFps = 30;
+  const recInterval = 1000 / recFps;
+  let stream, videoTrack, canManualFrame = false;
+  try {
+    stream = recordCanvas.captureStream(0);
+    videoTrack = stream.getVideoTracks()[0];
+    canManualFrame = typeof videoTrack.requestFrame === 'function';
+    if (!canManualFrame) {
+      stream = recordCanvas.captureStream(recFps);
+      videoTrack = stream.getVideoTracks()[0];
+    }
+  } catch (e) {
+    console.warn('[video] captureStream(0) gagal, fallback:', e);
+    stream = recordCanvas.captureStream(recFps);
+    videoTrack = stream.getVideoTracks()[0];
+  }
+
+  // Choose best mime
+  let mime = 'video/webm';
+  const preferred = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+  for (const m of preferred) {
+    if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) { mime = m; break; }
+  }
+  VIDEO.mime = mime;
+  VIDEO.format = mime.includes('mp4') ? 'mp4' : 'webm';
+  VIDEO.fps = recFps;
+  VIDEO.width = recW; VIDEO.height = recH;
+  VIDEO.quality = recordQuality;
+
   recordedChunks = [];
-  const bitrate = recordQuality === 0 ? 15000000 : 25000000;
-  mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
+  const bitrate = recordQuality === 0 ? 8000000 : 14000000;
+  try {
+    mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
+  } catch (e) {
+    console.warn('[video] MediaRecorder gagal, fallback:', e);
+    mime = 'video/webm';
+    VIDEO.mime = mime;
+    mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
+  }
+
   mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
-  mediaRecorder.onstop = () => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
-    a.download = `design-${Date.now()}.webm`; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    isExporting = false;
-    setSpins(0);
-    refreshAllDecals();
-    renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
-    camera.aspect = oldSize.x / oldSize.y; camera.updateProjectionMatrix();
-    leaveAnimCamera();
-    controls.enabled = true;
-    isRecording = false; btnRenderVideo.disabled = false; btnPreview.disabled = false;
-    btnRenderVideo.classList.remove('recording'); btnRenderVideo.textContent = '🎥 Render Video';
-    recordingOverlay.classList.remove('active');
-    floatingControls.style.display = 'none';
-    bgCache.clear(); scheduleBgRender();
-  };
+  mediaRecorder.onstop = () => finishVideoRecord(oldPR, oldSize);
+
   isRecording = true; isPaused = false;
   btnRenderVideo.disabled = true; btnRenderVideo.classList.add('recording');
   btnRenderVideo.textContent = '⏹ Sedang Merakam...'; recordingOverlay.classList.add('active');
   floatingControls.style.display = 'flex';
   btnPausePlay.textContent = '⏸ Jeda';
   btnSnap.disabled = true;
+
   mediaRecorder.start(100);
   animStartTime = performance.now();
   currentP = 0;
+  let lastRecordedFrame = 0;
+
   function loop(now) {
     if (!isRecording) return;
     if (!isPaused) {
@@ -4143,15 +4269,100 @@ async function startVideoRecord() {
       setSpins(currentP * Math.PI * 2 * rotationSpeed);
       recordingText.textContent = `Sedang merakam... ${Math.ceil(recordDuration - (now - animStartTime) / 1000)}s`;
     }
-    renderer.render(scene, camera);
-    rctx.clearRect(0, 0, recW, recH);
-    drawCropped(rctx, recW, recH);
+    const elapsed = now - lastRecordedFrame;
+    const shouldCapture = !canManualFrame || elapsed >= recInterval - 2;
+    if (shouldCapture && !isPaused) {
+      renderer.render(scene, camera);
+      rctx.clearRect(0, 0, recW, recH);
+      drawCropped(rctx, recW, recH);
+      if (canManualFrame) { try { videoTrack.requestFrame(); } catch(e) {} }
+      lastRecordedFrame = now;
+    }
     if (currentP >= 1) {
-      setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 120);
+      setTimeout(() => mediaRecorder?.state !== 'inactive' && mediaRecorder.stop(), 200);
     } else requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
 }
+
+function finishVideoRecord(oldPR, oldSize) {
+  const blob = new Blob(recordedChunks, { type: VIDEO.mime || 'video/webm' });
+  VIDEO.blob = blob;
+  VIDEO.duration = recordDuration;
+  if (VIDEO.url) { try { URL.revokeObjectURL(VIDEO.url); } catch(e) {} }
+  VIDEO.url = URL.createObjectURL(blob);
+
+  // restore renderer / camera / UI
+  isExporting = false;
+  setSpins(0);
+  refreshAllDecals();
+  renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
+  camera.aspect = oldSize.x / oldSize.y; camera.updateProjectionMatrix();
+  leaveAnimCamera();
+  controls.enabled = true;
+  isRecording = false; btnRenderVideo.disabled = false; btnPreview.disabled = false;
+  btnRenderVideo.classList.remove('recording'); btnRenderVideo.textContent = '🎥 Render Video';
+  recordingOverlay.classList.remove('active');
+  floatingControls.style.display = 'none';
+  bgCache.clear(); scheduleBgRender();
+
+  // Show modal
+  openVideoSaveModal();
+}
+
+function openVideoSaveModal() {
+  if (!VIDEO.url) return;
+  const proj = safeNameVideo($('projectNameInput').value.trim() || 'design');
+  const date = new Date().toISOString().slice(0, 10);
+  $('vsName').value = proj + '-' + date;
+  const v = $('vsPreview');
+  v.src = VIDEO.url;
+  v.load();
+  try { v.play().catch(() => {}); } catch(e) {}
+  const mb = VIDEO.blob.size / 1048576;
+  $('vsSize').textContent = fmtBytes(VIDEO.blob.size);
+  const ext = VIDEO.format.toUpperCase();
+  let note = `${ext} · ${VIDEO.width} × ${VIDEO.height} px · ${VIDEO.fps}fps · ${VIDEO.duration}s`;
+  note += `<br>Codec: ${VIDEO.mime.split(';')[1]?.replace('codecs=','') || 'default'}`;
+  note += `<br>≈ ${((VIDEO.blob.size * 8) / (VIDEO.duration * 1e6)).toFixed(1)} Mbps`;
+  if (mb > 50) note += `<br><span style="color:#fbbf24">⚠ Fail besar — WhatsApp mungkin perlukan masa</span>`;
+  $('vsInfo').innerHTML = note;
+  $('vsShare').style.display = (navigator.canShare && navigator.share) ? '' : 'none';
+  $('videoSaveModal').classList.add('show');
+}
+
+function closeVideoSaveModal() {
+  $('videoSaveModal').classList.remove('show');
+  const v = $('vsPreview');
+  try { v.pause(); v.src = ''; v.load(); } catch(e) {}
+  if (VIDEO.url) { try { URL.revokeObjectURL(VIDEO.url); } catch(e) {} VIDEO.url = null; }
+  VIDEO.blob = null;
+}
+
+function safeNameVideo(n) {
+  return String(n || 'video').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '-').slice(0, 80) || 'video';
+}
+
+$('vsClose').onclick = $('vsCancel').onclick = closeVideoSaveModal;
+$('vsSave').onclick = () => {
+  if (!VIDEO.blob) return;
+  const ext = VIDEO.format === 'mp4' ? 'mp4' : 'webm';
+  const name = safeNameVideo($('vsName').value) + '.' + ext;
+  const a = document.createElement('a');
+  a.href = VIDEO.url; a.download = name; a.click();
+  showToast(`✅ ${name} (${fmtBytes(VIDEO.blob.size)}) disimpan`);
+  setTimeout(closeVideoSaveModal, 400);
+};
+$('vsShare').onclick = async () => {
+  if (!VIDEO.blob) return;
+  const ext = VIDEO.format === 'mp4' ? 'mp4' : 'webm';
+  const f = new File([VIDEO.blob], safeNameVideo($('vsName').value) + '.' + ext, { type: VIDEO.blob.type });
+  try {
+    if (navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: 'Design baju 3D' });
+    else showToast('Kongsi video tidak disokong', true);
+  } catch (e) { if (e.name !== 'AbortError') showToast('Gagal kongsi', true); }
+};
+
 btnPausePlay.onclick = () => {
   if (!isPreviewing && !isRecording) return;
   isPaused = !isPaused;
@@ -5028,7 +5239,11 @@ window.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
   const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
   if (document.querySelector('.modal-back.show')) {
-    if (e.key === 'Escape') { if ($('exportModal').classList.contains('show')) closeExport(); else $('closeModal').classList.remove('show'); }
+    if (e.key === 'Escape') {
+      if ($('exportModal').classList.contains('show')) closeExport();
+      else if ($('videoSaveModal').classList.contains('show')) closeVideoSaveModal();
+      else $('closeModal').classList.remove('show');
+    }
     return;
   }
   if (cropSession) {
@@ -5108,6 +5323,8 @@ window.addEventListener('resize', () => {
 
 // ===== MULA =====
 async function init() {
+  // BVH: cuba aktifkan dulu. Kalau tiada, app tetap jalan (lambat).
+  try { bvhReady = await setupBVH(); } catch (e) { console.warn('[BVH] setup gagal:', e); bvhReady = false; }
   try { customModels = await dbModelList(); } catch (err) { console.error(err); customModels = []; }
   populateModelSelects();
   renderCustomModelList();
@@ -5132,6 +5349,7 @@ async function init() {
   updateStatus();
   const loadingEl = $('loading');
   if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
+  if (bvhReady) showToast('⚡ BVH aktif — editor laju');
 }
 init();
 </script>
