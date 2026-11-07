@@ -16,22 +16,13 @@
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100%;height:100%;overflow:hidden;font-family:Inter,sans-serif;background:#121212;color:#f3f4f6}
     #app{display:flex;height:100vh}
-    #sidebar-left{
-      width:300px;background:#18181b;padding:14px 14px 60px 14px;
-      display:flex;flex-direction:column;gap:8px;
-      border-right:1px solid #27272a;z-index:10;overflow-y:auto;flex-shrink:0;
-    }
-    #sidebar-left::-webkit-scrollbar { width: 8px; }
-    #sidebar-left::-webkit-scrollbar-track { background: #18181b; }
-    #sidebar-left::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-    #sidebar-left::-webkit-scrollbar-thumb:hover { background: #52525b; }
+    #sidebar-left{width:300px;background:#18181b;padding:14px 14px 60px 14px;display:flex;flex-direction:column;gap:8px;border-right:1px solid #27272a;z-index:10;overflow-y:auto;flex-shrink:0}
+    #sidebar-left::-webkit-scrollbar{width:8px}
+    #sidebar-left::-webkit-scrollbar-track{background:#18181b}
+    #sidebar-left::-webkit-scrollbar-thumb{background:#3f3f46;border-radius:4px}
+    #sidebar-left::-webkit-scrollbar-thumb:hover{background:#52525b}
     .accordion-item{background:#1f1f23;border:1px solid #2e2e32;border-radius:8px;overflow:hidden;flex-shrink:0}
-    .accordion-header{
-      padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
-      cursor:pointer;user-select:none;font-size:12px;font-weight:600;
-      text-transform:uppercase;letter-spacing:0.8px;
-      background:#1e40af;color:#ffffff;transition: background 0.2s;
-    }
+    .accordion-header{padding:11px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;background:#1e40af;color:#fff;transition:background 0.2s}
     .accordion-header.violet{background:#6d28d9}
     .accordion-header.violet:hover{background:#7c3aed}
     .accordion-header:hover{background:#1d4ed8}
@@ -88,38 +79,32 @@
     .align-btn:hover{background:#52525b}
     #viewer-container{flex:1;position:relative;background:radial-gradient(circle at center,#27272a 0%,#09090b 100%);overflow:hidden;min-width:0}
     #viewer-container canvas{display:block}
-
     #bgCanvas,#fgCanvas{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
     #bgCanvas{z-index:0}
     #fgCanvas{z-index:2}
-
     .preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-    .preset-btn{aspect-ratio:1;border-radius:8px;border:2px solid #3f3f46;cursor:pointer;font-size:9px;font-weight:600;color:#fff;
-      text-shadow:0 1px 2px rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;padding:3px 1px;font-family:inherit;transition:.15s}
+    .preset-btn{aspect-ratio:1;border-radius:8px;border:2px solid #3f3f46;cursor:pointer;font-size:9px;font-weight:600;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);display:flex;align-items:flex-end;justify-content:center;padding:3px 1px;font-family:inherit;transition:.15s}
     .preset-btn:hover{border-color:#38bdf8;transform:translateY(-1px)}
     .sub-title{font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:.6px;margin:12px 0 8px;padding-top:10px;border-top:1px solid #2e2e32}
     .sub-title:first-child{margin-top:0;padding-top:0;border-top:none}
     .hint{font-size:11px;color:#71717a;line-height:1.5;margin-bottom:8px}
-
-    #crop-overlay{position:absolute;inset:0;pointer-events:none;z-index:12;display:none;}
-    #crop-overlay.active{display:block;}
-    #crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);border:1.5px dashed #38bdf8;}
-    #floating-controls{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:60;display:none;gap:10px;background:rgba(0,0,0,0.75);padding:8px 12px;border-radius:12px;backdrop-filter:blur(4px);border:1px solid #3f3f46;}
-    #floating-controls button{padding:8px 16px;font-size:13px;border-radius:6px;border:none;font-weight:600;cursor:pointer;}
-    #btnPausePlay{background:#f59e0b;color:#000;}
-    #btnSnap{background:#10b981;color:#fff;}
-    #btnSnap:disabled{opacity:0.5;cursor:not-allowed;}
+    #crop-overlay{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
+    #crop-overlay.active{display:block}
+    #crop-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);border:1.5px dashed #38bdf8}
+    #floating-controls{position:absolute;top:80px;left:50%;transform:translateX(-50%);z-index:60;display:none;gap:10px;background:rgba(0,0,0,0.75);padding:8px 12px;border-radius:12px;backdrop-filter:blur(4px);border:1px solid #3f3f46}
+    #floating-controls button{padding:8px 16px;font-size:13px;border-radius:6px;border:none;font-weight:600;cursor:pointer}
+    #btnPausePlay{background:#f59e0b;color:#000}
+    #btnSnap{background:#10b981;color:#fff}
+    #btnSnap:disabled{opacity:0.5;cursor:not-allowed}
     #free-transform{position:absolute;inset:0;pointer-events:none;z-index:20;display:none}
     #free-transform.active{display:block}
     .ft-box{position:absolute;border:1.5px solid #38bdf8;pointer-events:auto;cursor:move;background:transparent;touch-action:none}
     .ft-handle{position:absolute;width:12px;height:12px;background:#fff;border:2px solid #38bdf8;border-radius:2px;pointer-events:auto;cursor:nwse-resize;transform:translate(-50%,-50%);touch-action:none}
     .ft-rotate-handle{position:absolute;width:18px;height:18px;background:#38bdf8;border:2px solid #fff;border-radius:50%;pointer-events:auto;cursor:grab;transform:translate(-50%,-50%);touch-action:none}
     .ft-rotate-line{position:absolute;width:1.5px;background:#38bdf8;pointer-events:none}
-
     #gbox{position:absolute;border:1.5px dashed #a78bfa;pointer-events:none;z-index:18;display:none;border-radius:4px}
     #gbox span{position:absolute;top:-21px;left:-1px;background:#7c3aed;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;white-space:nowrap}
-
-    #view-toggles{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(24,24,27,.85);padding:8px;border-radius:12px;z-index:15}
+    #view-toggles{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:rgba(24,24,27,.85);padding:8px;border-radius:12px;z-index:15}
     #view-toggles button{background:#3f3f46;color:#fff;border:none;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600}
     #view-toggles button.active{background:#38bdf8;color:#000}
     #mode-toggles{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:6px;z-index:15;background:rgba(24,24,27,.88);padding:8px;border-radius:12px;border:1px solid #2e2e32}
@@ -129,27 +114,6 @@
     #modeHint{font-size:10.5px;color:#a1a1aa;max-width:270px;line-height:1.45}
     #top-actions{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:15;background:rgba(24,24,27,.88);padding:6px;border-radius:12px;border:1px solid #2e2e32}
     #top-actions .action-btn{flex:none;padding:8px 12px}
-
-    /* ===== QUALITY TOGGLES ===== */
-    #quality-toggles{
-      position:absolute;bottom:68px;left:50%;transform:translateX(-50%);
-      display:flex;align-items:center;gap:4px;
-      background:rgba(24,24,27,.88);padding:6px 10px;
-      border-radius:12px;border:1px solid #2e2e32;z-index:15;
-    }
-    #quality-toggles .qt-label{
-      font-size:11px;color:#a1a1aa;font-weight:600;
-      text-transform:uppercase;letter-spacing:.5px;margin-right:4px;
-    }
-    #quality-toggles button{
-      background:#3f3f46;color:#fff;border:none;
-      padding:7px 12px;border-radius:8px;cursor:pointer;
-      font-size:12px;font-weight:600;font-family:inherit;
-      transition:background .15s;
-    }
-    #quality-toggles button:hover{background:#52525b}
-    #quality-toggles button.active{background:#10b981;color:#fff;font-weight:700}
-
     #sidebar-right{width:300px;background:#18181b;border-left:1px solid #27272a;display:flex;flex-direction:column;flex-shrink:0}
     #layers-header{padding:14px 16px 10px;border-bottom:1px solid #27272a;display:flex;align-items:center;justify-content:space-between;gap:8px}
     #layers-header h2{font-size:13px;font-weight:600;color:#e4e4e7;text-transform:uppercase;letter-spacing:1px}
@@ -189,13 +153,9 @@
     .fx-row input[type=color]{width:34px;height:30px;border:none;background:#1f1f23;border-radius:6px;cursor:pointer;padding:0;flex-shrink:0}
     .fx-row input[type=range]{flex:1;min-width:0;accent-color:#38bdf8;cursor:pointer}
     .fx-row .fx-val{font-size:11px;color:#a78bfa;min-width:40px;text-align:right}
-
     #savecrop{position:absolute;inset:0;z-index:70;display:none;pointer-events:none}
     #savecrop.active{display:block}
-    #sc-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.66);border:1.5px solid #fff;pointer-events:auto;cursor:move;touch-action:none;
-      background-image:
-        linear-gradient(to right,transparent calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% + .5px),transparent calc(66.666% + .5px)),
-        linear-gradient(to bottom,transparent calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% + .5px),transparent calc(66.666% + .5px));}
+    #sc-frame{position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.66);border:1.5px solid #fff;pointer-events:auto;cursor:move;touch-action:none;background-image:linear-gradient(to right,transparent calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% + .5px),transparent calc(66.666% + .5px)),linear-gradient(to bottom,transparent calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% - .5px),rgba(255,255,255,.32) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% - .5px),rgba(255,255,255,.32) calc(66.666% + .5px),transparent calc(66.666% + .5px))}
     .sc-h{position:absolute;width:16px;height:16px;background:#fff;border:2px solid #38bdf8;border-radius:3px;transform:translate(-50%,-50%);pointer-events:auto;touch-action:none}
     .sc-h[data-h=nw]{left:0;top:0;cursor:nwse-resize}
     .sc-h[data-h=n]{left:50%;top:0;cursor:ns-resize}
@@ -218,10 +178,111 @@
     #scOk{background:#10b981;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;flex:1;font-family:inherit}
     #scCancel{background:#3f3f46;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit}
     .sc-info{font-size:11px;color:#71717a}
-
+    .accordion-header.green{background:#047857}
+    .accordion-header.green:hover{background:#059669}
+    .accordion-header.green .arrow{color:#a7f3d0}
     .accordion-header.teal{background:#0f766e}
     .accordion-header.teal:hover{background:#0d9488}
     .accordion-header.teal .arrow{color:#99f6e4}
+    .swatch-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-top:6px}
+    .swatch{aspect-ratio:1;border-radius:5px;border:1px solid #52525b;cursor:pointer;position:relative;padding:0}
+    .swatch:hover{transform:scale(1.12);border-color:#38bdf8;z-index:2}
+    .swatch .x{position:absolute;top:-6px;right:-6px;width:14px;height:14px;border-radius:50%;background:#dc2626;color:#fff;font-size:9px;line-height:14px;text-align:center;display:none}
+    .swatch:hover .x{display:block}
+    .swatch-empty{grid-column:1/-1;font-size:11px;color:#71717a}
+    .mini-row{display:flex;gap:6px;margin-top:6px}
+    .mini-row .small-btn{margin-top:0}
+    .scheme-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+    .scheme-item{display:flex;align-items:center;gap:6px;background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:5px 8px;font-size:11.5px;cursor:pointer}
+    .scheme-item:hover{border-color:#38bdf8}
+    .scheme-item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .scheme-item .dots{display:flex;gap:2px}
+    .scheme-item .dots i{width:9px;height:9px;border-radius:50%;border:1px solid rgba(255,255,255,.25);display:block}
+    .scheme-item .del{background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px}
+    .part-row{display:flex;align-items:center;gap:8px;background:#27272a;border:1px solid #3f3f46;border-radius:8px;padding:6px 8px;margin-bottom:6px;cursor:pointer}
+    .part-row.sel{border-color:#34d399;background:#1c2a25}
+    .part-row .pl{flex:1;font-size:12.5px;color:#e4e4e7}
+    .part-row .pl small{display:block;font-size:10px;color:#71717a}
+    .part-row input[type=color]{width:34px;height:28px;border:none;background:none;cursor:pointer;padding:0;flex-shrink:0}
+    .part-row .pb{background:#3f3f46;border:none;color:#d4d4d8;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:12px;flex-shrink:0}
+    .part-row .pb:hover{background:#52525b}
+    .part-row .dot{width:10px;height:10px;border-radius:50%;background:#52525b;flex-shrink:0}
+    .part-row.on .dot{background:#34d399}
+    details.adv{margin-top:8px;border:1px solid #2e2e32;border-radius:8px;padding:6px 10px;background:#1b1b1f}
+    details.adv summary{cursor:pointer;font-size:11.5px;font-weight:600;color:#a1a1aa;padding:3px 0}
+    .mesh-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:11px;color:#a1a1aa}
+    .mesh-row span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .mesh-row select{width:118px;padding:4px;font-size:11px}
+    #zoom-bar{position:absolute;right:12px;bottom:20px;display:flex;align-items:center;gap:4px;background:rgba(24,24,27,.92);padding:6px;border-radius:12px;border:1px solid #2e2e32;z-index:16}
+    #zoom-bar button,#zoom-bar select{background:#3f3f46;color:#fff;border:none;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;min-width:34px}
+    #zoom-bar button:hover{background:#52525b}
+    #zoom-bar button.active{background:#f59e0b;color:#000}
+    #zoom-bar select{padding:6px 4px;min-width:0;width:auto}
+    #zoomPct{min-width:58px !important;background:#27272a !important;font-variant-numeric:tabular-nums}
+    #zoom-bar .sep{width:1px;height:22px;background:#3f3f46;margin:0 3px}
+    #loupe{position:absolute;width:190px;height:190px;border-radius:50%;border:3px solid #f59e0b;box-shadow:0 6px 24px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.4);pointer-events:none;z-index:40;display:none;overflow:hidden;background:#111}
+    #loupe canvas{width:100%;height:100%;display:block}
+    #loupe::after{content:'';position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1px solid rgba(255,255,255,.7);border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+    body.hand-mode #viewer-container canvas{cursor:grab}
+    
+    #statusbar{position:absolute;right:12px;top:60px;z-index:16;background:rgba(24,24,27,.92);border:1px solid #2e2e32;border-radius:12px;padding:7px 12px;font-size:11px;color:#d4d4d8;display:flex;flex-direction:column;gap:5px;cursor:pointer;user-select:none;min-width:210px;max-width:260px}
+    #statusbar .l1{display:flex;justify-content:space-between;gap:10px}
+    #statusbar b{color:#e4e4e7;font-weight:600}
+    #memBar{height:6px;border-radius:3px;background:#3f3f46;overflow:hidden}
+    #memFill{height:100%;width:0;background:#10b981;transition:width .4s,background .4s}
+    #memDetail{display:none;border-top:1px solid #3f3f46;padding-top:6px;margin-top:1px;line-height:1.6}
+    #statusbar.open #memDetail{display:block}
+    #memDetail div{display:flex;justify-content:space-between;gap:8px}
+    #memDetail span:last-child{color:#a78bfa}
+    #dirtyDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:5px;display:none}
+    .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+    .modal-back.show{display:flex}
+    .modal{background:#1c1c20;border:1px solid #3f3f46;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.7);color:#f3f4f6;max-width:96vw;max-height:94vh;display:flex;flex-direction:column;overflow:hidden}
+    .modal-head{padding:13px 18px;border-bottom:1px solid #2e2e32;display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:14px;background:#18181b}
+    .modal-head button{background:none;border:none;color:#a1a1aa;font-size:18px;cursor:pointer}
+    .modal-foot{padding:12px 18px;border-top:1px solid #2e2e32;display:flex;gap:8px;align-items:center;justify-content:flex-end;background:#18181b}
+    .btn{border:none;border-radius:8px;padding:10px 18px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;background:#3f3f46;color:#e4e4e7}
+    .btn:hover{filter:brightness(1.15)}
+    .btn.primary{background:#10b981;color:#fff}
+    .btn.blue{background:#2563eb;color:#fff}
+    .btn.danger{background:#dc2626;color:#fff}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    #exportModal .modal{width:min(1100px,96vw);height:min(720px,94vh)}
+    .export-body{display:flex;flex:1;min-height:0}
+    .export-preview{flex:1;min-width:0;display:flex;flex-direction:column;background:#0b0b0d}
+    #expPrevWrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:flex-start;position:relative;cursor:grab;background-image:linear-gradient(45deg,#16161a 25%,transparent 25%),linear-gradient(-45deg,#16161a 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#16161a 75%),linear-gradient(-45deg,transparent 75%,#16161a 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+    #expPrevWrap.fit{align-items:center;justify-content:center;cursor:default}
+    #expPrevCanvas{display:block;image-rendering:auto}
+    #expPrevWrap.fit #expPrevCanvas{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+    .exp-prevbar{display:flex;gap:6px;align-items:center;padding:8px 12px;border-top:1px solid #2e2e32;background:#141417;font-size:11.5px;color:#a1a1aa;flex-wrap:wrap}
+    .exp-prevbar .sc-r{padding:5px 10px}
+    .export-controls{width:350px;flex-shrink:0;overflow-y:auto;padding:14px 16px;border-left:1px solid #2e2e32;display:flex;flex-direction:column;gap:12px;background:#1c1c20}
+    .ec-group{display:flex;flex-direction:column;gap:6px}
+    .ec-title{font-size:11px;font-weight:700;color:#a1a1aa;text-transform:uppercase;letter-spacing:.6px}
+    .seg{display:grid;gap:4px}
+    .seg.c3{grid-template-columns:repeat(3,1fr)}
+    .seg.c2{grid-template-columns:repeat(2,1fr)}
+    .seg.c4{grid-template-columns:repeat(4,1fr)}
+    .seg button{background:#2e2e33;border:1px solid #3f3f46;color:#d4d4d8;border-radius:7px;padding:8px 4px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit}
+    .seg button.active{background:#38bdf8;color:#000;border-color:#38bdf8}
+    .seg button:disabled{opacity:.35;cursor:not-allowed}
+    .ec-row{display:flex;align-items:center;gap:8px;font-size:12px;color:#d4d4d8}
+    .ec-row input[type=range]{flex:1;accent-color:#38bdf8}
+    .ec-row input[type=number]{width:74px;background:#27272a;border:1px solid #3f3f46;color:#fff;border-radius:6px;padding:6px;font-size:12px;font-family:inherit}
+    .ec-row input[type=color]{width:36px;height:28px;border:none;background:none;padding:0;cursor:pointer}
+    .ec-val{min-width:36px;text-align:right;color:#a78bfa;font-weight:600;font-size:12px}
+    .ec-note{font-size:11px;color:#71717a;line-height:1.5}
+    .sizebox{background:#111114;border:1px solid #2e2e32;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+    #expSize{font-size:24px;font-weight:800;color:#34d399;font-variant-numeric:tabular-nums}
+    #expSize.warn{color:#fbbf24}
+    #expSize.bad{color:#f87171}
+    #expSizeNote{font-size:11.5px;color:#a1a1aa;line-height:1.5}
+    #expBusy{position:absolute;top:10px;right:12px;background:rgba(0,0,0,.75);padding:5px 12px;border-radius:14px;font-size:11px;color:#fbbf24;display:none;z-index:5}
+    #closeModal .modal{width:min(470px,94vw)}
+    .cm-body{padding:22px 22px 8px;font-size:14px;line-height:1.6}
+    .cm-body small{display:block;color:#a1a1aa;font-size:12px;margin-top:6px}
+    #closedScreen{position:fixed;inset:0;background:#09090b;z-index:900;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#a1a1aa;text-align:center;padding:20px}
+    #closedScreen h2{color:#e4e4e7}
     .upload-btn.glb{background:#14b8a6;color:#04201d}
     #customModelList{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto}
     .cm-item{background:#27272a;border:1px solid #3f3f46;border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:6px;font-size:12px}
@@ -246,10 +307,7 @@
         <button class="project-btn secondary" id="btnNewProject">+ Project Baru</button>
         <div style="display:flex;gap:6px;margin-top:6px">
           <button class="small-btn" id="btnExportProject" style="margin-top:0">📤 Eksport Fail</button>
-          <button class="small-btn" id="btnImportProject" style="margin-top:0;position:relative">
-            📥 Import Fail
-            <input type="file" id="importProjectFile" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer">
-          </button>
+          <button class="small-btn" id="btnImportProject" style="margin-top:0;position:relative">📥 Import Fail<input type="file" id="importProjectFile" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer"></button>
         </div>
         <div id="projectList"></div>
       </div>
@@ -258,15 +316,18 @@
     <div class="accordion-item open">
       <div class="accordion-header violet">🧩 Gabung Design 3D <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="hint">Gabungkan beberapa baju 3D dalam <b style="color:#a1a1aa">satu artwork</b>. Setiap baju menjadi satu <b style="color:#a78bfa">Group Layer</b> (seperti Photoshop) bersama logo/teks di dalamnya.</div>
+        <div class="hint">Gabungkan beberapa baju 3D dalam <b style="color:#a1a1aa">satu artwork</b>.</div>
         <select id="modelSelect" class="prop-input"></select>
         <button class="project-btn violet" id="btnAddItem" style="margin-top:8px">➕ Tambah Baju ke Artwork</button>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <button class="small-btn" id="btnFitAll" style="margin-top:0">🔍 Fit Semua</button>
           <button class="small-btn" id="btnArrange" style="margin-top:0">↔ Susun Sebaris</button>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+          <button class="small-btn" id="btnCenterAll" style="margin-top:0" title="Letak semua baju di tengah frame artwork">⊕ Semua ke Tengah Frame</button>
+          <button class="small-btn" id="btnFitFrame" style="margin-top:0" title="Muat semua baju dalam frame (Ctrl+0)">⤢ Fit ke Frame</button>
+        </div>
         <div class="slider-row" style="margin-top:10px"><label><span>Jarak Susunan</span><span id="arrangeGapValue">0.30</span></label><input type="range" id="arrangeGap" min="0" max="2" step="0.05" value="0.3"></div>
-        <div class="hint" style="margin-bottom:0">Gerak baju: guna mod <b style="color:#a1a1aa">✥ Gerak Baju</b> di atas viewer (Shift + seret = dekat/jauh), atau slider X/Y/Z dalam Properties Group.</div>
       </div>
     </div>
 
@@ -274,7 +335,7 @@
       <div class="accordion-header teal">🧰 Tools Tambahan <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <div class="sub-title">Upload Model Baju 3D (GLB)</div>
-        <div class="hint">Upload fail <b style="color:#a1a1aa">.glb</b> baju anda sendiri. Ia disimpan dalam app ini dan masuk ke <b style="color:#a1a1aa">senarai pilihan baju 3D</b> (kekal selepas tutup app &amp; boleh guna offline).</div>
+        <div class="hint">Upload fail <b style="color:#a1a1aa">.glb</b> baju anda sendiri. Disimpan dalam app &amp; boleh guna offline.</div>
         <div class="upload-btn glb">+ Upload Fail GLB<input type="file" id="glbUpload" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" multiple></div>
         <div class="toggle-row" style="margin-top:10px"><span>Terus tambah ke artwork</span><div class="toggle-switch" id="toggleAutoAddGlb"></div></div>
         <div class="sub-title">Model Saya</div>
@@ -294,6 +355,45 @@
           <input type="color" id="customColor" value="#ffffff">
           <span>Warna Custom</span>
         </div>
+        <div class="sub-title">💾 Memori Warna (kekal untuk semua design)</div>
+        <button class="small-btn" id="btnSaveColorMem" style="margin-top:0">＋ Simpan Warna Baju Ini ke Memori</button>
+        <div class="swatch-grid" id="swatchShirt" data-target="shirt"></div>
+        <div class="hint" style="margin:6px 0 0">Klik petak untuk guna pada baju aktif. Hover → ✕ untuk padam.</div>
+        <div class="sub-title">🎨 Skim Warna Baju (semua bahagian)</div>
+        <div class="mini-row"><button class="small-btn" id="btnSaveScheme">💾 Simpan Skim</button></div>
+        <div class="scheme-list" id="schemeList"></div>
+      </div>
+    </div>
+
+    <div class="accordion-item open">
+      <div class="accordion-header green">🎽 Warna Bahagian Baju <span class="arrow">▼</span></div>
+      <div class="accordion-body">
+        <div class="hint">Warnakan <b style="color:#a1a1aa">setiap bahagian</b> secara berasingan pada baju aktif. Bahagian tanpa warna khas akan ikut <b style="color:#a1a1aa">Warna Baju</b>.</div>
+        <div id="partRows"></div>
+        <div class="swatch-grid" id="swatchPart" data-target="part"></div>
+        <div class="hint" style="margin:4px 0 8px" id="partTargetHint">Pilih bahagian (klik baris) kemudian klik warna memori untuk guna.</div>
+        <div class="mini-row">
+          <button class="small-btn" id="btnPartsReset">↺ Reset Semua</button>
+          <button class="small-btn" id="btnPartsRibSame" title="Samakan warna ketiga-tiga ring">∞ Samakan Ring</button>
+        </div>
+        <div class="toggle-row" style="margin-top:8px"><span>🔍 Tunjuk Zon (bantuan tala)</span><div class="toggle-switch" id="toggleZoneDebug"></div></div>
+        <details class="adv">
+          <summary>⚙ Tala Zon Bahagian (jika model tidak tepat)</summary>
+          <div class="hint" style="margin-top:6px">Model satu-mesh dibahagi mengikut kedudukan. Hidupkan "Tunjuk Zon" dan laras gelangsar sehingga sempadan sepadan dengan model anda.</div>
+          <div class="slider-row"><label><span>Permulaan Lengan (lebar badan)</span><span id="zv_body">0.62</span></label><input type="range" id="zn_body" min="0.2" max="0.95" step="0.01" value="0.62"></div>
+          <div class="slider-row"><label><span>Tebal Ring Bawah</span><span id="zv_hem">0.07</span></label><input type="range" id="zn_hem" min="0.01" max="0.25" step="0.005" value="0.07"></div>
+          <div class="slider-row"><label><span>Tebal Ring Lengan</span><span id="zv_sleeveRib">0.12</span></label><input type="range" id="zn_sleeveRib" min="0.02" max="0.4" step="0.005" value="0.12"></div>
+          <div class="slider-row"><label><span>Lebar Zon Kolar</span><span id="zv_collarW">0.24</span></label><input type="range" id="zn_collarW" min="0.05" max="0.6" step="0.01" value="0.24"></div>
+          <div class="slider-row"><label><span>Tinggi Zon Kolar</span><span id="zv_collarH">0.14</span></label><input type="range" id="zn_collarH" min="0.02" max="0.4" step="0.005" value="0.14"></div>
+          <div class="slider-row"><label><span>Tebal Ring Kolar</span><span id="zv_collarRibT">0.04</span></label><input type="range" id="zn_collarRibT" min="0.005" max="0.2" step="0.005" value="0.04"></div>
+          <div class="slider-row"><label><span>Kolar Depan Lebih Rendah</span><span id="zv_collarDip">0.06</span></label><input type="range" id="zn_collarDip" min="0" max="0.3" step="0.005" value="0.06"></div>
+          <button class="small-btn" id="btnZoneReset" style="margin-top:0">↺ Reset Zon</button>
+          <div id="meshMapBox" style="display:none">
+            <div class="sub-title">Pemetaan Mesh Model (tepat 100%)</div>
+            <div class="hint">Model ini mempunyai beberapa mesh. Tetapkan setiap mesh ke bahagian yang betul.</div>
+            <div id="meshMapList"></div>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -312,17 +412,10 @@
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <input type="color" id="textColor" value="#000000" style="width:42px;height:38px;border:none;background:#1f1f23;border-radius:6px">
           <select id="textFont" class="prop-input" style="flex:1">
-            <option value="Inter">Inter</option>
-            <option value="Roboto">Roboto</option>
-            <option value="Oswald">Oswald</option>
-            <option value="Playfair Display">Playfair</option>
-            <option value="Arial">Arial</option>
+            <option value="Inter">Inter</option><option value="Roboto">Roboto</option><option value="Oswald">Oswald</option><option value="Playfair Display">Playfair</option><option value="Arial">Arial</option>
           </select>
         </div>
-        <div class="slider-row">
-          <label><span>Saiz Teks</span><span id="textSizeValue">120</span></label>
-          <input type="range" id="textSize" min="40" max="220" value="120">
-        </div>
+        <div class="slider-row"><label><span>Saiz Teks</span><span id="textSizeValue">120</span></label><input type="range" id="textSize" min="40" max="220" value="120"></div>
         <button class="add-text-btn" id="addTextBtn">Tambah Teks Baju</button>
       </div>
     </div>
@@ -330,16 +423,12 @@
     <div class="accordion-item">
       <div class="accordion-header">Grafik Canvas (Bebas) <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="hint">Grafik bebas (tidak melekat pada baju) — berada di luar group.</div>
+        <div class="hint">Grafik bebas (tidak melekat pada baju).</div>
         <div class="upload-btn" style="margin-bottom:8px">+ Tambah Logo Canvas<input type="file" id="canvasLogoUpload" accept="image/*" multiple></div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <input type="color" id="canvasTextColor" value="#ffffff" style="width:42px;height:38px;border:none;background:#1f1f23;border-radius:6px">
           <select id="canvasTextFont" class="prop-input" style="flex:1">
-            <option value="Inter">Inter</option>
-            <option value="Roboto">Roboto</option>
-            <option value="Oswald">Oswald</option>
-            <option value="Playfair Display">Playfair</option>
-            <option value="Arial">Arial</option>
+            <option value="Inter">Inter</option><option value="Roboto">Roboto</option><option value="Oswald">Oswald</option><option value="Playfair Display">Playfair</option><option value="Arial">Arial</option>
           </select>
         </div>
         <input type="text" id="canvasTextInput" class="prop-input" placeholder="Taip teks canvas..." style="margin-bottom:8px">
@@ -368,22 +457,11 @@
       <div class="accordion-header">Jenis &amp; Warna Latar <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <select id="bg_type" class="prop-input" style="margin-bottom:8px">
-          <option value="solid">Warna Solid</option>
-          <option value="gradient">Gradient Linear</option>
-          <option value="radial">Gradient Radial (studio)</option>
+          <option value="solid">Warna Solid</option><option value="gradient">Gradient Linear</option><option value="radial">Gradient Radial (studio)</option>
         </select>
-        <div class="custom-color-wrapper" style="margin-top:0">
-          <input type="color" id="bg_color" value="#09090b">
-          <span>Warna Utama</span>
-        </div>
-        <div class="custom-color-wrapper" id="bgRowColor2" style="display:none">
-          <input type="color" id="bg_color2" value="#27272a">
-          <span>Warna Kedua</span>
-        </div>
-        <div class="slider-row" id="bgRowAngle" style="display:none;margin-top:10px">
-          <label><span>Sudut Gradient</span><span id="bgv_angle">180°</span></label>
-          <input type="range" id="bg_angle" min="0" max="360" step="1" value="180">
-        </div>
+        <div class="custom-color-wrapper" style="margin-top:0"><input type="color" id="bg_color" value="#09090b"><span>Warna Utama</span></div>
+        <div class="custom-color-wrapper" id="bgRowColor2" style="display:none"><input type="color" id="bg_color2" value="#27272a"><span>Warna Kedua</span></div>
+        <div class="slider-row" id="bgRowAngle" style="display:none;margin-top:10px"><label><span>Sudut Gradient</span><span id="bgv_angle">180°</span></label><input type="range" id="bg_angle" min="0" max="360" step="1" value="180"></div>
         <div class="toggle-row"><span>Latar Transparent (PNG)</span><div class="toggle-switch" id="toggleTransparent"></div></div>
       </div>
     </div>
@@ -391,15 +469,12 @@
     <div class="accordion-item open">
       <div class="accordion-header">Imej Latar (Tetap) <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="hint">Imej ini <b style="color:#a1a1aa">kekal tetap</b> di belakang. Ia tidak berpusing atau bergerak bila baju diputar, preview atau video.</div>
+        <div class="hint">Imej ini <b style="color:#a1a1aa">kekal tetap</b> di belakang.</div>
         <div class="upload-btn" style="padding:10px;font-size:13px">+ Pilih Imej Latar<input type="file" id="bgImageUpload" accept="image/*"></div>
         <button class="small-btn" id="btnClearBgImage">Buang Imej Latar</button>
         <div id="bgImagePanel" style="display:none;margin-top:10px">
           <div class="fill-modes" style="margin-bottom:10px">
-            <button class="fill-btn active" data-mode="cover">Cover</button>
-            <button class="fill-btn" data-mode="contain">Contain</button>
-            <button class="fill-btn" data-mode="stretch">Stretch</button>
-            <button class="fill-btn" data-mode="free">Free</button>
+            <button class="fill-btn active" data-mode="cover">Cover</button><button class="fill-btn" data-mode="contain">Contain</button><button class="fill-btn" data-mode="stretch">Stretch</button><button class="fill-btn" data-mode="free">Free</button>
           </div>
           <div class="slider-row"><label><span>Saiz</span><span id="bgv_imgScale">1.00</span></label><input type="range" id="bg_imgScale" min="0.2" max="4" step="0.05" value="1"></div>
           <div class="slider-row"><label><span>Kedudukan X</span><span id="bgv_imgX">0%</span></label><input type="range" id="bg_imgX" min="-100" max="100" step="1" value="0"></div>
@@ -416,26 +491,18 @@
     <div class="accordion-item open">
       <div class="accordion-header">Lampu &amp; Bayang Studio <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="sub-title">Spotlight (cahaya belakang baju)</div>
-        <div class="custom-color-wrapper" style="margin-top:0">
-          <input type="color" id="bg_spotColor" value="#ffffff">
-          <span>Warna Cahaya</span>
-        </div>
+        <div class="sub-title">Spotlight</div>
+        <div class="custom-color-wrapper" style="margin-top:0"><input type="color" id="bg_spotColor" value="#ffffff"><span>Warna Cahaya</span></div>
         <div class="slider-row" style="margin-top:10px"><label><span>Kekuatan</span><span id="bgv_spotIntensity">0%</span></label><input type="range" id="bg_spotIntensity" min="0" max="100" step="1" value="0"></div>
         <div class="slider-row"><label><span>Saiz</span><span id="bgv_spotSize">60%</span></label><input type="range" id="bg_spotSize" min="10" max="140" step="1" value="60"></div>
         <div class="slider-row"><label><span>Kedudukan Atas/Bawah</span><span id="bgv_spotY">45%</span></label><input type="range" id="bg_spotY" min="0" max="100" step="1" value="45"></div>
-
-        <div class="sub-title">Bayang Lantai (contact shadow)</div>
+        <div class="sub-title">Bayang Lantai</div>
         <div class="slider-row"><label><span>Kegelapan</span><span id="bgv_shadowOpacity">0%</span></label><input type="range" id="bg_shadowOpacity" min="0" max="100" step="1" value="0"></div>
         <div class="slider-row"><label><span>Lebar</span><span id="bgv_shadowWidth">60%</span></label><input type="range" id="bg_shadowWidth" min="20" max="130" step="1" value="60"></div>
         <div class="slider-row"><label><span>Kelembutan (Blur)</span><span id="bgv_shadowBlur">60</span></label><input type="range" id="bg_shadowBlur" min="0" max="100" step="1" value="60"></div>
         <div class="slider-row"><label><span>Kedudukan Atas/Bawah</span><span id="bgv_shadowY">84%</span></label><input type="range" id="bg_shadowY" min="50" max="98" step="1" value="84"></div>
-
         <div class="sub-title">Lantai Studio</div>
-        <div class="custom-color-wrapper" style="margin-top:0">
-          <input type="color" id="bg_floorColor" value="#000000">
-          <span>Warna Lantai</span>
-        </div>
+        <div class="custom-color-wrapper" style="margin-top:0"><input type="color" id="bg_floorColor" value="#000000"><span>Warna Lantai</span></div>
         <div class="slider-row" style="margin-top:10px"><label><span>Kekuatan Lantai</span><span id="bgv_floorOpacity">0%</span></label><input type="range" id="bg_floorOpacity" min="0" max="100" step="1" value="0"></div>
         <div class="slider-row"><label><span>Paras Ufuk</span><span id="bgv_floorHorizon">72%</span></label><input type="range" id="bg_floorHorizon" min="30" max="95" step="1" value="72"></div>
       </div>
@@ -445,10 +512,7 @@
       <div class="accordion-header">Kesan Pro Latar <span class="arrow">▼</span></div>
       <div class="accordion-body">
         <div class="slider-row"><label><span>Vignette</span><span id="bgv_vignette">0%</span></label><input type="range" id="bg_vignette" min="0" max="100" step="1" value="0"></div>
-        <div class="custom-color-wrapper" style="margin-top:6px">
-          <input type="color" id="bg_overlayColor" value="#000000">
-          <span>Gradient Overlay (atas → bawah)</span>
-        </div>
+        <div class="custom-color-wrapper" style="margin-top:6px"><input type="color" id="bg_overlayColor" value="#000000"><span>Gradient Overlay</span></div>
         <div class="slider-row" style="margin-top:8px"><label><span>Overlay Opacity</span><span id="bgv_overlayOpacity">0%</span></label><input type="range" id="bg_overlayOpacity" min="0" max="100" step="1" value="0"></div>
         <div class="slider-row"><label><span>Grain / Filem</span><span id="bgv_grain">0</span></label><input type="range" id="bg_grain" min="0" max="100" step="1" value="0"></div>
         <button class="small-btn" id="bgResetBtn">↺ Reset Semua Latar</button>
@@ -467,23 +531,13 @@
     <div class="accordion-item open">
       <div class="accordion-header">Format Output <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="hint">Bingkai kerja (untuk video &amp; paparan). Semasa <b style="color:#a1a1aa">Simpan HD</b>, crop interaktif akan keluar supaya anda boleh laras lagi.</div>
+        <div class="hint">Bingkai kerja. Semasa <b style="color:#a1a1aa">Simpan HD</b>, crop interaktif akan keluar.</div>
         <div class="fill-modes">
-          <button class="fill-btn ratio-btn active" data-ratio="auto">Auto</button>
-          <button class="fill-btn ratio-btn" data-ratio="1:1">1:1</button>
-          <button class="fill-btn ratio-btn" data-ratio="4:5">4:5</button>
-          <button class="fill-btn ratio-btn" data-ratio="9:16">9:16</button>
-          <button class="fill-btn ratio-btn" data-ratio="16:9">16:9</button>
+          <button class="fill-btn ratio-btn active" data-ratio="auto">Auto</button><button class="fill-btn ratio-btn" data-ratio="1:1">1:1</button><button class="fill-btn ratio-btn" data-ratio="4:5">4:5</button><button class="fill-btn ratio-btn" data-ratio="9:16">9:16</button><button class="fill-btn ratio-btn" data-ratio="16:9">16:9</button>
         </div>
-        <div class="slider-row" style="margin-top:12px">
-          <label><span>Pandangan Simpan</span></label>
+        <div class="slider-row" style="margin-top:12px"><label><span>Pandangan Simpan</span></label>
           <select id="saveViewSelect" class="prop-input">
-            <option value="current">Pandangan Semasa</option>
-            <option value="front">Hadapan Sahaja</option>
-            <option value="back">Belakang Sahaja</option>
-            <option value="left">Kiri Sahaja</option>
-            <option value="right">Kanan Sahaja</option>
-            <option value="all">Semua (Grid 2x2)</option>
+            <option value="current">Pandangan Semasa</option><option value="front">Hadapan Sahaja</option><option value="back">Belakang Sahaja</option><option value="left">Kiri Sahaja</option><option value="right">Kanan Sahaja</option><option value="all">Semua (Grid 2x2)</option>
           </select>
         </div>
       </div>
@@ -492,7 +546,7 @@
     <div class="accordion-item">
       <div class="accordion-header">Render Video <span class="arrow">▼</span></div>
       <div class="accordion-body">
-        <div class="hint">Setiap baju berputar pada titik tengahnya sendiri. Kelajuan setiap group boleh diubah dalam Properties Group.</div>
+        <div class="hint">Setiap baju berputar pada titik tengahnya sendiri.</div>
         <div class="slider-row"><label><span>Kelajuan</span><span id="speedValue">1.0x</span></label><input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1"></div>
         <div class="slider-row"><label><span>Tempoh</span><span id="durationValue">6s</span></label><input type="range" id="durationSlider" min="4" max="12" step="1" value="6"></div>
         <div class="slider-row"><label><span>Kualiti</span><span id="qualityValue">720p Portrait</span></label><input type="range" id="qualitySlider" min="0" max="1" step="1" value="0"></div>
@@ -513,26 +567,18 @@
       <button id="btnPausePlay">⏸ Jeda</button>
       <button id="btnSnap" disabled>📸 Tangkap Gambar</button>
     </div>
-
     <div id="mode-toggles">
       <div class="row">
         <button data-mode="orbit" class="active" title="Putar kamera">🎥 Orbit</button>
-        <button data-mode="rotate" title="Seret baju untuk putar pada pusatnya sendiri">↻ Putar Baju</button>
-        <button data-mode="move" title="Seret baju untuk gerak (Shift = dekat/jauh)">✥ Gerak Baju</button>
+        <button data-mode="rotate" title="Putar baju">↻ Putar Baju</button>
+        <button data-mode="move" title="Gerak baju">✥ Gerak Baju</button>
       </div>
-      <div id="modeHint">Orbit: seret ruang kosong untuk pusing kamera. Klik 2× pada baju untuk pilih group.</div>
+      <div id="modeHint">Orbit: seret ruang kosong untuk pusing kamera.</div>
     </div>
     <div id="top-actions">
       <button class="action-btn" id="btnUndo" title="Ctrl+Z">↶ Undo</button>
       <button class="action-btn" id="btnRedo" title="Ctrl+Y">↷ Redo</button>
-    </div>
-
-    <!-- QUALITY TOGGLES -->
-    <div id="quality-toggles">
-      <span class="qt-label">Kualiti Edit:</span>
-      <button data-q="low">⚡ Low</button>
-      <button data-q="medium" class="active">⚖ Medium</button>
-      <button data-q="high">✨ High</button>
+      <button class="action-btn" id="btnQuit" title="Tutup aplikasi" style="background:#7f1d1d;border-color:#991b1b;color:#fecaca">⏻ Tutup</button>
     </div>
 
     <div id="gbox"><span id="gboxLabel"></span></div>
@@ -555,37 +601,46 @@
         <div id="sc-label"></div>
       </div>
       <div id="sc-bar">
-        <div class="sc-title">✂ Crop Simpan HD — seret kotak / pemegang untuk tinggi, rendah &amp; lebar</div>
+        <div class="sc-title">✂ Crop Simpan HD</div>
         <div class="sc-row" id="scRatios">
-          <button class="sc-r active" data-r="free">Bebas</button>
-          <button class="sc-r" data-r="1:1">1:1</button>
-          <button class="sc-r" data-r="4:5">4:5</button>
-          <button class="sc-r" data-r="3:4">3:4</button>
-          <button class="sc-r" data-r="9:16">9:16</button>
-          <button class="sc-r" data-r="16:9">16:9</button>
+          <button class="sc-r active" data-r="free">Bebas</button><button class="sc-r" data-r="1:1">1:1</button><button class="sc-r" data-r="4:5">4:5</button><button class="sc-r" data-r="3:4">3:4</button><button class="sc-r" data-r="9:16">9:16</button><button class="sc-r" data-r="16:9">16:9</button>
         </div>
         <div class="sc-row"><label>Lebar</label><input type="range" id="scW" min="50" max="1000" value="500"><span class="val" id="scWV"></span></div>
         <div class="sc-row"><label>Tinggi</label><input type="range" id="scH" min="50" max="1000" value="500"><span class="val" id="scHV"></span></div>
         <div class="sc-row">
           <label>Pandangan</label>
           <select id="scView" class="prop-input">
-            <option value="current">Semasa</option>
-            <option value="front">Hadapan</option>
-            <option value="back">Belakang</option>
-            <option value="left">Kiri</option>
-            <option value="right">Kanan</option>
-            <option value="all">Semua (2x2)</option>
+            <option value="current">Semasa</option><option value="front">Hadapan</option><option value="back">Belakang</option><option value="left">Kiri</option><option value="right">Kanan</option><option value="all">Semua (2x2)</option>
           </select>
           <label style="min-width:auto">Resolusi</label>
-          <select id="scRes" class="prop-input">
-            <option value="1920">Full HD (1920)</option>
-            <option value="3840" selected>4K (3840)</option>
-            <option value="5120">Ultra (5120)</option>
-          </select>
+          <select id="scRes" class="prop-input"><option value="1920">Full HD (1920)</option><option value="3840" selected>4K (3840)</option><option value="5120">Ultra (5120)</option></select>
         </div>
-        <div class="sc-row"><button id="scOk">✔ Simpan Imej HD</button><button id="scCancel">✕ Batal</button></div>
+        <div class="sc-row"><button id="scOk">✔ Seterusnya: Tetapan Simpan…</button><button id="scCancel">✕ Batal</button></div>
         <div class="sc-info" id="scInfo">Enter = simpan · Esc = batal · Roda tetikus = zoom kamera</div>
       </div>
+    </div>
+
+    <div id="loupe"><canvas id="loupeCanvas" width="380" height="380"></canvas></div>
+
+    <div id="statusbar" title="Klik untuk butiran memori">
+      <div class="l1"><span><i id="dirtyDot"></i><b id="sbArt">Artwork: —</b></span><span id="sbZoomMini"></span></div>
+      <div class="l1"><span>Doc: <b id="sbDoc">—</b></span><span id="sbMemTxt">—</span></div>
+      <div id="memBar"><div id="memFill"></div></div>
+      <div id="memDetail"></div>
+    </div>
+
+    <div id="zoom-bar">
+      <button id="zoomOut" title="Zoom keluar">🔍−</button>
+      <button id="zoomPct" title="Klik = 100%">100%</button>
+      <button id="zoomIn" title="Zoom masuk">🔍+</button>
+      <span class="sep"></span>
+      <button id="zoomFit" title="Fit to Screen">⤢ Fit</button>
+      <button id="zoomSel" title="Fokus pada baju dipilih">◎ Pilihan</button>
+      <button id="zoomCenter" title="Letak semua di tengah">⊕ Tengah</button>
+      <span class="sep"></span>
+      <button id="loupeBtn" title="Loop / kanta pembesar (L)">🔎 Loop</button>
+      <select id="loupeZoom"><option value="2">×2</option><option value="3" selected>×3</option><option value="4">×4</option><option value="6">×6</option></select>
+      <button id="handBtn" title="Tangan / Pan">✋</button>
     </div>
 
     <div id="view-toggles">
@@ -600,33 +655,29 @@
     <div id="layers-header"><h2>Senarai Layer</h2><button id="btnAddItem2">+ Baju</button></div>
     <div id="layers-list"></div>
     <div id="properties-panel">
-
       <div id="groupProps" style="display:none">
         <h3>Properties Group</h3>
         <div class="prop-row"><label>Nama Group</label><input type="text" id="gName" class="prop-input"></div>
         <div class="prop-row"><label>Model Baju</label><select id="gModel" class="prop-input"></select></div>
         <div class="prop-row"><label>Warna Baju</label><input type="color" id="gColor" value="#ffffff" style="width:100%;height:34px;border:none;background:#1f1f23;border-radius:6px"></div>
-
         <div class="sub-title">Laras Imej Group</div>
         <div class="slider-row"><label><span>Brightness</span><span id="gBrightV">100%</span></label><input type="range" id="gBright" min="20" max="200" step="1" value="100"></div>
         <div class="slider-row"><label><span>Contrast</span><span id="gContrastV">100%</span></label><input type="range" id="gContrast" min="20" max="200" step="1" value="100"></div>
         <div class="slider-row"><label><span>Saturation</span><span id="gSatV">100%</span></label><input type="range" id="gSat" min="0" max="200" step="1" value="100"></div>
         <button class="small-btn" id="gResetAdj" style="margin-top:0">↺ Reset Laras Imej</button>
-
         <div class="sub-title">Kedudukan &amp; Saiz</div>
         <div class="slider-row"><label><span>Saiz Baju</span><span id="gScaleV">1.00x</span></label><input type="range" id="gScale" min="0.3" max="3" step="0.01" value="1"></div>
         <div class="slider-row"><label><span>Putaran (pusat baju)</span><span id="gRotV">0°</span></label><input type="range" id="gRot" min="-180" max="180" step="1" value="0"></div>
         <div class="slider-row"><label><span>Kiri ↔ Kanan (X)</span><span id="gXV">0.00</span></label><input type="range" id="gX" min="-20" max="20" step="0.05" value="0"></div>
         <div class="slider-row"><label><span>Atas ↕ Bawah (Y)</span><span id="gYV">0.00</span></label><input type="range" id="gY" min="-10" max="10" step="0.05" value="0"></div>
         <div class="slider-row"><label><span>Jauh ↔ Dekat (Z)</span><span id="gZV">0.00</span></label><input type="range" id="gZ" min="-20" max="20" step="0.05" value="0"></div>
-
         <div class="sub-title">Video</div>
-        <div class="slider-row"><label><span>Kelajuan Putaran (0 = tetap)</span><span id="gSpinV">1.0x</span></label><input type="range" id="gSpin" min="-3" max="3" step="0.1" value="1"></div>
-
+        <div class="slider-row"><label><span>Kelajuan Putaran</span><span id="gSpinV">1.0x</span></label><input type="range" id="gSpin" min="-3" max="3" step="0.1" value="1"></div>
         <div class="align-row">
           <button class="align-btn" id="gCenter">Ke Tengah</button>
           <button class="align-btn" id="gDuplicate">Duplicate Group</button>
         </div>
+        <button class="small-btn" id="gCenterFrame" style="background:#047857;color:#fff;border-color:#059669">🎯 Letak di Tengah Frame Artwork</button>
       </div>
 
       <div id="layerProps" style="display:none">
@@ -654,45 +705,125 @@
             <button class="small-btn" id="fxPresetRaised" style="margin-top:0;background:#7c3aed;color:#fff">⬆ Timbul + Bayang</button>
             <button class="small-btn" id="fxPresetFlat" style="margin-top:0">Rata (tiada bayang)</button>
           </div>
+          <div class="fx-group"><div class="fx-title">Overlay Warna</div><div class="fx-row"><input type="color" id="fxOverlayColor" value="#ff0000"><input type="range" id="fxOverlayOpacity" min="0" max="100" step="1" value="0"><span class="fx-val" id="fxOverlayOpacityValue">0%</span></div></div>
+          <div class="fx-group"><div class="fx-title">Stroke (tepi)</div><div class="fx-row"><input type="color" id="fxStrokeColor" value="#000000"><input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0"><span class="fx-val" id="fxStrokeWidthValue">0px</span></div></div>
           <div class="fx-group">
-            <div class="fx-title">Overlay Warna</div>
-            <div class="fx-row">
-              <input type="color" id="fxOverlayColor" value="#ff0000">
-              <input type="range" id="fxOverlayOpacity" min="0" max="100" step="1" value="0">
-              <span class="fx-val" id="fxOverlayOpacityValue">0%</span>
-            </div>
-          </div>
-          <div class="fx-group">
-            <div class="fx-title">Stroke (tepi)</div>
-            <div class="fx-row">
-              <input type="color" id="fxStrokeColor" value="#000000">
-              <input type="range" id="fxStrokeWidth" min="0" max="20" step="1" value="0">
-              <span class="fx-val" id="fxStrokeWidthValue">0px</span>
-            </div>
-          </div>
-          <div class="fx-group">
-            <div class="fx-title">Drop Shadow (bayang timbul)</div>
-            <div class="fx-row">
-              <input type="color" id="fxShadowColor" value="#000000">
-              <input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="10">
-              <span class="fx-val" id="fxShadowBlurValue">10px</span>
-            </div>
-            <div class="fx-row">
-              <span class="fx-val" style="color:#a1a1aa;text-align:left">X</span>
-              <input type="range" id="fxShadowX" min="-40" max="40" step="1" value="4">
-              <span class="fx-val" id="fxShadowXValue">4</span>
-            </div>
-            <div class="fx-row">
-              <span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span>
-              <input type="range" id="fxShadowY" min="-40" max="40" step="1" value="6">
-              <span class="fx-val" id="fxShadowYValue">6</span>
-            </div>
+            <div class="fx-title">Drop Shadow</div>
+            <div class="fx-row"><input type="color" id="fxShadowColor" value="#000000"><input type="range" id="fxShadowBlur" min="0" max="40" step="1" value="10"><span class="fx-val" id="fxShadowBlurValue">10px</span></div>
+            <div class="fx-row"><span class="fx-val" style="color:#a1a1aa;text-align:left">X</span><input type="range" id="fxShadowX" min="-40" max="40" step="1" value="4"><span class="fx-val" id="fxShadowXValue">4</span></div>
+            <div class="fx-row"><span class="fx-val" style="color:#a1a1aa;text-align:left">Y</span><input type="range" id="fxShadowY" min="-40" max="40" step="1" value="6"><span class="fx-val" id="fxShadowYValue">6</span></div>
           </div>
           <button class="small-btn" id="fxReset">↺ Reset Kesan</button>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<div class="modal-back" id="exportModal">
+  <div class="modal">
+    <div class="modal-head"><span>💾 Simpan Imej — Tetapan Kualiti &amp; Saiz Fail</span><button id="expClose" title="Tutup">✕</button></div>
+    <div class="export-body">
+      <div class="export-preview">
+        <div id="expPrevWrap" class="fit"><canvas id="expPrevCanvas"></canvas><div id="expBusy">⏳ Memproses…</div></div>
+        <div class="exp-prevbar">
+          <button class="sc-r active" id="expViewFit">Muat</button>
+          <button class="sc-r" id="expView100">100%</button>
+          <button class="sc-r" id="expViewOrig">Tahan: Asal</button>
+          <span id="expPrevInfo" style="margin-left:auto"></span>
+        </div>
+      </div>
+      <div class="export-controls">
+        <div class="sizebox">
+          <div class="ec-title">Saiz fail yang akan disimpan</div>
+          <div id="expSize">—</div>
+          <div id="expSizeNote">—</div>
+        </div>
+        <div class="ec-group">
+          <div class="ec-title">Pratetap</div>
+          <select id="expPreset" class="prop-input">
+            <option value="wa">📱 WhatsApp — Jelas (disyorkan)</option>
+            <option value="wastd">📱 WhatsApp — Standard (laju)</option>
+            <option value="wahd">📱 WhatsApp — HD (zoom tajam)</option>
+            <option value="web">🌐 Web / Media Sosial</option>
+            <option value="max">🖨 Kualiti Maksimum</option>
+            <option value="png">🔲 PNG Lutsinar</option>
+            <option value="custom">⚙ Tersuai</option>
+          </select>
+        </div>
+        <div class="ec-group">
+          <div class="ec-title">Format</div>
+          <div class="seg c3" id="expFormat">
+            <button data-v="jpeg" class="active">JPEG</button>
+            <button data-v="png">PNG</button>
+            <button data-v="webp">WebP</button>
+          </div>
+        </div>
+        <div class="ec-group" id="expJpegMode">
+          <div class="ec-title">Jenis JPEG</div>
+          <div class="seg c3" id="expJmode">
+            <button data-v="baseline">Baseline</button>
+            <button data-v="optimized">Baseline Optimum</button>
+            <button data-v="progressive" class="active">Progressive</button>
+          </div>
+          <div class="ec-note" id="expJmodeNote">Progressive: imej muncul kabur→jelas semasa dimuat.</div>
+        </div>
+        <div class="ec-group" id="expQualityGroup">
+          <div class="ec-title">Kualiti</div>
+          <div class="seg c4" id="expQPresets">
+            <button data-q="50">Rendah</button><button data-q="70">Sederhana</button><button data-q="82">Tinggi</button><button data-q="92">Maksimum</button>
+          </div>
+          <div class="ec-row"><input type="range" id="expQ" min="10" max="100" step="1" value="82"><span class="ec-val" id="expQV">82</span></div>
+          <label class="ec-row"><input type="checkbox" id="expAuto"> Hadkan saiz fail (auto cari kualiti terbaik)</label>
+          <div class="ec-row" id="expAutoRow"><span>Maks.</span><input type="number" id="expMaxKB" min="50" max="20000" step="50" value="900"><span>KB</span></div>
+        </div>
+        <div class="ec-group">
+          <div class="ec-title">Sekala Imej</div>
+          <div class="seg c4" id="expScalePresets">
+            <button data-px="1080">1080</button><button data-px="1600">1600</button><button data-px="2048">2048</button><button data-px="orig">Asal</button>
+          </div>
+          <div class="ec-row"><input type="range" id="expScale" min="10" max="100" step="1" value="100"><span class="ec-val" id="expScaleV">100%</span></div>
+          <div class="ec-row"><span>Lebar</span><input type="number" id="expW" min="16" step="1"><span>Tinggi</span><input type="number" id="expH" min="16" step="1"></div>
+          <div class="ec-note" id="expOrigNote"></div>
+        </div>
+        <div class="ec-group">
+          <div class="ec-title">Penajaman</div>
+          <div class="ec-row"><input type="range" id="expSharp" min="0" max="100" step="5" value="25"><span class="ec-val" id="expSharpV">25</span></div>
+        </div>
+        <div class="ec-group" id="expMatteGroup">
+          <div class="ec-title">Matte (jika lutsinar → JPEG)</div>
+          <div class="ec-row"><input type="color" id="expMatte" value="#ffffff"><span class="ec-note" style="margin:0">Latar lutsinar akan diisi warna ini.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <input type="text" id="expName" class="prop-input" style="max-width:280px;margin-right:auto" placeholder="Nama fail">
+      <button class="btn" id="expShare" style="display:none">📤 Kongsi</button>
+      <button class="btn" id="expCancel">Batal</button>
+      <button class="btn primary" id="expSave">⬇ Simpan Imej</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="closeModal">
+  <div class="modal">
+    <div class="modal-head"><span>⚠ Adobe-style — Tutup Aplikasi</span><button id="cmX">✕</button></div>
+    <div class="cm-body">
+      Adakah anda ingin <b>simpan kerja ini</b> sebelum menutup?
+      <small id="cmName"></small>
+      <small>Jika anda pilih "Jangan Simpan", semua perubahan yang belum disimpan akan hilang.</small>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="cmCancel">Batal</button>
+      <button class="btn danger" id="cmDiscard">Jangan Simpan</button>
+      <button class="btn primary" id="cmSave">💾 Simpan</button>
+    </div>
+  </div>
+</div>
+<div id="closedScreen">
+  <h2>Aplikasi ditutup</h2>
+  <div>Anda boleh menutup tab ini dengan selamat.</div>
+  <button class="btn blue" id="reopenBtn">↻ Buka Semula</button>
 </div>
 <div id="toast"></div>
 
@@ -715,6 +846,7 @@ document.querySelectorAll('.accordion-header').forEach(header => {
   header.addEventListener('click', () => header.parentElement.classList.toggle('open'));
 });
 
+// ===== SENARAI MODEL =====
 const MODELS = [
   { url: './T_shirt_gltf.gltf', label: '👕 Baju Asal (GLTF)' },
   { url: './baju_baru.glb', label: '👕 Baju Baru (GLB)' },
@@ -725,10 +857,7 @@ let customModels = [];
 const customUrl = id => 'custom:' + id;
 const isCustomUrl = u => typeof u === 'string' && u.startsWith('custom:');
 const customIdOf = u => Number(String(u).slice(7));
-const allModels = () => [
-  ...MODELS,
-  ...customModels.map(m => ({ url: customUrl(m.id), label: '⭐ ' + m.name + ' (GLB saya)' }))
-];
+const allModels = () => [...MODELS, ...customModels.map(m => ({ url: customUrl(m.id), label: '⭐ ' + m.name + ' (GLB saya)' }))];
 const shortName = url => {
   if (isCustomUrl(url)) return customModels.find(m => customUrl(m.id) === url)?.name || 'Baju Custom';
   return (MODELS.find(m => m.url === url)?.label || 'Baju').replace(/^\S+\s+/, '').replace(/\s*\(.*\)$/, '');
@@ -744,6 +873,7 @@ function populateModelSelects() {
 }
 populateModelSelects();
 
+// ===== INDEXEDDB =====
 const DB_NAME = 'ProDesigner3D_v5';
 const DB_VERSION = 2;
 const STORE = 'projects';
@@ -794,7 +924,7 @@ async function dbModelAdd(rec) {
     const req = tx.objectStore(STORE_MODELS).add(rec);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
-    tx.onabort = () => reject(tx.error || new Error('Simpanan penuh / dibatalkan'));
+    tx.onabort = () => reject(tx.error || new Error('Simpanan penuh'));
   });
 }
 async function dbModelGet(id) {
@@ -886,14 +1016,12 @@ async function ensureFontLoaded(font) {
 }
 ['Inter', 'Roboto', 'Oswald', 'Playfair Display'].forEach(ensureFontLoaded);
 
+// ===== THREE SETUP =====
 const container = $('viewer-container');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 300);
 camera.position.set(0, 0.1, 4.8);
-const renderer = new THREE.WebGLRenderer({
-  antialias: true, preserveDrawingBuffer: true, alpha: true,
-  powerPreference: 'high-performance'
-});
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -918,7 +1046,6 @@ mainLight.shadow.camera.near = 0.5;
 mainLight.shadow.camera.far = 90;
 scene.add(mainLight);
 scene.add(mainLight.target);
-
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.ShadowMaterial({ opacity: 0.3 }));
 ground.rotation.x = -Math.PI / 2;
 ground.position.y = -1.2;
@@ -928,91 +1055,14 @@ scene.add(ground);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.enablePan = false;
-controls.minDistance = 1;
-controls.maxDistance = 80;
+controls.enablePan = true;
+controls.screenSpacePanning = true;
+controls.zoomToCursor = true;
+controls.minDistance = 0.35;
+controls.maxDistance = 120;
+controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
 
-// =====================================================================
-// ===== QUALITY MODE SYSTEM (Low / Medium / High) =====
-// =====================================================================
-let qualityMode = 'medium';
-const QUALITY_PRESETS = {
-  low:    { pixelRatio: 0.75, shadows: false, shadowMapSize: 512,  envIntensity: 0.6, decalSegMult: 0.5,  throttleGroupBox: 4, throttleFtSig: 5 },
-  medium: { pixelRatio: 1.0,  shadows: true,  shadowMapSize: 1024, envIntensity: 1.0, decalSegMult: 0.75, throttleGroupBox: 2, throttleFtSig: 3 },
-  high:   { pixelRatio: Math.min(devicePixelRatio, 2), shadows: true, shadowMapSize: 2048, envIntensity: 1.0, decalSegMult: 1.0, throttleGroupBox: 1, throttleFtSig: 1 }
-};
-
-function applyQuality(mode) {
-  if (!QUALITY_PRESETS[mode]) mode = 'medium';
-  qualityMode = mode;
-  const q = QUALITY_PRESETS[mode];
-
-  renderer.setPixelRatio(q.pixelRatio);
-  renderer.setSize(container.clientWidth, container.clientHeight);
-
-  renderer.shadowMap.enabled = q.shadows;
-  mainLight.castShadow = q.shadows;
-  if (mainLight.shadow.mapSize.x !== q.shadowMapSize) {
-    mainLight.shadow.mapSize.set(q.shadowMapSize, q.shadowMapSize);
-    if (mainLight.shadow.map) {
-      mainLight.shadow.map.dispose();
-      mainLight.shadow.map = null;
-    }
-  }
-  ground.visible = q.shadows;
-
-  if (scene.environmentIntensity !== undefined) scene.environmentIntensity = q.envIntensity;
-
-  document.querySelectorAll('#quality-toggles button').forEach(b =>
-    b.classList.toggle('active', b.dataset.q === mode));
-
-  try { localStorage.setItem('pd3d_quality', mode); } catch (e) {}
-
-  if (typeof refreshAllDecals === 'function') refreshAllDecals();
-  renderer.render(scene, camera);
-}
-
-function _forceHighQuality() {
-  const saved = {
-    mode: qualityMode,
-    shadows: renderer.shadowMap.enabled,
-    castShadow: mainLight.castShadow,
-    mapSize: mainLight.shadow.mapSize.x,
-    envIntensity: scene.environmentIntensity ?? 1
-  };
-  renderer.shadowMap.enabled = true;
-  mainLight.castShadow = true;
-  if (mainLight.shadow.mapSize.x !== 2048) {
-    mainLight.shadow.mapSize.set(2048, 2048);
-    if (mainLight.shadow.map) { mainLight.shadow.map.dispose(); mainLight.shadow.map = null; }
-  }
-  if (scene.environmentIntensity !== undefined) scene.environmentIntensity = 1.0;
-  qualityMode = 'high';
-  return saved;
-}
-function _restoreQuality(saved) {
-  qualityMode = saved.mode;
-  renderer.shadowMap.enabled = saved.shadows;
-  mainLight.castShadow = saved.castShadow;
-  if (mainLight.shadow.mapSize.x !== saved.mapSize) {
-    mainLight.shadow.mapSize.set(saved.mapSize, saved.mapSize);
-    if (mainLight.shadow.map) { mainLight.shadow.map.dispose(); mainLight.shadow.map = null; }
-  }
-  if (scene.environmentIntensity !== undefined) scene.environmentIntensity = saved.envIntensity;
-}
-async function withHighQuality(fn) {
-  const saved = _forceHighQuality();
-  try { return await fn(); }
-  finally { _restoreQuality(saved); }
-}
-
-document.querySelectorAll('#quality-toggles button').forEach(b => {
-  b.onclick = () => { applyQuality(b.dataset.q); showToast('Kualiti edit: ' + b.dataset.q.toUpperCase()); };
-});
-
-// =====================================================================
 // ===== STATE =====
-// =====================================================================
 const canvasGroup = new THREE.Group();
 scene.add(canvasGroup);
 let items = [];
@@ -1032,6 +1082,8 @@ let animStartTime = 0, currentP = 0;
 let isExporting = false;
 let cropSession = null, scRatio = null, scDrag = null;
 let savedCam = null;
+let fitDist = 6, handToggle = false, handSpace = false;
+let zoneDebug = false;
 
 const raycaster = new THREE.Raycaster();
 const layerListUI = $('layers-list');
@@ -1051,46 +1103,25 @@ const ftRotateHandle = $('ftRotateHandle');
 const ftRotateLine = $('ftRotateLine');
 let ftDragging = null, ftStartMouse = new THREE.Vector2(), ftStartScale = 1, ftStartAngle = 0, ftCenterScreen = new THREE.Vector2();
 let ftStartPos = null, ftDragPlane = null, ftDragOffset = null;
-
-// ===== DRAG PROXY — elak app hang semasa seret logo =====
-let dragProxyMesh = null;
-let lastDragRaycast = 0;
-const DRAG_RAYCAST_MS = 33;
-
 const floatingControls = $('floating-controls');
 const btnPausePlay = $('btnPausePlay');
 const btnSnap = $('btnSnap');
 
+// ===== KESAN IMEJ =====
 function defaultEffects() {
-  return {
-    overlayColor: '#ff0000', overlayOpacity: 0,
-    strokeColor: '#000000', strokeWidth: 0,
-    shadowColor: '#000000', shadowBlur: 10, shadowOffsetX: 4, shadowOffsetY: 6
-  };
+  return { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 10, shadowOffsetX: 4, shadowOffsetY: 6 };
 }
 function flatEffects() {
-  return {
-    overlayColor: '#ff0000', overlayOpacity: 0,
-    strokeColor: '#000000', strokeWidth: 0,
-    shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0
-  };
+  return { overlayColor: '#ff0000', overlayOpacity: 0, strokeColor: '#000000', strokeWidth: 0, shadowColor: '#000000', shadowBlur: 0, shadowOffsetX: 0, shadowOffsetY: 0 };
 }
 function ensureEffects(d) {
   if (!d.userData.effects) d.userData.effects = d.userData.isCanvasGraphic ? flatEffects() : defaultEffects();
   return d.userData.effects;
 }
 
-// ===== LATAR =====
+// ===== LATAR BELAKANG PRO =====
 function defaultBg() {
-  return {
-    type: 'solid', color: '#09090b', color2: '#27272a', angle: 180,
-    spotColor: '#ffffff', spotIntensity: 0, spotSize: 60, spotY: 45,
-    shadowOpacity: 0, shadowWidth: 60, shadowBlur: 60, shadowY: 84,
-    floorColor: '#000000', floorOpacity: 0, floorHorizon: 72,
-    vignette: 0, overlayColor: '#000000', overlayOpacity: 0, grain: 0,
-    imgMode: 'cover', imgScale: 1, imgX: 0, imgY: 0, imgOpacity: 1,
-    imgBlur: 0, imgBrightness: 100, imgContrast: 100, imgSaturation: 100
-  };
+  return { type: 'solid', color: '#09090b', color2: '#27272a', angle: 180, spotColor: '#ffffff', spotIntensity: 0, spotSize: 60, spotY: 45, shadowOpacity: 0, shadowWidth: 60, shadowBlur: 60, shadowY: 84, floorColor: '#000000', floorOpacity: 0, floorHorizon: 72, vignette: 0, overlayColor: '#000000', overlayOpacity: 0, grain: 0, imgMode: 'cover', imgScale: 1, imgX: 0, imgY: 0, imgOpacity: 1, imgBlur: 0, imgBrightness: 100, imgContrast: 100, imgSaturation: 100 };
 }
 let bg = defaultBg();
 let bgImg = null;
@@ -1119,7 +1150,6 @@ function hexToRgba(hex, a) {
   const n = parseInt(h, 16) || 0;
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${clamp(a, 0, 1)})`;
 }
-
 let grainTile = null;
 function getGrainTile() {
   if (grainTile) return grainTile;
@@ -1136,7 +1166,6 @@ function getGrainTile() {
   grainTile = c;
   return c;
 }
-
 function paintBgImage(ctx, w, h) {
   const iw = bgImg.naturalWidth || bgImg.width, ih = bgImg.naturalHeight || bgImg.height;
   if (!iw || !ih) return;
@@ -1165,7 +1194,6 @@ function paintBgImage(ctx, w, h) {
   ctx.drawImage(bgImg, cx - dw / 2, cy - dh / 2, dw, dh);
   ctx.restore();
 }
-
 function paintEllipseShadow(ctx, cx, cy, rx, ry, alpha, inner) {
   ctx.save();
   ctx.translate(cx, cy);
@@ -1178,7 +1206,6 @@ function paintEllipseShadow(ctx, cx, cy, rx, ry, alpha, inner) {
   ctx.fillRect(-1, -1, 2, 2);
   ctx.restore();
 }
-
 function paintBackground(ctx, w, h) {
   if (bg.type === 'gradient') {
     const a = (bg.angle || 0) * Math.PI / 180;
@@ -1193,9 +1220,7 @@ function paintBackground(ctx, w, h) {
     ctx.fillStyle = g;
   } else ctx.fillStyle = bg.color;
   ctx.fillRect(0, 0, w, h);
-
   if (bgImg) paintBgImage(ctx, w, h);
-
   if (bg.spotIntensity > 0) {
     const I = bg.spotIntensity / 100;
     const cx = w / 2, cy = h * bg.spotY / 100;
@@ -1207,7 +1232,6 @@ function paintBackground(ctx, w, h) {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   }
-
   if (bg.floorOpacity > 0) {
     const op = bg.floorOpacity / 100;
     const y0 = h * bg.floorHorizon / 100 - h * 0.05;
@@ -1220,7 +1244,6 @@ function paintBackground(ctx, w, h) {
       ctx.fillRect(0, y0, w, h - y0);
     }
   }
-
   if (bg.shadowOpacity > 0) {
     const op = bg.shadowOpacity / 100;
     const cx = w / 2, cy = h * bg.shadowY / 100;
@@ -1231,7 +1254,6 @@ function paintBackground(ctx, w, h) {
     paintEllipseShadow(ctx, cx, cy, rx * 0.55, ry * 0.55, op, 0.2);
   }
 }
-
 function paintForeground(ctx, w, h) {
   if (bg.vignette > 0) {
     const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.hypot(w, h) / 2);
@@ -1260,7 +1282,6 @@ function paintForeground(ctx, w, h) {
     }
   }
 }
-
 function getBgLayer(w, h) { return getLayerCanvas('bg', w, h, paintBackground); }
 function getFgLayer(w, h) { return getLayerCanvas('fg', w, h, paintForeground); }
 function getLayerCanvas(kind, w, h, painter) {
@@ -1276,7 +1297,6 @@ function getLayerCanvas(kind, w, h, painter) {
   }
   return c;
 }
-
 function composeFrame(ctx, w, h, src, sx, sy, sw, sh) {
   if (!isTransparentBg) ctx.drawImage(getBgLayer(w, h), 0, 0, w, h);
   ctx.drawImage(src, sx, sy, sw, sh, 0, 0, w, h);
@@ -1286,7 +1306,6 @@ function drawCropped(ctx, w, h) {
   const r = renderer.domElement.width / container.clientWidth;
   composeFrame(ctx, w, h, renderer.domElement, cropRect.x * r, cropRect.y * r, cropRect.w * r, cropRect.h * r);
 }
-
 function renderLiveBg() {
   bgRenderQueued = false;
   const cw = container.clientWidth, ch = container.clientHeight;
@@ -1323,14 +1342,7 @@ function markBgDirty() {
   scheduleBgRender();
 }
 
-const BG_RANGE_SUFFIX = {
-  angle:'°', spotIntensity:'%', spotSize:'%', spotY:'%',
-  shadowOpacity:'%', shadowWidth:'%', shadowBlur:'', shadowY:'%',
-  floorOpacity:'%', floorHorizon:'%',
-  vignette:'%', overlayOpacity:'%', grain:'',
-  imgScale:'', imgX:'%', imgY:'%', imgOpacity:'', imgBlur:'px',
-  imgBrightness:'', imgContrast:'', imgSaturation:''
-};
+const BG_RANGE_SUFFIX = { angle:'°', spotIntensity:'%', spotSize:'%', spotY:'%', shadowOpacity:'%', shadowWidth:'%', shadowBlur:'', shadowY:'%', floorOpacity:'%', floorHorizon:'%', vignette:'%', overlayOpacity:'%', grain:'', imgScale:'', imgX:'%', imgY:'%', imgOpacity:'', imgBlur:'px', imgBrightness:'', imgContrast:'', imgSaturation:'' };
 const BG_COLOR_KEYS = ['color', 'color2', 'spotColor', 'floorColor', 'overlayColor'];
 function updateBgValueLabel(key) {
   const el = $('bg_' + key), lab = $('bgv_' + key);
@@ -1391,7 +1403,6 @@ $('bgResetBtn').onclick = () => {
   syncBgUI(); markBgDirty(); pushHistory();
   showToast('Latar direset (imej dikekalkan)');
 };
-
 function loadBgImageFromDataURL(dataURL) {
   return new Promise(resolve => {
     if (!dataURL) {
@@ -1431,6 +1442,7 @@ $('btnClearBgImage').onclick = async () => {
   syncBgUI(); pushHistory();
 };
 
+// ===== CROP / RATIO =====
 function parseRatio(s) {
   if (!s || s === 'auto' || s === 'free') return null;
   const [a, b] = s.split(':').map(Number);
@@ -1470,6 +1482,7 @@ document.querySelectorAll('.ratio-btn').forEach(btn => {
   };
 });
 
+// ===== MODEL / GROUP LAYER =====
 function createFallbackShirt() {
   const g = new THREE.Group();
   const m = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.1, side: THREE.DoubleSide });
@@ -1504,7 +1517,7 @@ function parseGLTFBuffer(buf) {
 function loadGLTFScene(url) {
   if (isCustomUrl(url)) {
     return dbModelGet(customIdOf(url)).then(rec => {
-      if (!rec) throw new Error('Model custom tiada dalam simpanan');
+      if (!rec) throw new Error('Model custom tiada');
       return parseGLTFBuffer(rec.data);
     });
   }
@@ -1515,21 +1528,126 @@ function getModelTemplate(url) {
     modelCache.set(url, loadGLTFScene(url)
       .then(scene => normalizeModel(scene))
       .catch(err => {
-        console.warn('Model gagal load, guna fallback:', url, err);
-        if (isCustomUrl(url)) showToast('Model GLB custom tidak dijumpai / rosak — baju ganti digunakan', true);
+        console.warn('Model gagal load:', url, err);
+        if (isCustomUrl(url)) showToast('Model GLB custom tidak dijumpai', true);
         return normalizeModel(createFallbackShirt());
       }));
   }
   return modelCache.get(url);
 }
 
-function installAdj(mat, item) {
+// ===== BAHAGIAN BAJU =====
+const PART_KEYS = ['front', 'back', 'sleeve', 'collar', 'sleeveRib', 'collarRib', 'hemRib'];
+const PART_UI = [
+  ['sleeve', 'Lengan', 'kiri & kanan'], ['collar', 'Kolar', 'zon leher'],
+  ['front', 'Bahagian Depan', 'badan hadapan'], ['back', 'Bahagian Belakang', 'badan belakang'],
+  ['sleeveRib', 'Ring Lengan', 'hujung lengan'], ['collarRib', 'Ring Kolar', 'tepi leher'],
+  ['hemRib', 'Ring Bawah Baju', 'hem bawah']
+];
+const MESH_REGION_OPTS = [['', 'Auto (nama→zon)'], ['g', 'Ikut zon geometri'], ['0', 'Depan'], ['1', 'Belakang'], ['2', 'Lengan'], ['3', 'Kolar'], ['4', 'Ring Lengan'], ['5', 'Ring Kolar'], ['6', 'Ring Bawah']];
+function defaultZone() { return { body: 0.62, hem: 0.07, sleeveRib: 0.12, collarW: 0.24, collarH: 0.14, collarRibT: 0.04, collarDip: 0.06 }; }
+function makePartUniforms(color) {
+  return {
+    base: { value: new THREE.Color(color || '#ffffff') },
+    cols: { value: PART_KEYS.map(() => new THREE.Color('#ffffff')) },
+    on: { value: PART_KEYS.map(() => 0) },
+    z1: { value: new THREE.Vector4(0.62, 0.07, 0.12, 0.24) },
+    z2: { value: new THREE.Vector4(0.14, 0.04, 0.06, 0) }
+  };
+}
+function refreshPartUniforms(item) {
+  const P = item.parts, U = item.partU;
+  PART_KEYS.forEach((k, i) => {
+    const hex = P.cols[i];
+    U.on.value[i] = hex ? 1 : 0;
+    U.cols.value[i].set(hex || '#ffffff');
+  });
+  const z = P.zone;
+  U.z1.value.set(z.body, z.hem, z.sleeveRib, z.collarW);
+  U.z2.value.set(z.collarH, z.collarRibT, z.collarDip, zoneDebug ? 1 : 0);
+}
+function guessRegionFromName(name) {
+  const n = String(name || '').toLowerCase();
+  if (!n) return -1;
+  const has = r => r.test(n);
+  if (has(/(cuff|sleeve.*(rib|trim|hem)|(rib|trim|hem).*sleeve|lengan.*(rib|ring))/)) return 4;
+  if (has(/((collar|neck|kolar).*(rib|trim|band|ring)|(rib|trim|band|ring).*(collar|neck|kolar))/)) return 5;
+  if (has(/(hem|waist.*(rib|band)|bottom.*(rib|trim)|ring.*bawah)/)) return 6;
+  if (has(/(sleeve|lengan|arm)/)) return 2;
+  if (has(/(collar|neck|kolar)/)) return 3;
+  if (has(/(front|depan|hadapan|chest)/)) return 0;
+  if (has(/(back|belakang)/)) return 1;
+  return -1;
+}
+function applyMeshForces(item) {
+  const multi = item.meshes.length > 1;
+  item.meshes.forEach(c => {
+    const m = c.material;
+    if (!m?.userData.forceU) return;
+    let f = -1;
+    const v = item.parts.meshMap[c.userData.meshKey];
+    if (v === 'g') f = -1;
+    else if (v !== undefined && v !== '') f = +v;
+    else if (multi) f = guessRegionFromName((c.name || '') + ' ' + (m.name || ''));
+    m.userData.forceU.value = f;
+  });
+}
+function ensurePartAttr(mesh, box) {
+  let g = mesh.geometry;
+  if (!g?.attributes?.position) return;
+  mesh.updateWorldMatrix(true, false);
+  if (g.attributes.aPart) {
+    if (g.userData.partM && g.userData.partM.equals(mesh.matrixWorld)) return;
+    g = mesh.geometry = g.clone();
+  }
+  const pos = g.attributes.position, arr = new Float32Array(pos.count * 3), v = new THREE.Vector3();
+  const hx = (box.max.x - box.min.x) / 2 || 1, hy = (box.max.y - box.min.y) || 1, hz = (box.max.z - box.min.z) / 2 || 1;
+  const cx = (box.max.x + box.min.x) / 2, cz = (box.max.z + box.min.z) / 2;
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrixWorld);
+    arr[i * 3] = (v.x - cx) / hx; arr[i * 3 + 1] = (v.y - box.min.y) / hy; arr[i * 3 + 2] = (v.z - cz) / hz;
+  }
+  g.setAttribute('aPart', new THREE.BufferAttribute(arr, 3));
+  g.userData.partM = mesh.matrixWorld.clone();
+}
+const PART_FRAG_DECL = `
+uniform vec3 uBase; uniform vec3 uPartCol[7]; uniform float uPartOn[7];
+uniform vec4 uZ1; uniform vec4 uZ2; uniform float uForce;
+varying vec3 vPart;`;
+const PART_FRAG_MAIN = `
+{
+  float ax = abs(vPart.x), ny = vPart.y, nz = vPart.z;
+  float w[7];
+  float fr = smoothstep(-0.05, 0.05, nz);
+  w[0] = fr; w[1] = 1.0 - fr;
+  float sl = smoothstep(uZ1.x - 0.015, uZ1.x + 0.015, ax);
+  w[2] = sl;
+  float dip = uZ2.z * smoothstep(0.0, 0.3, nz);
+  float topE = ny + dip;
+  float cxm = 1.0 - smoothstep(uZ1.w - 0.02, uZ1.w + 0.02, ax);
+  w[3] = smoothstep(1.0 - uZ2.x - 0.01, 1.0 - uZ2.x + 0.01, topE) * cxm * (1.0 - sl);
+  float lowSl = sl * (1.0 - smoothstep(uZ1.z * 0.8 - 0.01, uZ1.z * 0.8 + 0.01, ny));
+  w[4] = max(smoothstep(1.0 - uZ1.z - 0.01, 1.0 - uZ1.z + 0.01, ax), lowSl);
+  w[5] = smoothstep(1.0 - uZ2.y - 0.01, 1.0 - uZ2.y + 0.01, topE) * cxm * (1.0 - sl);
+  w[6] = (1.0 - smoothstep(uZ1.y - 0.01, uZ1.y + 0.01, ny)) * (1.0 - sl);
+  if (uForce > -0.5) { for (int i = 0; i < 7; i++) w[i] = abs(float(i) - uForce) < 0.5 ? 1.0 : 0.0; }
+  vec3 pc = uBase;
+  for (int i = 0; i < 7; i++) pc = mix(pc, uPartCol[i], w[i] * uPartOn[i]);
+  if (uZ2.w > 0.5) {
+    vec3 dbg[7] = vec3[7](vec3(0.25,0.65,1.0), vec3(0.15,0.3,0.85), vec3(1.0,0.6,0.1), vec3(0.2,0.9,0.3), vec3(1.0,0.2,0.2), vec3(0.9,0.2,0.9), vec3(1.0,0.95,0.1));
+    pc = vec3(0.55);
+    for (int i = 0; i < 7; i++) pc = mix(pc, dbg[i], w[i]);
+  }
+  diffuseColor.rgb *= pc;
+}`;
+
+function installAdj(mat, item, isShirt = false) {
   mat.onBeforeCompile = sh => {
     sh.uniforms.uBright = item.adj.bright;
     sh.uniforms.uContrast = item.adj.contrast;
     sh.uniforms.uSat = item.adj.sat;
-    sh.fragmentShader = sh.fragmentShader
-      .replace('void main() {', 'uniform float uBright;\nuniform float uContrast;\nuniform float uSat;\nvoid main() {')
+    let fs = sh.fragmentShader
+      .replace('void main() {', 'uniform float uBright;\nuniform float uContrast;\nuniform float uSat;\n' + (isShirt ? PART_FRAG_DECL : '') + '\nvoid main() {')
       .replace('#include <dithering_fragment>', `#include <dithering_fragment>
         {
           vec3 adjC = gl_FragColor.rgb;
@@ -1539,8 +1657,21 @@ function installAdj(mat, item) {
           adjC *= uBright;
           gl_FragColor.rgb = clamp(adjC, 0.0, 1.0);
         }`);
+    if (isShirt) {
+      sh.uniforms.uBase = item.partU.base;
+      sh.uniforms.uPartCol = item.partU.cols;
+      sh.uniforms.uPartOn = item.partU.on;
+      sh.uniforms.uZ1 = item.partU.z1;
+      sh.uniforms.uZ2 = item.partU.z2;
+      sh.uniforms.uForce = mat.userData.forceU;
+      sh.vertexShader = sh.vertexShader
+        .replace('#include <common>', 'attribute vec3 aPart;\nvarying vec3 vPart;\n#include <common>')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPart = aPart;');
+      fs = fs.replace('#include <color_fragment>', '#include <color_fragment>\n' + PART_FRAG_MAIN);
+    }
+    sh.fragmentShader = fs;
   };
-  mat.customProgramCacheKey = () => 'proAdj1';
+  mat.customProgramCacheKey = () => isShirt ? 'proAdj1P' : 'proAdj1';
   mat.needsUpdate = true;
 }
 
@@ -1556,17 +1687,22 @@ async function attachModel(item, url) {
     let m = Array.isArray(c.material) ? c.material[0] : c.material;
     if (!m?.isMeshStandardMaterial) m = new THREE.MeshStandardMaterial({ roughness: 0.8, metalness: 0.1 });
     else m = m.clone();
-    m.color.set(item.color);
+    m.color.set(0xffffff);
     m.roughness = 0.8; m.metalness = 0.1;
-    installAdj(m, item);
+    m.userData.forceU = { value: -1 };
+    installAdj(m, item, true);
     c.material = m;
     c.userData.item = item;
+    c.userData.meshKey = (c.name || 'mesh') + '#' + item.meshes.length;
+    ensurePartAttr(c, item.localBox);
     item.materials.push(m);
     item.meshes.push(c);
   });
   item.spin.add(model);
   item.model = model;
   item.modelUrl = url;
+  applyMeshForces(item);
+  refreshPartUniforms(item);
 }
 
 async function createItem(data = {}) {
@@ -1578,13 +1714,15 @@ async function createItem(data = {}) {
     root: new THREE.Group(), spin: new THREE.Group(), model: null,
     meshes: [], materials: [], layers: [],
     rotY: data.rotY || 0, spinMul: data.spinMul ?? 1,
-    adj: {
-      bright: { value: data.adj?.bright ?? 1 },
-      contrast: { value: data.adj?.contrast ?? 1 },
-      sat: { value: data.adj?.sat ?? 1 }
-    },
+    adj: { bright: { value: data.adj?.bright ?? 1 }, contrast: { value: data.adj?.contrast ?? 1 }, sat: { value: data.adj?.sat ?? 1 } },
     visible: data.visible !== false, locked: !!data.locked, collapsed: !!data.collapsed,
     localBox: new THREE.Box3()
+  };
+  item.partU = makePartUniforms(item.color);
+  item.parts = {
+    cols: PART_KEYS.map((k, i) => (data.parts?.cols && data.parts.cols[i]) || null),
+    zone: { ...defaultZone(), ...(data.parts?.zone || {}) },
+    meshMap: { ...(data.parts?.meshMap || {}) }
   };
   item.root.add(item.spin);
   if (data.position) item.root.position.fromArray(data.position);
@@ -1611,12 +1749,10 @@ function withCanon(item, fn) {
 function setSpins(extra = 0) {
   items.forEach(it => { it.spin.rotation.y = it.rotY + viewYaw + extra * it.spinMul; });
 }
-
 function refreshAllDecals() {
-  items.forEach(it => it.layers.forEach(d => createDecalNow(d)));
-  canvasLayers.forEach(d => createDecalNow(d));
+  items.forEach(it => it.layers.forEach(d => createDecalNow(d, true)));
+  canvasLayers.forEach(d => createDecalNow(d, true));
 }
-
 function destroyItem(item) {
   item.layers.forEach(d => { disposeDummyDecals(d); disposeDummyTextures(d); });
   item.layers = [];
@@ -1631,20 +1767,22 @@ function clearScene() {
     m.geometry?.dispose?.(); m.material?.map?.dispose?.(); m.material?.dispose?.();
   });
   canvasLayers = [];
-  activeItem = null; activeDummy = null; selectionKind = null; logoCount = 0;
+  activeItem = null; activeDummy = null; selectionKind = null;
+  logoCount = 0;
   hideFreeTransform();
   clearPanels();
 }
-
 async function swapItemModel(item, url) {
   if (!item || url === item.modelUrl) return;
   showToast('Memuat model baru...');
   item.layers.forEach(d => disposeDummyDecals(d));
   if (item.model) item.spin.remove(item.model);
   item.materials.forEach(m => m.dispose?.());
+  item.parts.meshMap = {};
   await attachModel(item, url);
-  item.layers.forEach(d => createDecalNow(d));
+  item.layers.forEach(d => createDecalNow(d, true));
   updateGround();
+  syncPartsUI(item);
   renderLayerPanel();
   pushHistory();
   showToast('✅ Model baju ditukar');
@@ -1695,6 +1833,8 @@ function fitCamera() {
   camera.position.copy(c).addScaledVector(new THREE.Vector3(0, 0.03, 1).normalize(), dist);
   controls.update();
   updateGround();
+  fitDist = dist;
+  fitToFrame(null, true);
 }
 function resetCameraFront() {
   const dist = camera.position.distanceTo(controls.target);
@@ -1720,7 +1860,7 @@ async function addItem(url, opts = {}) {
   selectItem(item);
   fitCamera();
   pushHistory();
-  showToast('✅ ' + item.name + ' ditambah ke artwork');
+  showToast('✅ ' + item.name + ' ditambah');
   return item;
 }
 async function duplicateItem(item) {
@@ -1757,13 +1897,13 @@ $('btnAddItem2').onclick = () => addItem($('modelSelect').value);
 $('btnFitAll').onclick = () => fitCamera();
 $('btnArrange').onclick = arrangeRow;
 
+// ===== UPLOAD GLB =====
 let autoAddGlb = false;
 $('toggleAutoAddGlb').onclick = function () {
   autoAddGlb = !autoAddGlb;
   this.classList.toggle('active', autoAddGlb);
 };
 const fmtSize = b => b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
-
 $('glbUpload').onchange = async e => {
   const files = [...e.target.files];
   e.target.value = '';
@@ -1777,7 +1917,7 @@ $('glbUpload').onchange = async e => {
       const scene = await parseGLTFBuffer(buf);
       let meshes = 0;
       scene.traverse(c => { if (c.isMesh) meshes++; });
-      if (!meshes) throw new Error('Tiada mesh 3D dalam fail');
+      if (!meshes) throw new Error('Tiada mesh 3D');
       const name = f.name.replace(/\.(glb|gltf)$/i, '').replace(/_+/g, ' ').trim() || 'Model';
       const rec = { name, size: f.size, added: Date.now(), data: buf };
       const id = await dbModelAdd(rec);
@@ -1798,16 +1938,13 @@ $('glbUpload').onchange = async e => {
   if (autoAddGlb) await addItem(lastUrl);
   else showToast(ok > 1 ? `✅ ${ok} model ditambah` : `✅ "${lastName}" ditambah`);
 };
-
 function renderCustomModelList() {
   const box = $('customModelList');
   box.innerHTML = '';
   if (!customModels.length) {
-    const h = document.createElement('div');
-    h.className = 'hint';
+    const h = document.createElement('div'); h.className = 'hint';
     h.textContent = 'Belum ada model. Upload fail GLB di atas.';
-    box.appendChild(h);
-    return;
+    box.appendChild(h); return;
   }
   customModels.slice().reverse().forEach(m => {
     const row = document.createElement('div'); row.className = 'cm-item';
@@ -1820,14 +1957,13 @@ function renderCustomModelList() {
       const nn = (prompt('Nama baru:', m.name) || '').trim();
       if (!nn || nn === m.name) return;
       await dbModelRename(m.id, nn);
-      m.name = nn;
-      populateModelSelects(); renderCustomModelList();
+      m.name = nn; populateModelSelects(); renderCustomModelList();
     };
     const del = document.createElement('button'); del.className = 'del'; del.textContent = '🗑'; del.title = 'Padam';
     del.onclick = async () => {
       const url = customUrl(m.id);
       const user = items.find(i => i.modelUrl === url);
-      if (user) { showToast(`Model digunakan oleh group "${user.name}"`, true); return; }
+      if (user) { showToast(`Model digunakan oleh "${user.name}"`, true); return; }
       if (!confirm(`Padam model "${m.name}"?`)) return;
       await dbModelDelete(m.id);
       customModels = customModels.filter(x => x.id !== m.id);
@@ -1840,6 +1976,7 @@ function renderCustomModelList() {
   });
 }
 
+// ===== PWA =====
 const THREE_CHECK_URL = 'https://unpkg.com/three@0.169.0/build/three.module.js';
 let deferredInstall = null;
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -1848,29 +1985,25 @@ async function refreshOfflineStatus(extra = '') {
   let ready = false;
   try { ready = !!(await caches.match(THREE_CHECK_URL, { ignoreVary: true })); } catch (e) {}
   const net = navigator.onLine ? '🟢 Online' : '🔴 Offline';
-  const off = ready ? '✅ Sedia untuk guna offline' : '⏳ Belum sedia offline';
+  const off = ready ? '✅ Sedia offline' : '⏳ Belum sedia offline';
   pill.textContent = `${net} · ${off}${isStandalone() ? ' · 📲 Mod app' : ''}${extra ? ' · ' + extra : ''}`;
 }
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstall = e;
+  e.preventDefault(); deferredInstall = e;
   $('btnInstallPwa').style.display = 'block';
 });
 window.addEventListener('appinstalled', () => {
-  deferredInstall = null;
-  $('btnInstallPwa').style.display = 'none';
-  showToast('✅ App berjaya dipasang');
-  refreshOfflineStatus();
+  deferredInstall = null; $('btnInstallPwa').style.display = 'none';
+  showToast('✅ App berjaya dipasang'); refreshOfflineStatus();
 });
 $('btnInstallPwa').onclick = async () => {
   if (!deferredInstall) return;
   deferredInstall.prompt();
   try { await deferredInstall.userChoice; } catch (e) {}
-  deferredInstall = null;
-  $('btnInstallPwa').style.display = 'none';
+  deferredInstall = null; $('btnInstallPwa').style.display = 'none';
 };
 $('btnCheckOffline').onclick = async () => {
-  if (!('serviceWorker' in navigator)) { showToast('Pelayar ini tidak menyokong mod offline', true); return; }
+  if (!('serviceWorker' in navigator)) { showToast('Pelayar tidak menyokong mod offline', true); return; }
   if (!navigator.onLine) { showToast('Perlu internet', true); return; }
   const reg = await navigator.serviceWorker.getRegistration();
   if (!reg || !reg.active) { showToast('Service worker belum aktif', true); return; }
@@ -1882,12 +2015,12 @@ async function setupPWA() {
   /* ELECTRON */ if (navigator.userAgent.includes('Electron')) { $('pwaStatus').textContent = '🖥 Versi desktop (.exe) — semua fail disertakan, sentiasa boleh guna offline.'; $('btnCheckOffline').style.display = 'none'; return; }
   const pill = $('pwaStatus');
   if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
-    pill.textContent = '⚠ Mod offline/PWA tidak aktif: buka melalui http://localhost atau https (bukan file://).';
+    pill.textContent = '⚠ Mod offline/PWA tidak aktif: buka melalui http://localhost atau https.';
     return;
   }
   navigator.serviceWorker.addEventListener('message', ev => {
     if (ev.data?.type === 'CACHE_DONE') {
-      showToast(`✅ Cache offline dikemas kini (${ev.data.ok} fail${ev.data.fail ? `, ${ev.data.fail} tidak dijumpai` : ''})`);
+      showToast(`✅ Cache offline dikemas kini`);
       refreshOfflineStatus();
     }
   });
@@ -1907,12 +2040,13 @@ async function setupPWA() {
     setTimeout(refreshOfflineStatus, 6000);
   } catch (err) {
     console.error(err);
-    pill.textContent = '⚠ Gagal mendaftar service worker: ' + (err?.message || err);
+    pill.textContent = '⚠ Gagal daftar service worker: ' + (err?.message || err);
     return;
   }
   refreshOfflineStatus();
 }
 
+// ===== SELECTION & LAYER PANEL =====
 function clearPanels() {
   propertiesPanel.classList.remove('active');
   groupPropsEl.style.display = 'none';
@@ -1933,13 +2067,14 @@ function selectItem(item) {
   layerPropsEl.style.display = 'none';
   syncGroupUI(item);
   syncColorUI(item);
+  syncPartsUI(item);
   renderLayerPanel();
 }
 function selectLayer(d) {
   if (d.userData.locked) { showToast('Layer dikunci', true); return; }
   if (d.userData.item?.locked) { showToast('Group dikunci', true); return; }
   activeDummy = d; selectionKind = 'layer';
-  if (d.userData.item) { activeItem = d.userData.item; syncColorUI(activeItem); }
+  if (d.userData.item) { activeItem = d.userData.item; syncColorUI(activeItem); syncPartsUI(activeItem); }
   ensureEffects(d);
   propertiesPanel.classList.add('active');
   groupPropsEl.style.display = 'none';
@@ -1967,7 +2102,6 @@ function selectLayer(d) {
   showFreeTransform();
   renderLayerPanel();
 }
-
 function mkBtn(cls, title, text, fn) {
   const b = document.createElement('button');
   b.className = cls; b.title = title; b.textContent = text;
@@ -2061,13 +2195,12 @@ function deleteLayer(d) {
   pushHistory();
 }
 function deleteItem(item) {
-  if (!confirm(`Padam group "${item.name}" beserta semua layer di dalamnya?`)) return;
+  if (!confirm(`Padam group "${item.name}" beserta semua layer?`)) return;
   destroyItem(item);
   items = items.filter(i => i !== item);
   if (activeItem === item) { activeItem = items[items.length - 1] || null; activeDummy = null; selectionKind = null; hideFreeTransform(); clearPanels(); }
   updateGround(); renderLayerPanel(); pushHistory();
 }
-
 function disposeDummyDecals(dummy) {
   if (!dummy.userData.decals) { dummy.userData.decals = []; return; }
   dummy.userData.decals.forEach(d => {
@@ -2089,6 +2222,7 @@ function disposeDummyTextures(dummy) {
   dummy.userData._fxKey = null;
 }
 
+// ===== PROPERTIES GROUP =====
 function syncGroupPos() {
   if (selectionKind !== 'item' || !activeItem) return;
   const p = activeItem.root.position;
@@ -2149,7 +2283,9 @@ $('gCenter').onclick = () => {
   updateGround(); syncGroupPos(); pushHistory();
 };
 $('gDuplicate').onclick = () => duplicateItem(activeItem);
+$('gCenterFrame').onclick = () => centerItemInFrame(activeItem);
 
+// ===== WARNA BAJU =====
 const SHIRT_COLORS = ['#ffffff', '#171717', '#64748b', '#dc2626', '#2563eb', '#16a34a', '#ca8a04', '#9333ea'];
 SHIRT_COLORS.forEach((hex, i) => {
   const b = document.createElement('button');
@@ -2164,17 +2300,182 @@ SHIRT_COLORS.forEach((hex, i) => {
 });
 function setItemColor(item, hex) {
   item.color = hex;
-  item.materials.forEach(m => m.color.set(hex));
+  item.partU.base.value.set(hex);
   if (item === activeItem) syncColorUI(item);
 }
 function syncColorUI(item) {
   $('customColor').value = item.color;
   $('gColor').value = item.color;
   document.querySelectorAll('.color-btn').forEach(x => x.classList.toggle('active', x.dataset.hex.toLowerCase() === item.color.toLowerCase()));
+  if (typeof syncPartsUI === 'function' && typeof partRowEls !== 'undefined') syncPartsUI(item);
 }
 $('customColor').oninput = e => { if (activeItem) setItemColor(activeItem, e.target.value); };
 $('customColor').onchange = () => { if (activeItem) pushHistory(); };
 
+// ===== MEMORI WARNA =====
+const COLORMEM_KEY = 'pd3d_colormem_v1';
+const colorMem = { swatches: [], schemes: [] };
+let _colorMemWarned = false;
+function loadColorMem() {
+  try {
+    const j = JSON.parse(localStorage.getItem(COLORMEM_KEY) || 'null');
+    if (j) {
+      colorMem.swatches = Array.isArray(j.swatches) ? j.swatches.filter(h => /^#[0-9a-f]{6}$/i.test(h)) : [];
+      colorMem.schemes = Array.isArray(j.schemes) ? j.schemes : [];
+    }
+  } catch (e) {}
+}
+function saveColorMem() {
+  try { localStorage.setItem(COLORMEM_KEY, JSON.stringify(colorMem)); }
+  catch (e) { if (!_colorMemWarned) { _colorMemWarned = true; showToast('Memori warna sementara (storan disekat)', true); } }
+}
+function addSwatch(hex) {
+  hex = String(hex).toLowerCase();
+  if (colorMem.swatches.includes(hex)) { showToast('Warna ' + hex + ' sudah ada'); return; }
+  colorMem.swatches.unshift(hex);
+  colorMem.swatches = colorMem.swatches.slice(0, 32);
+  saveColorMem(); renderSwatches();
+  showToast('✅ Warna ' + hex.toUpperCase() + ' disimpan');
+}
+function applySwatch(target, hex) {
+  if (!activeItem) { showToast('Pilih / tambah baju dahulu', true); return; }
+  if (activeItem.locked) { showToast('Group dikunci', true); return; }
+  if (target === 'shirt') setItemColor(activeItem, hex);
+  else setPartColor(activeItem, partTarget, hex);
+  pushHistory();
+}
+function renderSwatches() {
+  document.querySelectorAll('.swatch-grid').forEach(g => {
+    g.innerHTML = '';
+    if (!colorMem.swatches.length) {
+      const e = document.createElement('div'); e.className = 'swatch-empty'; e.textContent = 'Belum ada warna.';
+      g.appendChild(e); return;
+    }
+    colorMem.swatches.forEach(hex => {
+      const b = document.createElement('button');
+      b.className = 'swatch'; b.style.background = hex; b.title = hex.toUpperCase();
+      b.onclick = () => applySwatch(g.dataset.target, hex);
+      const x = document.createElement('span'); x.className = 'x'; x.textContent = '✕';
+      x.onclick = e => { e.stopPropagation(); colorMem.swatches = colorMem.swatches.filter(h => h !== hex); saveColorMem(); renderSwatches(); };
+      b.appendChild(x); g.appendChild(b);
+    });
+  });
+  renderSchemes();
+}
+function renderSchemes() {
+  const box = $('schemeList'); box.innerHTML = '';
+  colorMem.schemes.forEach((sc, idx) => {
+    const el = document.createElement('div'); el.className = 'scheme-item'; el.title = 'Klik = guna skim';
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = sc.name;
+    const dots = document.createElement('span'); dots.className = 'dots';
+    [sc.base, ...sc.cols.filter(Boolean)].slice(0, 6).forEach(c => { const i = document.createElement('i'); i.style.background = c; dots.appendChild(i); });
+    const del = document.createElement('button'); del.className = 'del'; del.textContent = '✕';
+    del.onclick = e => { e.stopPropagation(); colorMem.schemes.splice(idx, 1); saveColorMem(); renderSchemes(); };
+    el.onclick = () => {
+      if (!activeItem || activeItem.locked) { showToast('Pilih baju dahulu', true); return; }
+      setItemColor(activeItem, sc.base);
+      activeItem.parts.cols = PART_KEYS.map((k, i) => sc.cols[i] || null);
+      refreshPartUniforms(activeItem); syncPartsUI(activeItem); pushHistory();
+      showToast('Skim "' + sc.name + '" digunakan');
+    };
+    el.append(nm, dots, del); box.appendChild(el);
+  });
+}
+$('btnSaveColorMem').onclick = () => { if (!activeItem) { showToast('Pilih baju dahulu', true); return; } addSwatch(activeItem.color); };
+$('btnSaveScheme').onclick = () => {
+  if (!activeItem) { showToast('Pilih baju dahulu', true); return; }
+  const name = (prompt('Nama skim warna:', 'Skim ' + (colorMem.schemes.length + 1)) || '').trim();
+  if (!name) return;
+  colorMem.schemes.unshift({ name, base: activeItem.color, cols: activeItem.parts.cols.slice() });
+  colorMem.schemes = colorMem.schemes.slice(0, 20);
+  saveColorMem(); renderSchemes();
+  showToast('✅ Skim "' + name + '" disimpan');
+};
+
+// ===== UI WARNA BAHAGIAN BAJU =====
+let partTarget = 'sleeve';
+const partRowEls = {};
+function buildPartRows() {
+  const box = $('partRows'); box.innerHTML = '';
+  PART_UI.forEach(([key, label, sub]) => {
+    const row = document.createElement('div'); row.className = 'part-row' + (key === partTarget ? ' sel' : '');
+    row.innerHTML = `<span class="dot"></span><span class="pl">${label}<small>${sub}</small></span>`;
+    const col = document.createElement('input'); col.type = 'color'; col.value = '#ffffff';
+    const save = document.createElement('button'); save.className = 'pb'; save.textContent = '💾'; save.title = 'Simpan warna ke memori';
+    const rst = document.createElement('button'); rst.className = 'pb'; rst.textContent = '✕'; rst.title = 'Buang warna khas';
+    row.append(col, save, rst);
+    row.onclick = () => selectPartTarget(key);
+    col.onclick = e => { e.stopPropagation(); selectPartTarget(key); };
+    col.oninput = () => { if (activeItem && !activeItem.locked) { selectPartTarget(key); setPartColor(activeItem, key, col.value, true); } };
+    col.onchange = () => pushHistory();
+    save.onclick = e => { e.stopPropagation(); if (!activeItem) return; const i = PART_KEYS.indexOf(key); addSwatch(activeItem.parts.cols[i] || activeItem.color); };
+    rst.onclick = e => { e.stopPropagation(); if (!activeItem || activeItem.locked) return; setPartColor(activeItem, key, null); pushHistory(); };
+    box.appendChild(row);
+    partRowEls[key] = { row, col };
+  });
+}
+function selectPartTarget(key) {
+  partTarget = key;
+  Object.entries(partRowEls).forEach(([k, e]) => e.row.classList.toggle('sel', k === key));
+  const lab = PART_UI.find(p => p[0] === key)?.[1] || '';
+  $('partTargetHint').textContent = 'Warna memori akan digunakan pada: ' + lab;
+}
+function setPartColor(item, key, hex, fromInput = false) {
+  const i = PART_KEYS.indexOf(key);
+  item.parts.cols[i] = hex || null;
+  refreshPartUniforms(item);
+  if (!fromInput) syncPartsUI(item);
+  else partRowEls[key]?.row.classList.add('on');
+}
+function syncPartsUI(item) {
+  if (!item || !item.parts) return;
+  PART_UI.forEach(([key]) => {
+    const i = PART_KEYS.indexOf(key), e = partRowEls[key]; if (!e) return;
+    const hex = item.parts.cols[i];
+    e.col.value = hex || item.color;
+    e.row.classList.toggle('on', !!hex);
+  });
+  Object.keys(defaultZone()).forEach(k => {
+    const el = $('zn_' + k), lab = $('zv_' + k); if (!el) return;
+    el.value = item.parts.zone[k]; lab.textContent = (+item.parts.zone[k]).toFixed(2);
+  });
+  const multi = item.meshes.length > 1;
+  $('meshMapBox').style.display = multi ? 'block' : 'none';
+  if (multi) {
+    const list = $('meshMapList'); list.innerHTML = '';
+    item.meshes.forEach(c => {
+      const row = document.createElement('div'); row.className = 'mesh-row';
+      const nm = document.createElement('span'); nm.textContent = c.name || c.userData.meshKey; nm.title = c.userData.meshKey;
+      const sel = document.createElement('select');
+      MESH_REGION_OPTS.forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); });
+      sel.value = item.parts.meshMap[c.userData.meshKey] ?? '';
+      sel.onchange = () => { item.parts.meshMap[c.userData.meshKey] = sel.value; applyMeshForces(item); pushHistory(); };
+      row.append(nm, sel); list.appendChild(row);
+    });
+  }
+}
+Object.keys(defaultZone()).forEach(k => {
+  const el = $('zn_' + k); if (!el) return;
+  el.oninput = () => { if (!activeItem) return; activeItem.parts.zone[k] = +el.value; $('zv_' + k).textContent = (+el.value).toFixed(2); refreshPartUniforms(activeItem); };
+  el.onchange = () => pushHistory();
+});
+$('btnZoneReset').onclick = () => { if (!activeItem) return; activeItem.parts.zone = defaultZone(); refreshPartUniforms(activeItem); syncPartsUI(activeItem); pushHistory(); };
+$('btnPartsReset').onclick = () => { if (!activeItem || activeItem.locked) return; activeItem.parts.cols = PART_KEYS.map(() => null); refreshPartUniforms(activeItem); syncPartsUI(activeItem); pushHistory(); showToast('Warna bahagian direset'); };
+$('btnPartsRibSame').onclick = () => {
+  if (!activeItem || activeItem.locked) return;
+  const P = activeItem.parts, ri = [4, 5, 6].map(i => P.cols[i]).find(Boolean) || activeItem.parts.cols[2] || activeItem.color;
+  [4, 5, 6].forEach(i => P.cols[i] = ri);
+  refreshPartUniforms(activeItem); syncPartsUI(activeItem); pushHistory(); showToast('Ketiga-tiga ring disamakan');
+};
+function setZoneDebug(v) {
+  zoneDebug = !!v;
+  $('toggleZoneDebug').classList.toggle('active', zoneDebug);
+  items.forEach(refreshPartUniforms);
+}
+$('toggleZoneDebug').onclick = () => setZoneDebug(!zoneDebug);
+buildPartRows(); selectPartTarget('sleeve'); loadColorMem(); renderSwatches();
+
+// ===== IMAGE EFFECTS =====
 function applyLayerEffects(img, fx) {
   const W0 = img.width || img.naturalWidth || 512;
   const H0 = img.height || img.naturalHeight || 512;
@@ -2186,8 +2487,7 @@ function applyLayerEffects(img, fx) {
   const base = document.createElement('canvas');
   base.width = bw; base.height = bh;
   const bctx = base.getContext('2d');
-  bctx.imageSmoothingEnabled = true;
-  bctx.imageSmoothingQuality = 'high';
+  bctx.imageSmoothingEnabled = true; bctx.imageSmoothingQuality = 'high';
   bctx.drawImage(img, 0, 0, bw, bh);
   base._baseW = bw; base._baseH = bh;
   const strokeW = Math.max(0, fx.strokeWidth || 0) * sc;
@@ -2201,14 +2501,12 @@ function applyLayerEffects(img, fx) {
   if (!hasStroke && !hasShadow && !hasOverlay) return base;
   const padX = Math.ceil(strokeW + blur * 1.5 + Math.abs(offX)) + 2;
   const padY = Math.ceil(strokeW + blur * 1.5 + Math.abs(offY)) + 2;
-  const cw = bw + padX * 2;
-  const ch = bh + padY * 2;
+  const cw = bw + padX * 2, ch = bh + padY * 2;
   const out = document.createElement('canvas');
   out.width = cw; out.height = ch;
   out._baseW = bw; out._baseH = bh;
   const ctx = out.getContext('2d');
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   function makeSil(color) {
     const c = document.createElement('canvas');
     c.width = bw; c.height = bh;
@@ -2228,8 +2526,7 @@ function applyLayerEffects(img, fx) {
   }
   if (hasStroke) {
     const sil = makeSil(fx.strokeColor || '#000000');
-    const DIRS = 32;
-    const r = strokeW;
+    const DIRS = 32, r = strokeW;
     for (let i = 0; i < DIRS; i++) {
       const a = (i / DIRS) * Math.PI * 2;
       ctx.drawImage(sil, padX + Math.cos(a) * r, padY + Math.sin(a) * r);
@@ -2297,31 +2594,61 @@ function getDecalTexture(dummy, isBack) {
   }
   return dummy.userData._decalTexFront;
 }
-function decalDims(dummy, base) {
+function getBaseDims(dummy, base) {
   const c = dummy.userData._fxCanvas;
-  const sx = dummy.scale.x, sy = dummy.scale.y || sx;
   if (!c || !c._baseW) {
     const ar = Math.max(0.05, dummy.userData.aspect || 1);
-    return { w: base * sx, h: (base / ar) * sy };
+    return { w: base, h: base / ar };
   }
   const ar = c._baseW / c._baseH;
-  const wB = base * sx, hB = (base / ar) * sy;
-  return { w: wB * (c.width / c._baseW), h: hB * (c.height / c._baseH) };
+  return { w: base * (c.width / c._baseW), h: (base / ar) * (c.height / c._baseH) };
+}
+function decalDims(dummy, base) {
+  const { w, h } = getBaseDims(dummy, base);
+  const sx = dummy.scale.x, sy = dummy.scale.y || sx;
+  return { w: w * sx, h: h * sy };
 }
 
-$('propName').onchange = e => {
-  if (!activeDummy) return;
-  activeDummy.userData.name = e.target.value;
-  renderLayerPanel(); pushHistory();
-};
+// ===== PROPERTIES LAYER =====
+$('propName').onchange = e => { if (!activeDummy) return; activeDummy.userData.name = e.target.value; renderLayerPanel(); pushHistory(); };
+
 $('propScale').oninput = e => {
   if (!activeDummy || activeDummy.userData.locked) return;
   const s = +e.target.value;
   $('propScaleValue').textContent = s.toFixed(2);
+  
   activeDummy.scale.setScalar(s);
-  if (!activeDummy.userData.isCanvasGraphic) scheduleDecal(activeDummy);
+
+  if (!activeDummy.userData.isCanvasGraphic) {
+    // Fast scale update: replace heavy decals with light ones and instantly scale
+    let allLight = true;
+    if (activeDummy.userData.decals && activeDummy.userData.decals.length > 0) {
+      for (const mesh of activeDummy.userData.decals) {
+        if (!mesh.userData.isLightCurved) { allLight = false; break; }
+      }
+    } else {
+      allLight = false;
+    }
+
+    if (!allLight) {
+      createDecalNow(activeDummy, false); // synchronous light decal creation
+    }
+
+    activeDummy.userData.decals.forEach(m => {
+      if (m.userData.isLightCurved) m.scale.setScalar(s);
+    });
+    
+    updateFreeTransformHandles();
+  }
 };
-$('propScale').onchange = () => pushHistory();
+
+$('propScale').onchange = () => {
+  pushHistory();
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) {
+    createDecalNow(activeDummy, true); // High quality update after release
+  }
+};
+
 $('propOpacity').oninput = e => {
   if (!activeDummy) return;
   const op = +e.target.value;
@@ -2331,14 +2658,23 @@ $('propOpacity').oninput = e => {
   else (activeDummy.userData.decals || []).forEach(d => d.material.opacity = op);
 };
 $('propOpacity').onchange = () => pushHistory();
+
 $('propCurve').oninput = e => {
   if (!activeDummy || activeDummy.userData.isCanvasGraphic) return;
   const c = +e.target.value;
   activeDummy.userData.curve = c;
   $('propCurveValue').textContent = c.toFixed(2);
-  scheduleDecal(activeDummy);
+  // Synchronous light update for zero lag
+  createDecalNow(activeDummy, false);
 };
-$('propCurve').onchange = () => { renderLayerPanel(); pushHistory(); };
+$('propCurve').onchange = () => {
+  renderLayerPanel();
+  pushHistory();
+  if (activeDummy && !activeDummy.userData.isCanvasGraphic) {
+    createDecalNow(activeDummy, true); // High quality update after release
+  }
+};
+
 $('propTextContent').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 $('propTextColor').onchange = () => { if (activeDummy?.userData.isText) updateTextLayer(activeDummy); };
 
@@ -2362,7 +2698,7 @@ function updateFxUI(d) {
 function fxOnInput(key, value) {
   if (!activeDummy) return;
   ensureEffects(activeDummy)[key] = value;
-  scheduleDecal(activeDummy);
+  scheduleDecal(activeDummy, false);
 }
 function fxBind(id, key, valId, fmt, conv = v => v) {
   const el = $(id);
@@ -2370,7 +2706,10 @@ function fxBind(id, key, valId, fmt, conv = v => v) {
     if (valId) $(valId).textContent = fmt(e.target.value);
     fxOnInput(key, conv(e.target.type === 'color' ? e.target.value : +e.target.value));
   };
-  el.onchange = () => pushHistory();
+  el.onchange = () => {
+    pushHistory();
+    if (activeDummy) createDecalNow(activeDummy, true);
+  };
 }
 fxBind('fxOverlayColor', 'overlayColor');
 fxBind('fxOverlayOpacity', 'overlayOpacity', 'fxOverlayOpacityValue', v => v + '%', v => v / 100);
@@ -2384,7 +2723,7 @@ function setFx(fx, msg) {
   if (!activeDummy) return;
   activeDummy.userData.effects = fx;
   updateFxUI(activeDummy);
-  scheduleDecal(activeDummy);
+  createDecalNow(activeDummy, true); // final update
   pushHistory();
   showToast(msg);
 }
@@ -2395,12 +2734,12 @@ $('fxPresetFlat').onclick = () => setFx(flatEffects(), 'Logo rata (tiada bayang)
 $('btnAlignCenterX').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.x = 0;
-  createDecalNow(activeDummy); pushHistory(); showToast('Center X');
+  createDecalNow(activeDummy, true); pushHistory(); showToast('Center X');
 };
 $('btnAlignCenterY').onclick = () => {
   if (!activeDummy || activeDummy.userData.locked) return;
   activeDummy.position.y = activeDummy.userData.isCanvasGraphic ? activeDummy.position.y : 0.15;
-  createDecalNow(activeDummy); pushHistory(); showToast('Center Y');
+  createDecalNow(activeDummy, true); pushHistory(); showToast('Center Y');
 };
 
 function makeLogoDummy(common, item, extra = {}) {
@@ -2419,7 +2758,6 @@ function makeCanvasMesh(common, extra = {}) {
   canvasLayers.push(mesh);
   return mesh;
 }
-
 $('btnDuplicate').onclick = () => {
   if (!activeDummy) return;
   const src = activeDummy, u = src.userData;
@@ -2441,7 +2779,7 @@ $('btnDuplicate').onclick = () => {
   copy.quaternion.copy(src.quaternion);
   copy.scale.copy(src.scale);
   logoCount++;
-  createDecalNow(copy);
+  createDecalNow(copy, true);
   selectLayer(copy);
   pushHistory(); showToast('Layer diduplicate');
 };
@@ -2473,20 +2811,16 @@ async function updateTextLayer(d) {
   u.texture = tex; u.textContent = text; u.textColor = color;
   u.dataURL = c.toDataURL('image/png');
   u.aspect = c.width / c.height;
-  createDecalNow(d);
+  createDecalNow(d, true);
   pushHistory();
 }
 
+// ===== DECAL SYSTEM =====
 const SHIRT_BASE_SIZE = 0.58;
 const SLEEVE_BASE_SIZE = 0.92;
-const AUTO_CURVATURE_MODELS = new Set([
-  './baju_baru.glb',
-  './long_sleeve_t-_shirt.glb',
-  './short_sleeve_polo.glb'
-]);
+const AUTO_CURVATURE_MODELS = new Set(['./baju_baru.glb', './long_sleeve_t-_shirt.glb', './short_sleeve_polo.glb']);
 const _autoRayc = new THREE.Raycaster();
 const isAutoCurveModel = url => AUTO_CURVATURE_MODELS.has(url) || isCustomUrl(url);
-
 function isOnSleeve(d) {
   if (!d || d.userData?.isCanvasGraphic) return false;
   const px = Math.abs(d.position.x);
@@ -2503,7 +2837,6 @@ function isOnSleeve(d) {
   if (Math.abs(n.z) < 0.55 && Math.abs(n.x) > 0.35 && px > 0.20) return true;
   return false;
 }
-
 function dummyBasis(dummy, onSleeve) {
   const q = dummy.quaternion;
   const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q).normalize();
@@ -2545,7 +2878,6 @@ function localHit(item, hit) {
   const ln = nW.transformDirection(inv);
   return { pos, ln };
 }
-
 function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
   dummy.updateMatrixWorld(true);
   const wq = new THREE.Quaternion();
@@ -2555,45 +2887,29 @@ function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
   const right  = new THREE.Vector3(1, 0, 0).applyQuaternion(wq);
   const worldPos = new THREE.Vector3();
   dummy.getWorldPosition(worldPos);
-
-  const steps = 7;
-  let maxOffset = 0;
-  let minDistToBack = Infinity;
+  const steps = 5;
+  let maxOffset = 0, minDistToBack = Infinity;
   const tmpP = new THREE.Vector3();
-
-  for (let i = 0; i < steps; i++) {
-    for (let j = 0; j < steps; j++) {
-      const u = (i / (steps - 1)) - 0.5;
-      const v = (j / (steps - 1)) - 0.5;
-      tmpP.copy(worldPos).addScaledVector(right, u * w).addScaledVector(up, v * h);
-
-      _autoRayc.set(tmpP, normal);
-      const hits = _autoRayc.intersectObjects(item.meshes, true);
-      if (hits.length && hits[0].distance < 0.8) {
-        const hit = hits[0];
-        const fn = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
-        if (!fn || fn.dot(normal) > -0.2) {
-          if (hit.distance > maxOffset) maxOffset = hit.distance;
-        }
-      }
-
-      const nn = normal.clone().negate();
-      _autoRayc.set(tmpP, nn);
-      const hitsBack = _autoRayc.intersectObjects(item.meshes, true);
-      if (hitsBack.length && hitsBack[0].distance < 0.8) {
-        const hitB = hitsBack[0];
-        const fnB = hitB.face ? hitB.face.normal.clone().transformDirection(hitB.object.matrixWorld) : null;
-        if (!fnB || fnB.dot(normal) < 0.2) {
-          if (hitB.distance < minDistToBack) minDistToBack = hitB.distance;
-        }
-      }
+  for (let i = 0; i < steps; i++) for (let j = 0; j < steps; j++) {
+    const u = (i / (steps - 1)) - 0.5, v = (j / (steps - 1)) - 0.5;
+    tmpP.copy(worldPos).addScaledVector(right, u * w).addScaledVector(up, v * h);
+    _autoRayc.set(tmpP, normal);
+    const hits = _autoRayc.intersectObjects(item.meshes, true);
+    if (hits.length && hits[0].distance < 0.8) {
+      const fn = hits[0].face ? hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld) : null;
+      if (!fn || fn.dot(normal) > -0.2) { if (hits[0].distance > maxOffset) maxOffset = hits[0].distance; }
+    }
+    const nn = normal.clone().negate();
+    _autoRayc.set(tmpP, nn);
+    const hitsBack = _autoRayc.intersectObjects(item.meshes, true);
+    if (hitsBack.length && hitsBack[0].distance < 0.8) {
+      const fnB = hitsBack[0].face ? hitsBack[0].face.normal.clone().transformDirection(hitsBack[0].object.matrixWorld) : null;
+      if (!fnB || fnB.dot(normal) < 0.2) { if (hitsBack[0].distance < minDistToBack) minDistToBack = hitsBack[0].distance; }
     }
   }
-
   let requiredDepth = maxOffset * 2 + 0.15;
   let curve = 0;
   const onSleeve = isOnSleeve(dummy);
-
   if (onSleeve && isAutoCurveModel(item.modelUrl)) {
     const sagitta = Math.max(0.02, maxOffset);
     const R = (w * w) / (8 * sagitta) + (sagitta / 2);
@@ -2615,68 +2931,15 @@ function computeAutoDepthAndCurve(item, dummy, w, h, baseDepth) {
 let decalQueuedDummy = null, decalQueued = false, decalTimeout = null;
 function scheduleDecal(dummy, forceHQ = false) {
   decalQueuedDummy = dummy;
-  const delay = ftDragging ? 90 : 35;
+  const delay = ftDragging ? 90 : 30;
   if (decalQueued && !forceHQ) return;
   decalQueued = true;
   if (decalTimeout) clearTimeout(decalTimeout);
   decalTimeout = setTimeout(() => {
     decalQueued = false;
-    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ || !ftDragging);
+    if (decalQueuedDummy) createDecalNow(decalQueuedDummy, forceHQ);
     decalQueuedDummy = null;
   }, delay);
-}
-
-// ===== DRAG PROXY SYSTEM =====
-function needsProxy(d) {
-  if (d.userData.isCanvasGraphic) return false;
-  if (isOnSleeve(d)) return false;
-  return (d.userData.curve || 0) < 0.01;
-}
-
-function showDragProxy(d) {
-  if (!d || !needsProxy(d)) return;
-  if (dragProxyMesh) return;
-  const nZ = new THREE.Vector3(0, 0, 1).applyQuaternion(d.quaternion).z;
-  const tex = getDecalTexture(d, nZ < 0);
-  if (!tex) return;
-  const { w, h } = decalDims(d, SHIRT_BASE_SIZE);
-  const geo = new THREE.PlaneGeometry(w, h);
-  const mat = new THREE.MeshBasicMaterial({
-    map: tex, transparent: true, depthWrite: false,
-    side: THREE.DoubleSide, polygonOffset: true,
-    polygonOffsetFactor: -8, polygonOffsetUnits: -8,
-    opacity: d.userData.opacity ?? 1
-  });
-  dragProxyMesh = new THREE.Mesh(geo, mat);
-  dragProxyMesh.renderOrder = 3;
-  d.userData.item.spin.add(dragProxyMesh);
-  (d.userData.decals || []).forEach(m => m.visible = false);
-}
-
-function updateDragProxy(d) {
-  if (!dragProxyMesh || !d) return;
-  dragProxyMesh.position.copy(d.position);
-  dragProxyMesh.quaternion.copy(d.quaternion);
-  dragProxyMesh.material.opacity = d.userData.opacity ?? 1;
-  const nZ = new THREE.Vector3(0, 0, 1).applyQuaternion(d.quaternion).z;
-  const tex = getDecalTexture(d, nZ < 0);
-  if (tex && dragProxyMesh.material.map !== tex) {
-    dragProxyMesh.material.map = tex;
-    dragProxyMesh.material.needsUpdate = true;
-  }
-}
-
-function hideDragProxy() {
-  if (!dragProxyMesh) return;
-  dragProxyMesh.parent?.remove(dragProxyMesh);
-  dragProxyMesh.geometry?.dispose();
-  dragProxyMesh.material?.dispose();
-  dragProxyMesh = null;
-}
-
-function dragUpdate(d) {
-  if (dragProxyMesh) updateDragProxy(d);
-  else if (!needsProxy(d)) scheduleDecal(d);
 }
 
 function refreshCanvasMesh(m) {
@@ -2704,7 +2967,7 @@ function decalMaterial(item, tex, dummy, o) {
   return m;
 }
 
-function createDecalNow(dummy, highQuality = true) {
+function createDecalNow(dummy, highQuality = false) {
   const u = dummy.userData;
   if (u.isCanvasGraphic) { refreshCanvasMesh(dummy); return; }
   const item = u.item;
@@ -2717,9 +2980,8 @@ function createDecalNow(dummy, highQuality = true) {
       curve = isAutoCurveModel(item.modelUrl) ? 0.65 : 0.7;
       u.curve = curve;
     }
-    if (!highQuality && ftDragging) {
-      if (curve > 0.01) createLightCurvedDecal(item, dummy, curve);
-      else createFlatDecal(item, dummy);
+    if (!highQuality) {
+      createLightCurvedDecal(item, dummy, curve);
       return;
     }
     if (curve > 0.01) createCurvedDecal(item, dummy, curve);
@@ -2735,29 +2997,33 @@ function createLightCurvedDecal(item, dummy, curve) {
   const isBack = !onSleeve && n.z < 0;
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
-  const { w, h } = decalDims(dummy, base);
+  
+  const { w, h } = getBaseDims(dummy, base);
   const orientQuat = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, n));
 
-  // Kualiti ikut mode semasa
-  const segMult = QUALITY_PRESETS[qualityMode]?.decalSegMult ?? 1.0;
-  const segX = Math.max(4, Math.round(12 * segMult));
-  const segY = Math.max(2, Math.round(4  * segMult));
-  const geo = new THREE.PlaneGeometry(w, h, segX, segY);
+  const isCurved = curve > 0.01;
+  const geo = new THREE.PlaneGeometry(w, h, isCurved ? 12 : 1, isCurved ? 4 : 1);
   const pos = geo.attributes.position;
-  const halfW = Math.max(0.001, w * 0.5);
-  const maxAngleX = (Math.PI / 2) * clamp(curve, 0.2, 1);
-  const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
-    const angleX = (x / halfW) * maxAngleX;
-    pos.setX(i, Math.sin(angleX) * Rx);
-    pos.setZ(i, (Math.cos(angleX) - 1) * Rx);
+  if (isCurved) {
+    const halfW = Math.max(0.001, w * 0.5);
+    const maxAngleX = (Math.PI / 2) * clamp(curve, 0.2, 1);
+    const Rx = halfW / Math.max(0.001, Math.sin(maxAngleX));
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const angleX = (x / halfW) * maxAngleX;
+      pos.setX(i, Math.sin(angleX) * Rx);
+      pos.setZ(i, (Math.cos(angleX) - 1) * Rx);
+    }
   }
   geo.computeVertexNormals();
   const mat = decalMaterial(item, tex, dummy, { pof: -6, double: true });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(dummy.position).add(n.clone().multiplyScalar(0.015));
   mesh.quaternion.copy(orientQuat);
+  
+  mesh.scale.setScalar(dummy.scale.x); // Apply scale
+  mesh.userData.isLightCurved = true;  // Mark for instant scaling
+  
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
   item.spin.add(mesh);
@@ -2771,7 +3037,6 @@ function createFlatDecal(item, dummy) {
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const { w, h } = decalDims(dummy, base);
-
   const baseDepth = onSleeve ? 0.38 : (isBack ? 0.6 : 0.22);
   let depth = baseDepth, autoCurve = 0;
   if (onSleeve && isAutoCurveModel(item.modelUrl)) {
@@ -2779,7 +3044,6 @@ function createFlatDecal(item, dummy) {
     depth = r.depth; autoCurve = r.curve;
   }
   if (autoCurve > 0.05) { createCurvedDecal(item, dummy, autoCurve); return; }
-
   const size = new THREE.Vector3(w, h, depth);
   item.meshes.forEach(mesh => {
     try {
@@ -2788,6 +3052,7 @@ function createFlatDecal(item, dummy) {
         const m = new THREE.Mesh(geo, decalMaterial(item, tex, dummy, { pof: -4, rough: 0.8 }));
         m.renderOrder = 2;
         m.visible = dummy.userData.visible !== false;
+        m.userData.isLightCurved = false;
         item.spin.add(m);
         dummy.userData.decals.push(m);
       } else geo.dispose();
@@ -2804,35 +3069,27 @@ function createCurvedDecal(item, dummy, curve) {
   const tex = getDecalTexture(dummy, isBack);
   if (!tex) return;
   const { w, h } = decalDims(dummy, base);
-
-  // Kualiti ikut mode semasa
-  const segMult = QUALITY_PRESETS[qualityMode]?.decalSegMult ?? 1.0;
-  const segX = Math.max(8, Math.min(32, Math.round(16 * segMult * Math.max(1, w * 1.8))));
-  const segY = Math.max(4, Math.min(16, Math.round(10 * segMult * Math.max(1, h * 1.5))));
+  const segX = Math.max(10, Math.min(20, Math.round(12 * Math.max(1, w * 1.8))));
+  const segY = Math.max(6, Math.min(12, Math.round(8 * Math.max(1, h * 1.5))));
   const geo = new THREE.PlaneGeometry(w, h, segX, segY);
   const pos = geo.attributes.position;
-
   const worldPos = new THREE.Vector3();
   dummy.getWorldPosition(worldPos);
   item.spin.updateMatrixWorld(true);
   const invShirt = new THREE.Matrix4().copy(item.spin.matrixWorld).invert();
-
   const ray = new THREE.Raycaster();
   const rayDir = dummyNormal.clone().negate();
   const lift = 0.008;
   const maxRay = 1.0;
   let hitCount = 0;
   const tmpWorld = new THREE.Vector3();
-
   for (let i = 0; i < pos.count; i++) {
     const lx = pos.getX(i), ly = pos.getY(i);
     tmpWorld.copy(worldPos).addScaledVector(right, lx).addScaledVector(up, ly).addScaledVector(dummyNormal, 0.35);
     ray.set(tmpWorld, rayDir);
     const hits = ray.intersectObjects(item.meshes, true);
     if (hits.length && hits[0].distance < maxRay) {
-      const faceN = hits[0].face
-        ? hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld).normalize()
-        : dummyNormal.clone();
+      const faceN = hits[0].face ? hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld).normalize() : dummyNormal.clone();
       const hitWorld = hits[0].point.clone().addScaledVector(faceN, lift);
       const hitLocal = hitWorld.applyMatrix4(invShirt);
       pos.setXYZ(i, hitLocal.x, hitLocal.y, hitLocal.z);
@@ -2849,7 +3106,6 @@ function createCurvedDecal(item, dummy, curve) {
       pos.setXYZ(i, fbLocal.x, fbLocal.y, fbLocal.z);
     }
   }
-
   if (hitCount < pos.count * 0.2) {
     geo.dispose();
     createFlatDecal(item, dummy);
@@ -2860,6 +3116,7 @@ function createCurvedDecal(item, dummy, curve) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(0, 0, 0);
   mesh.quaternion.identity();
+  mesh.userData.isLightCurved = false;
   mesh.renderOrder = 2;
   mesh.visible = dummy.userData.visible !== false;
   item.spin.add(mesh);
@@ -2876,6 +3133,26 @@ function showFreeTransform() {
   }
 }
 function hideFreeTransform() { ftEl.classList.remove('active'); ftDragging = null; _ftSig = ''; }
+
+// ===== HQ DEBOUNCE (fixes lag pada pointerup) =====
+let hqTimer = null, hqTarget = null;
+function cancelPendingHQ() {
+  clearTimeout(hqTimer);
+  hqTimer = null;
+  hqTarget = null;
+}
+function queueHQ(dummy, delayMs) {
+  cancelPendingHQ();
+  if (!dummy) return;
+  hqTarget = dummy;
+  hqTimer = setTimeout(() => {
+    if (hqTarget === dummy && !ftDragging && !gDrag) {
+      createDecalNow(dummy, true);
+    }
+    hqTarget = null;
+    hqTimer = null;
+  }, delayMs);
+}
 
 function worldToScreen(p) {
   const v = p.clone().project(camera);
@@ -2949,7 +3226,6 @@ function ftSignature() {
   if (it) parts.push(it.root.position.x, it.root.position.y, it.root.position.z, it.root.scale.x, it.spin.rotation.y);
   return parts.join('|');
 }
-
 function rayToPlane(clientX, clientY, plane) {
   const rect = container.getBoundingClientRect();
   const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
@@ -2961,11 +3237,11 @@ function cameraPlane(point) {
   const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
   return new THREE.Plane().setFromNormalAndCoplanarPoint(dir, point);
 }
-
 ftBox.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
   if (!activeDummy || activeDummy.userData.locked) return;
   if (e.target !== ftBox) return;
+  cancelPendingHQ();
   ftDragging = 'move';
   ftStartMouse.set(e.clientX, e.clientY);
   ftStartPos = activeDummy.position.clone();
@@ -2975,65 +3251,53 @@ ftBox.onpointerdown = e => {
     ftDragOffset = p ? activeDummy.position.clone().sub(p) : new THREE.Vector3();
   }
   controls.enabled = false;
-  showDragProxy(activeDummy);
   ftBox.setPointerCapture(e.pointerId);
 };
 ftEl.querySelectorAll('.ft-handle').forEach(h => {
   h.onpointerdown = e => {
     e.preventDefault(); e.stopPropagation();
     if (!activeDummy || activeDummy.userData.locked) return;
+    cancelPendingHQ();
     ftDragging = 'scale';
     ftStartMouse.set(e.clientX, e.clientY);
     ftStartScale = activeDummy.scale.x;
     controls.enabled = false;
-    showDragProxy(activeDummy);
     h.setPointerCapture(e.pointerId);
   };
 });
 ftRotateHandle.onpointerdown = e => {
   e.preventDefault(); e.stopPropagation();
   if (!activeDummy || activeDummy.userData.locked) return;
+  cancelPendingHQ();
   ftDragging = 'rotate';
   ftStartAngle = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
   controls.enabled = false;
-  showDragProxy(activeDummy);
   ftRotateHandle.setPointerCapture(e.pointerId);
 };
-
 window.addEventListener('pointermove', e => {
   if (!ftDragging || !activeDummy) return;
   const d = activeDummy;
-
   if (ftDragging === 'move') {
     if (!d.userData.isCanvasGraphic) {
-      const isBody = needsProxy(d);
-      const now = performance.now();
-      if (!isBody || now - lastDragRaycast >= DRAG_RAYCAST_MS) {
-        lastDragRaycast = now;
-        const item = d.userData.item;
-        const rect = container.getBoundingClientRect();
-        const ndc = new THREE.Vector2(
-          ((e.clientX - rect.left) / rect.width) * 2 - 1,
-          -((e.clientY - rect.top) / rect.height) * 2 + 1
-        );
-        raycaster.setFromCamera(ndc, camera);
-        const hits = raycaster.intersectObjects(item.meshes, true);
-        if (hits.length && hits[0].face) {
-          const { pos, ln } = localHit(item, hits[0]);
-          const roll = getRoll(d);
-          d.position.copy(pos);
-          alignToSurface(d, ln, roll);
-          dragUpdate(d);
-        }
+      const item = d.userData.item;
+      const rect = container.getBoundingClientRect();
+      const ndc = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      raycaster.setFromCamera(ndc, camera);
+      const hits = raycaster.intersectObjects(item.meshes, true);
+      if (hits.length && hits[0].face) {
+        const { pos, ln } = localHit(item, hits[0]);
+        const roll = getRoll(d);
+        d.position.copy(pos);
+        alignToSurface(d, ln, roll);
       }
     } else {
       const p = rayToPlane(e.clientX, e.clientY, ftDragPlane);
-      if (p) { d.position.copy(p.add(ftDragOffset)); dragUpdate(d); }
+      if (p) d.position.copy(p.add(ftDragOffset));
     }
+    scheduleDecal(d, false);
     updateFreeTransformHandles();
     return;
   }
-
   if (ftDragging === 'scale') {
     const dist = Math.hypot(e.clientX - ftCenterScreen.x, e.clientY - ftCenterScreen.y);
     const startDist = Math.hypot(ftStartMouse.x - ftCenterScreen.x, ftStartMouse.y - ftCenterScreen.y) || 1;
@@ -3041,17 +3305,25 @@ window.addEventListener('pointermove', e => {
     $('propScale').value = ns;
     $('propScaleValue').textContent = ns.toFixed(2);
     d.scale.setScalar(ns);
-    if (dragProxyMesh) {
-      const { w, h } = decalDims(d, SHIRT_BASE_SIZE);
-      dragProxyMesh.geometry.dispose();
-      dragProxyMesh.geometry = new THREE.PlaneGeometry(w, h);
-    } else if (!d.userData.isCanvasGraphic) {
-      scheduleDecal(d);
+    
+    if (!d.userData.isCanvasGraphic) {
+      let allLight = true;
+      if (d.userData.decals && d.userData.decals.length > 0) {
+        for (const mesh of d.userData.decals) {
+          if (!mesh.userData.isLightCurved) { allLight = false; break; }
+        }
+      } else {
+        allLight = false;
+      }
+      if (!allLight) createDecalNow(d, false);
+      d.userData.decals.forEach(m => {
+        if (m.userData.isLightCurved) m.scale.setScalar(ns);
+      });
     }
+    
     updateFreeTransformHandles();
     return;
   }
-
   if (ftDragging === 'rotate') {
     const ang = Math.atan2(e.clientY - ftCenterScreen.y, e.clientX - ftCenterScreen.x);
     const delta = ang - ftStartAngle;
@@ -3061,7 +3333,7 @@ window.addEventListener('pointermove', e => {
     const facing = nW.dot(camera.position.clone().sub(wp)) >= 0 ? 1 : -1;
     d.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), -delta * facing));
     ftStartAngle = ang;
-    dragUpdate(d);
+    scheduleDecal(d, false);
     updateFreeTransformHandles();
   }
 });
@@ -3069,13 +3341,15 @@ window.addEventListener('pointerup', () => {
   if (ftDragging) {
     ftDragging = null;
     controls.enabled = true;
-    hideDragProxy();
-    if (activeDummy) createDecalNow(activeDummy, true);
+    // Debounce HQ: tunggu 0.5s idle sebelum upgrade kualiti penuh.
+    // Light decal semasa drag kekal sebagai paparan sementara.
+    queueHQ(activeDummy, 500);
     updateFreeTransformHandles();
     pushHistory();
   }
 });
 
+// ===== GERAK / PUTAR GROUP =====
 const MODE_HINTS = {
   orbit: 'Orbit: seret ruang kosong untuk pusing kamera. Klik 2× pada baju untuk pilih group.',
   rotate: 'Putar Baju: seret pada baju ke kiri/kanan — baju berputar pada pusatnya sendiri.',
@@ -3098,7 +3372,7 @@ function pickItem(clientX, clientY) {
 let gDrag = null;
 container.addEventListener('pointerdown', e => {
   if (e.target !== renderer.domElement) return;
-  if (interactMode === 'orbit' || isRecording || isPreviewing || cropSession || e.button !== 0) return;
+  if (interactMode === 'orbit' || handToggle || handSpace || isRecording || isPreviewing || cropSession || e.button !== 0) return;
   const hit = pickItem(e.clientX, e.clientY);
   if (!hit) return;
   const item = hit.object.userData.item;
@@ -3106,11 +3380,7 @@ container.addEventListener('pointerdown', e => {
   e.stopPropagation(); e.preventDefault();
   if (!(selectionKind === 'item' && activeItem === item)) selectItem(item);
   const camDir = new THREE.Vector3(); camera.getWorldDirection(camDir);
-  gDrag = {
-    kind: interactMode, item, startX: e.clientX, startY: e.clientY,
-    startPos: item.root.position.clone(), startRot: item.rotY, camDir,
-    depth: e.shiftKey, plane: cameraPlane(item.root.position.clone()), offset: new THREE.Vector3()
-  };
+  gDrag = { kind: interactMode, item, startX: e.clientX, startY: e.clientY, startPos: item.root.position.clone(), startRot: item.rotY, camDir, depth: e.shiftKey, plane: cameraPlane(item.root.position.clone()), offset: new THREE.Vector3() };
   if (gDrag.kind === 'move' && !gDrag.depth) {
     const p = rayToPlane(e.clientX, e.clientY, gDrag.plane);
     if (p) gDrag.offset = gDrag.startPos.clone().sub(p);
@@ -3165,6 +3435,7 @@ function updateGroupBox() {
   if (gboxLabel.textContent !== activeItem.name) gboxLabel.textContent = activeItem.name;
 }
 
+// ===== TAMBAH LOGO / TEKS =====
 function readImageFiles(e, isCanvas) {
   [...e.target.files].forEach(file => {
     const r = new FileReader();
@@ -3206,17 +3477,14 @@ $('addCanvasTextBtn').onclick = async () => {
   $('canvasTextInput').value = '';
 };
 function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', textColor = '#000', font = 'Inter', fontSize = 120, isCanvas = false) {
-  const common = {
-    texture, aspect, isText, dataURL, textContent, textColor, font, fontSize,
-    opacity: 1, visible: true, locked: false
-  };
+  const common = { texture, aspect, isText, dataURL, textContent, textColor, font, fontSize, opacity: 1, visible: true, locked: false };
   if (isCanvas) {
     common.name = isText ? `Teks Canvas ${logoCount + 1}` : `Logo Canvas ${logoCount + 1}`;
     common.icon = isText ? '📝' : '🖼️';
     const mesh = makeCanvasMesh(common);
     mesh.position.set(controls.target.x, controls.target.y, controls.target.z + 1.2);
     logoCount++;
-    createDecalNow(mesh);
+    createDecalNow(mesh, true);
     selectLayer(mesh);
     pushHistory();
     showToast('Grafik Canvas ditambah');
@@ -3228,7 +3496,6 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   common.name = isText ? `Teks ${logoCount + 1}` : `Logo ${logoCount + 1}`;
   common.icon = isText ? '📝' : '🖼️';
   const dummy = makeLogoDummy(common, item);
-
   item.spin.updateWorldMatrix(true, false);
   const cWorld = new THREE.Vector3(); item.root.getWorldPosition(cWorld);
   const cNdc = cWorld.clone().project(camera);
@@ -3249,12 +3516,13 @@ function addLogoToScene(texture, aspect, isText, dataURL, textContent = '', text
   } else dummy.position.set(0, 0.1, 0.4);
   dummy.userData.curve = isOnSleeve(dummy) ? 0.7 : 0;
   logoCount++;
-  createDecalNow(dummy);
+  createDecalNow(dummy, true);
   selectLayer(dummy);
   pushHistory();
   if (dummy.userData.curve > 0.01) showToast('Logo di lengan — lekung auto diaktifkan');
 }
 
+// ===== LIGHT =====
 $('ambientSlider').oninput = e => { ambientLight.intensity = +e.target.value; $('ambientValue').textContent = ambientLight.intensity.toFixed(2); };
 $('ambientSlider').onchange = () => pushHistory();
 $('dirSlider').oninput = e => { mainLight.intensity = +e.target.value; $('dirValue').textContent = mainLight.intensity.toFixed(2); };
@@ -3265,6 +3533,7 @@ $('shadowSlider').oninput = e => {
 };
 $('shadowSlider').onchange = () => pushHistory();
 
+// ===== SERIALIZE / RESTORE =====
 function serializeLayer(d) {
   const u = d.userData;
   return {
@@ -3284,13 +3553,14 @@ function serializeItem(item) {
     position: item.root.position.toArray(), scale: item.root.scale.x,
     rotY: item.rotY, spinMul: item.spinMul,
     adj: { bright: item.adj.bright.value, contrast: item.adj.contrast.value, sat: item.adj.sat.value },
+    parts: { cols: item.parts.cols.slice(), zone: { ...item.parts.zone }, meshMap: { ...item.parts.meshMap } },
     visible: item.visible, locked: item.locked, collapsed: item.collapsed,
     layers: item.layers.map(serializeLayer)
   };
 }
 function snapshot() {
   return {
-    v: 2,
+    v: 3,
     items: items.map(serializeItem),
     canvasLayers: canvasLayers.map(serializeLayer),
     isTransparentBg,
@@ -3308,7 +3578,6 @@ async function getStateForSave() {
   await fix(s.canvasLayers);
   return s;
 }
-
 async function restoreLayer(ld, item) {
   if (!ld.dataURL) return null;
   const img = await loadImage(ld.dataURL);
@@ -3336,7 +3605,7 @@ async function restoreLayer(ld, item) {
     d.scale.setScalar(Math.max(0.12, Math.max(...(ld.scale || [1, 1, 1]))));
   }
   logoCount++;
-  createDecalNow(d);
+  createDecalNow(d, true);
   return d;
 }
 async function restoreItem(data) {
@@ -3344,17 +3613,14 @@ async function restoreItem(data) {
   for (const ld of (data.layers || [])) await restoreLayer(ld, item);
   return item;
 }
-
 async function restoreState(state) {
   isRestoring = true;
   try {
     clearScene();
-
     isTransparentBg = !!state.isTransparentBg;
     outputRatio = state.outputRatio || 'auto';
     document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === outputRatio));
     updateCropFrame();
-
     if (state.bg) bg = { ...defaultBg(), ...state.bg };
     else {
       const e = state.bgEffects || {};
@@ -3374,7 +3640,6 @@ async function restoreState(state) {
     await loadBgImageFromDataURL(state.bgImage?.dataURL || null);
     syncBgUI();
     markBgDirty();
-
     ambientLight.intensity = state.ambient ?? 0.5;
     mainLight.intensity = state.directional ?? 2;
     mainLight.shadow.intensity = state.shadow ?? 1;
@@ -3385,41 +3650,34 @@ async function restoreState(state) {
     $('ambientValue').textContent = ambientLight.intensity.toFixed(2);
     $('dirValue').textContent = mainLight.intensity.toFixed(2);
     $('shadowValue').textContent = mainLight.shadow.intensity.toFixed(2);
-
     let itemsData = state.items, canvasData = state.canvasLayers || [];
     if (!itemsData) {
       const all = state.layers || [];
-      itemsData = [{
-        name: 'Baju 1', modelUrl: state.modelUrl || MODELS[0].url, color: state.color || '#ffffff',
-        position: [0, 0, 0], scale: 1, rotY: 0, spinMul: 1, adj: {},
-        layers: all.filter(l => !l.isCanvasGraphic)
-      }];
+      itemsData = [{ name: 'Baju 1', modelUrl: state.modelUrl || MODELS[0].url, color: state.color || '#ffffff', position: [0, 0, 0], scale: 1, rotY: 0, spinMul: 1, adj: {}, layers: all.filter(l => !l.isCanvasGraphic) }];
       canvasData = all.filter(l => l.isCanvasGraphic);
     }
     for (const data of itemsData) await restoreItem(data);
     for (const ld of canvasData) await restoreLayer(ld, null);
-
     viewYaw = state.viewYaw || 0;
     yawTween = null;
     setSpins();
     activeItem = items.find(i => i.id === state.activeItemId) || items[items.length - 1] || null;
     selectionKind = null; activeDummy = null;
-    if (activeItem) syncColorUI(activeItem);
+    if (activeItem) { syncColorUI(activeItem); syncPartsUI(activeItem); }
     updateGround();
     renderLayerPanel();
   } finally {
     isRestoring = false;
   }
 }
-
 async function addDefaultItem() {
   const it = await createItem({ modelUrl: MODELS[0].url, name: `${shortName(MODELS[0].url)} 1` });
   activeItem = it;
   syncColorUI(it);
+  syncPartsUI(it);
   renderLayerPanel();
   fitCamera();
 }
-
 async function loadProjectList() {
   const list = $('projectList');
   list.innerHTML = '';
@@ -3454,11 +3712,12 @@ async function loadProject(p) {
     history = [snapshot()];
     historyIndex = 0;
     updateUndoRedoButtons();
+    setDirty(false);
     await loadProjectList();
     showToast('Project dimuatkan');
   } catch (err) { console.error(err); showToast('Gagal load project', true); }
 }
-$('btnSaveProject').onclick = async () => {
+async function saveProject() {
   const name = $('projectNameInput').value.trim() || 'Design Baru';
   currentProjectName = name;
   try {
@@ -3469,14 +3728,15 @@ $('btnSaveProject').onclick = async () => {
     thumbCanvas.height = Math.max(1, Math.round(320 * (cropRect.h / cropRect.w)));
     drawCropped(thumbCanvas.getContext('2d'), thumbCanvas.width, thumbCanvas.height);
     const thumb = thumbCanvas.toDataURL('image/jpeg', 0.4);
-    const project = currentProjectId != null
-      ? { id: currentProjectId, name, state, thumb, updated: Date.now() }
-      : { name, state, thumb, updated: Date.now() };
+    const project = currentProjectId != null ? { id: currentProjectId, name, state, thumb, updated: Date.now() } : { name, state, thumb, updated: Date.now() };
     currentProjectId = await dbSave(project);
     await loadProjectList();
+    setDirty(false);
     showToast('✅ Project berjaya disimpan');
-  } catch (err) { console.error(err); showToast('❌ Gagal simpan project', true); }
-};
+    return true;
+  } catch (err) { console.error(err); showToast('❌ Gagal simpan project', true); return false; }
+}
+$('btnSaveProject').onclick = saveProject;
 $('btnExportProject').onclick = async () => {
   try {
     const state = await getStateForSave();
@@ -3486,10 +3746,9 @@ $('btnExportProject').onclick = async () => {
     a.download = `${$('projectNameInput').value.trim() || 'design'}.json`;
     a.href = url; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    showToast(items.some(i => isCustomUrl(i.modelUrl))
-      ? '✅ Fail dieksport. Nota: model GLB custom tidak termasuk — upload semula di peranti lain.'
-      : '✅ Fail projek berjaya dieksport');
-  } catch (err) { console.error(err); showToast('❌ Gagal eksport fail', true); }
+    setDirty(false);
+    showToast('✅ Fail projek dieksport');
+  } catch (err) { console.error(err); showToast('❌ Gagal eksport', true); }
 };
 $('importProjectFile').onchange = e => {
   const file = e.target.files[0];
@@ -3505,8 +3764,10 @@ $('importProjectFile').onchange = e => {
       updateUndoRedoButtons();
       $('projectNameInput').value = file.name.replace('.json', '');
       currentProjectId = null;
-      showToast('✅ Fail projek berjaya diimport');
-    } catch (err) { console.error(err); showToast('❌ Fail tidak sah atau rosak', true); }
+      currentProjectName = $('projectNameInput').value;
+      setDirty(false);
+      showToast('✅ Fail projek diimport');
+    } catch (err) { console.error(err); showToast('❌ Fail tidak sah', true); }
   };
   reader.readAsText(file);
   e.target.value = '';
@@ -3526,9 +3787,11 @@ $('btnNewProject').onclick = async () => {
   syncBgUI(); markBgDirty();
   history = []; historyIndex = -1;
   pushHistory();
+  setDirty(false);
   loadProjectList();
 };
 
+// ===== HISTORY =====
 function pushHistory() {
   if (isRestoring) return;
   if (historyIndex < history.length - 1) history = history.slice(0, historyIndex + 1);
@@ -3536,6 +3799,7 @@ function pushHistory() {
   if (history.length > 40) history.shift();
   historyIndex = history.length - 1;
   updateUndoRedoButtons();
+  setDirty(true);
 }
 function undo() {
   if (isRestoring || historyIndex <= 0) return;
@@ -3553,6 +3817,7 @@ function updateUndoRedoButtons() {
 }
 btnUndo.onclick = undo; btnRedo.onclick = redo;
 
+// ===== SIMPAN HD =====
 const scEl = $('savecrop'), scFrame = $('sc-frame');
 function resolutionInfo() {
   const res = +$('scRes').value || 3840;
@@ -3650,7 +3915,6 @@ $('scW').oninput = e => setCropSize('w', +e.target.value);
 $('scH').oninput = e => setCropSize('h', +e.target.value);
 $('scRes').onchange = () => applyCropRect(cropRect);
 $('scView').onchange = e => { $('saveViewSelect').value = e.target.value; };
-
 function openSaveCrop() {
   if (isRecording || isPreviewing || cropSession || isRestoring) return;
   cropSession = { prev: { ...cropRect } };
@@ -3678,27 +3942,19 @@ $('scOk').onclick = async () => {
   scEl.classList.remove('active');
   showToast('Memproses imej HD...');
   await new Promise(r => setTimeout(r, 80));
-  try { await withHighQuality(() => captureImage(view, res)); }
+  try { captureImage(view, res); }
   catch (err) { console.error(err); isExporting = false; showToast('❌ Gagal simpan imej', true); }
   cropSession = null; scDrag = null;
   updateCropFrame();
   if (activeDummy) showFreeTransform();
 };
 $('saveBtn').onclick = () => openSaveCrop();
-
 function downloadCanvas(c, name) {
-  c.toBlob(b => {
-    if (!b) { showToast('❌ Imej terlalu besar', true); return; }
-    const a = document.createElement('a');
-    a.download = name;
-    a.href = URL.createObjectURL(b);
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 8000);
-  }, 'image/png');
+  openExportDialog(c, String(name).replace(/\.png$/i, ''));
 }
-
 const VIEW_YAWS = { front: 0, back: Math.PI, right: -Math.PI / 2, left: Math.PI / 2 };
 function captureImage(view = 'current', targetRes = 3840) {
+  if (zoneDebug) setZoneDebug(false);
   isExporting = true;
   hideFreeTransform();
   gbox.style.display = 'none';
@@ -3720,7 +3976,6 @@ function captureImage(view = 'current', targetRes = 3840) {
     camera.setViewOffset(fullW, fullH, rect.x, rect.y, rect.w, rect.h);
     camera.updateProjectionMatrix();
     refreshAllDecals();
-
     const dist = origPos.distanceTo(origTarget);
     const frontPos = origTarget.clone().addScaledVector(new THREE.Vector3(0, 0.03, 1).normalize(), dist);
     const shot = (yaw, camPos) => {
@@ -3765,14 +4020,14 @@ function captureImage(view = 'current', targetRes = 3840) {
     controls.update();
     renderer.render(scene, camera);
   }
-  showToast('✅ Imej HD berjaya disimpan');
+  showToast('Imej HD siap — pilih tetapan simpan');
 }
 
+// ===== VIDEO / PREVIEW =====
 $('speedSlider').oninput = e => { rotationSpeed = +e.target.value; $('speedValue').textContent = rotationSpeed.toFixed(1) + 'x'; };
 $('durationSlider').oninput = e => { recordDuration = +e.target.value; $('durationValue').textContent = recordDuration + 's'; };
 $('qualitySlider').oninput = e => { recordQuality = +e.target.value; $('qualityValue').textContent = recordQuality === 0 ? '720p Portrait' : '1080p Portrait'; };
 btnPreview.onclick = () => { if (isRecording || cropSession) return; isPreviewing ? stopPreview() : startPreview(); };
-
 function enterAnimCamera() {
   savedCam = { pos: camera.position.clone(), target: controls.target.clone() };
   const dist = camera.position.distanceTo(controls.target);
@@ -3823,10 +4078,8 @@ function stopPreview() {
   controls.enabled = true;
 }
 btnRenderVideo.onclick = () => { if (!isRecording && !isPreviewing && !cropSession) startVideoRecord(); };
-
 async function startVideoRecord() {
   if (isRecording) return;
-  const savedQuality = _forceHighQuality();
   isExporting = true; yawTween = null;
   hideFreeTransform(); controls.enabled = false; btnPreview.disabled = true;
   refreshAllDecals();
@@ -3857,7 +4110,6 @@ async function startVideoRecord() {
   mediaRecorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrate });
   mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
   mediaRecorder.onstop = () => {
-    _restoreQuality(savedQuality);
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
     a.download = `design-${Date.now()}.webm`; a.click();
@@ -3913,46 +4165,45 @@ btnPausePlay.onclick = () => {
     animStartTime = performance.now() - (currentP * recordDuration * 1000);
   }
 };
-btnSnap.onclick = async () => {
+btnSnap.onclick = () => {
   if (isRecording) { showToast('Tangkap gambar tersedia semasa preview dijeda', true); return; }
-  await withHighQuality(() => {
-    const savedP = currentP;
-    const spinNow = savedP * Math.PI * 2 * rotationSpeed;
-    const v = viewYaw;
-    const wasPreviewing = isPreviewing;
-    if (wasPreviewing) { isPreviewing = false; }
-    const snapRes = 3840;
-    isExporting = true;
-    try {
-      const scale = snapRes / Math.max(cropRect.w, cropRect.h);
-      const outW = Math.round(cropRect.w * scale), outH = Math.round(cropRect.h * scale);
-      const oldSize = renderer.getSize(new THREE.Vector2()), oldPR = renderer.getPixelRatio();
-      const fullW = container.clientWidth, fullH = container.clientHeight;
-      renderer.setPixelRatio(1); renderer.setSize(outW, outH, false);
-      camera.aspect = fullW / fullH;
-      camera.setViewOffset(fullW, fullH, cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-      camera.updateProjectionMatrix();
-      refreshAllDecals();
-      setSpins(spinNow);
-      renderer.render(scene, camera);
-      const c = document.createElement('canvas'); c.width = outW; c.height = outH;
-      composeFrame(c.getContext('2d'), outW, outH, renderer.domElement, 0, 0, renderer.domElement.width, renderer.domElement.height);
-      downloadCanvas(c, 'design-frame.png');
-      camera.clearViewOffset();
-      camera.aspect = fullW / fullH; camera.updateProjectionMatrix();
-      renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
-    } catch (err) { console.error(err); showToast('❌ Gagal tangkap gambar', true); }
-    isExporting = false;
-    viewYaw = v;
-    setSpins(spinNow);
+  const savedP = currentP;
+  const spinNow = savedP * Math.PI * 2 * rotationSpeed;
+  const v = viewYaw;
+  const wasPreviewing = isPreviewing;
+  if (wasPreviewing) { isPreviewing = false; }
+  const snapRes = 3840;
+  isExporting = true;
+  try {
+    const scale = snapRes / Math.max(cropRect.w, cropRect.h);
+    const outW = Math.round(cropRect.w * scale), outH = Math.round(cropRect.h * scale);
+    const oldSize = renderer.getSize(new THREE.Vector2()), oldPR = renderer.getPixelRatio();
+    const fullW = container.clientWidth, fullH = container.clientHeight;
+    renderer.setPixelRatio(1); renderer.setSize(outW, outH, false);
+    camera.aspect = fullW / fullH;
+    camera.setViewOffset(fullW, fullH, cropRect.x, cropRect.y, cropRect.w, cropRect.h);
+    camera.updateProjectionMatrix();
     refreshAllDecals();
-    bgCache.clear(); scheduleBgRender();
-    if (wasPreviewing) { isPreviewing = true; }
+    setSpins(spinNow);
     renderer.render(scene, camera);
-    showToast('✅ Gambar ditangkap');
-  });
+    const c = document.createElement('canvas'); c.width = outW; c.height = outH;
+    composeFrame(c.getContext('2d'), outW, outH, renderer.domElement, 0, 0, renderer.domElement.width, renderer.domElement.height);
+    downloadCanvas(c, 'design-frame.png');
+    camera.clearViewOffset();
+    camera.aspect = fullW / fullH; camera.updateProjectionMatrix();
+    renderer.setPixelRatio(oldPR); renderer.setSize(oldSize.x, oldSize.y, false);
+  } catch (err) { console.error(err); showToast('❌ Gagal tangkap gambar', true); }
+  isExporting = false;
+  viewYaw = v;
+  setSpins(spinNow);
+  refreshAllDecals();
+  bgCache.clear(); scheduleBgRender();
+  if (wasPreviewing) { isPreviewing = true; }
+  renderer.render(scene, camera);
+  showToast('✅ Gambar ditangkap');
 };
 
+// ===== PANDANGAN =====
 function normAngle(a) { return ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; }
 function tweenYaw(to) {
   const from = viewYaw;
@@ -3980,9 +4231,806 @@ Object.entries(VIEWBTNS).forEach(([id, yaw]) => {
   };
 });
 
+// ===== ZOOM / LOOP / FIT =====
+const curDist = () => camera.position.distanceTo(controls.target);
+function dollyTo(d) {
+  d = clamp(d, controls.minDistance, controls.maxDistance);
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  camera.position.copy(controls.target).addScaledVector(dir, d);
+  controls.update();
+}
+const zoomBy = f => dollyTo(curDist() / f);
+let _zoomTxt = '';
+function updateZoomLabel() {
+  const t = Math.round(fitDist / curDist() * 100) + '%';
+  if (t !== _zoomTxt) { _zoomTxt = t; $('zoomPct').textContent = t; $('sbZoomMini').textContent = '🔍 ' + t; }
+}
+function screenBounds(its) {
+  camera.updateMatrixWorld(true);
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  const v = new THREE.Vector3(), cw = container.clientWidth, ch = container.clientHeight;
+  its.forEach(it => {
+    it.root.updateMatrixWorld(true);
+    it.meshes.forEach(m => {
+      const pos = m.geometry?.attributes?.position; if (!pos) return;
+      const step = Math.max(1, Math.floor(pos.count / 2500));
+      for (let i = 0; i < pos.count; i += step) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld).project(camera);
+        const x = (v.x * 0.5 + 0.5) * cw, y = (-v.y * 0.5 + 0.5) * ch;
+        if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    });
+  });
+  return isFinite(minX) ? { minX, maxX, minY, maxY } : null;
+}
+function frameStep(its, doScale, margin) {
+  const sb = screenBounds(its); if (!sb) return false;
+  const cx = cropRect.x + cropRect.w / 2, cy = cropRect.y + cropRect.h / 2;
+  const dx = cx - (sb.minX + sb.maxX) / 2, dy = cy - (sb.minY + sb.maxY) / 2;
+  const dist = curDist();
+  const upp = 2 * dist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / container.clientHeight;
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+  const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+  const shift = right.multiplyScalar(-dx * upp).addScaledVector(up, dy * upp);
+  camera.position.add(shift); controls.target.add(shift);
+  if (doScale) {
+    const k = Math.max((sb.maxX - sb.minX) / (cropRect.w * margin), (sb.maxY - sb.minY) / (cropRect.h * margin));
+    if (isFinite(k) && k > 0) {
+      const dir = camera.position.clone().sub(controls.target).normalize();
+      const nd = clamp(dist * k, controls.minDistance, controls.maxDistance);
+      camera.position.copy(controls.target).addScaledVector(dir, nd);
+    }
+  }
+  camera.updateMatrixWorld(true);
+  return true;
+}
+function fitToFrame(list, doScale = true, margin = 0.88) {
+  const its = (list || items).filter(i => i.visible);
+  if (!its.length || !container.clientWidth || !cropRect.w) return;
+  for (let n = 0; n < 5; n++) if (!frameStep(its, doScale, margin)) break;
+  controls.update();
+  if (doScale) fitDist = curDist();
+  updateGround();
+}
+function fitAll() { fitCamera(); }
+function fitSelection() {
+  const its = selectionKind && activeItem ? [activeItem] : null;
+  if (!its) { showToast('Pilih satu baju dahulu', true); return; }
+  resetCameraFront();
+  fitToFrame(its, true, 0.8);
+  showToast('Fokus pada ' + activeItem.name);
+}
+function centerAllInFrame() {
+  if (!items.length) return;
+  fitToFrame(null, false);
+  showToast('⊕ Semua baju di tengah frame');
+}
+function planeHit(sx, sy, point) {
+  const ndc = new THREE.Vector2((sx / container.clientWidth) * 2 - 1, -(sy / container.clientHeight) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  return raycaster.ray.intersectPlane(cameraPlane(point), new THREE.Vector3());
+}
+function centerItemInFrame(item) {
+  if (!item) { showToast('Pilih baju dahulu', true); return; }
+  const cx = cropRect.x + cropRect.w / 2, cy = cropRect.y + cropRect.h / 2;
+  for (let n = 0; n < 4; n++) {
+    camera.updateMatrixWorld(true);
+    const sb = screenBounds([item]); if (!sb) return;
+    const c3 = new THREE.Box3().setFromObject(item.model, true).getCenter(new THREE.Vector3());
+    const p1 = planeHit((sb.minX + sb.maxX) / 2, (sb.minY + sb.maxY) / 2, c3);
+    const p2 = planeHit(cx, cy, c3);
+    if (!p1 || !p2) return;
+    item.root.position.add(p2.sub(p1));
+  }
+  updateGround(); syncGroupPos(); pushHistory();
+  showToast('🎯 ' + item.name + ' di tengah frame artwork');
+}
+$('zoomIn').onclick = () => zoomBy(1.25);
+$('zoomOut').onclick = () => zoomBy(1 / 1.25);
+$('zoomPct').onclick = () => dollyTo(fitDist);
+$('zoomFit').onclick = () => { fitAll(); showToast('⤢ Fit to Screen'); };
+$('zoomSel').onclick = fitSelection;
+$('zoomCenter').onclick = centerAllInFrame;
+$('btnFitFrame').onclick = () => { fitAll(); showToast('⤢ Semua baju dimuatkan ke frame'); };
+$('btnCenterAll').onclick = centerAllInFrame;
+
+function applyHandMode() {
+  const on = handToggle || handSpace;
+  controls.mouseButtons.LEFT = on ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+  document.body.classList.toggle('hand-mode', on);
+  $('handBtn').classList.toggle('active', handToggle);
+}
+$('handBtn').onclick = () => { handToggle = !handToggle; applyHandMode(); };
+
+// ===== LOUPE =====
+let loupeOn = false, loupeX = 0, loupeY = 0, loupeTimer = null;
+const LOUPE_PX = 190;
+function drawLoupe() {
+  if (!loupeOn) return;
+  const lc = $('loupeCanvas'), ctx = lc.getContext('2d'), Z = +$('loupeZoom').value;
+  const sw = LOUPE_PX / Z, x0 = loupeX - sw / 2, y0 = loupeY - sw / 2;
+  ctx.fillStyle = '#111'; ctx.fillRect(0, 0, lc.width, lc.height);
+  ctx.imageSmoothingQuality = 'high';
+  [bgCanvasEl, renderer.domElement, fgCanvasEl].forEach(cv => {
+    if (!cv.width) return;
+    const rx = cv.width / container.clientWidth, ry = cv.height / container.clientHeight;
+    try { ctx.drawImage(cv, x0 * rx, y0 * ry, sw * rx, sw * ry, 0, 0, lc.width, lc.height); } catch (e) {}
+  });
+}
+function setLoupe(on) {
+  loupeOn = on;
+  $('loupeBtn').classList.toggle('active', on);
+  $('loupe').style.display = on ? 'block' : 'none';
+  clearInterval(loupeTimer);
+  if (on) { loupeTimer = setInterval(drawLoupe, 100); showToast('🔎 Loop aktif — gerakkan kursor pada artwork'); }
+}
+$('loupeBtn').onclick = () => setLoupe(!loupeOn);
+container.addEventListener('pointermove', e => {
+  if (!loupeOn) return;
+  const r = container.getBoundingClientRect();
+  loupeX = e.clientX - r.left; loupeY = e.clientY - r.top;
+  const lp = $('loupe');
+  lp.style.left = (loupeX - LOUPE_PX / 2 - 3) + 'px'; lp.style.top = (loupeY - LOUPE_PX / 2 - 3) + 'px';
+  lp.style.display = e.target.closest('#zoom-bar,#statusbar,#mode-toggles,#top-actions,#view-toggles,#sc-bar') ? 'none' : 'block';
+  drawLoupe();
+});
+container.addEventListener('pointerleave', () => { if (loupeOn) $('loupe').style.display = 'none'; });
+
+// ===== STATUS / MEMORI =====
+const fmtBytes = b => b >= 1073741824 ? (b / 1073741824).toFixed(2) + ' GB' : b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(0, Math.round(b / 1024)) + ' KB';
+const fmtM = b => (b / 1048576).toFixed(1) + 'M';
+function imgBytes(img) { if (!img) return 0; const w = img.naturalWidth || img.width || 0, h = img.naturalHeight || img.height || 0; return w * h * 4; }
+let _memCache = null, _memCacheTime = 0;
+function estimateMemory() {
+  const now = Date.now();
+  if (_memCache && now - _memCacheTime < 2000) return _memCache;
+  let tex = 0, fx = 0, geo = 0;
+  const seen = new Set();
+  const addGeo = g => { if (!g || seen.has(g)) return; seen.add(g); Object.values(g.attributes).forEach(a => geo += a.array.byteLength); if (g.index) geo += g.index.array.byteLength; };
+  [...canvasLayers, ...items.flatMap(i => i.layers)].forEach(d => {
+    const u = d.userData;
+    tex += imgBytes(u.texture?.image) * 1.33;
+    if (u._fxCanvas) fx += imgBytes(u._fxCanvas) * 1.33;
+    ['_decalTexFront', '_decalTexBack'].forEach(k => { if (u[k]) fx += imgBytes(u[k].image) * 1.33; });
+    (u.decals || []).forEach(m => addGeo(m.geometry));
+  });
+  items.forEach(it => it.meshes.forEach(m => addGeo(m.geometry)));
+  let bgB = bgImg ? imgBytes(bgImg) : 0;
+  bgCache.forEach(c => bgB += c.width * c.height * 4);
+  bgB += (bgCanvasEl.width * bgCanvasEl.height + fgCanvasEl.width * fgCanvasEl.height) * 4;
+  const rc = renderer.domElement;
+  const render = rc.width * rc.height * 4 * 3 + mainLight.shadow.mapSize.x * mainLight.shadow.mapSize.y * 8;
+  const res = +($('scRes')?.value || 3840), k = res / Math.max(cropRect.w, cropRect.h, 1);
+  const hdW = Math.round(cropRect.w * k), hdH = Math.round(cropRect.h * k);
+  const flat = hdW * hdH * 4;
+  const layersTotal = tex + fx + geo + bgB;
+  _memCache = { tex, fx, geo, bgB, render, flat, hdW, hdH, layered: flat + layersTotal, total: layersTotal + render };
+  _memCacheTime = now;
+  return _memCache;
+}
+function updateStatus() {
+  if (document.hidden) return;
+  const m = estimateMemory();
+  $('sbArt').textContent = `Artwork: ${cropRect.w} × ${cropRect.h} px`;
+  $('sbDoc').textContent = `${fmtM(m.flat)}/${fmtM(m.layered)}`;
+  const pm = performance.memory;
+  let pct, txt;
+  if (pm && pm.jsHeapSizeLimit) {
+    pct = pm.usedJSHeapSize / pm.jsHeapSizeLimit * 100;
+    txt = `${fmtBytes(pm.usedJSHeapSize)} / ${fmtBytes(pm.jsHeapSizeLimit)}`;
+  } else { pct = m.total / (1024 * 1024 * 1024) * 100; txt = '≈ ' + fmtBytes(m.total); }
+  $('sbMemTxt').textContent = txt;
+  const f = $('memFill'); f.style.width = clamp(pct, 1.5, 100) + '%';
+  f.style.background = pct < 55 ? '#10b981' : pct < 80 ? '#f59e0b' : '#ef4444';
+  $('memDetail').innerHTML =
+    `<div><span>Eksport HD</span><span>${m.hdW} × ${m.hdH} px</span></div>` +
+    `<div><span>Imej rata</span><span>${fmtBytes(m.flat)}</span></div>` +
+    `<div><span>Tekstur logo/teks</span><span>${fmtBytes(m.tex + m.fx)}</span></div>` +
+    `<div><span>Model 3D</span><span>${fmtBytes(m.geo)}</span></div>` +
+    `<div><span>Latar &amp; cache</span><span>${fmtBytes(m.bgB)}</span></div>` +
+    `<div><span>Buffer render + bayang</span><span>${fmtBytes(m.render)}</span></div>` +
+    `<div><span>Layer: ${items.reduce((a, i) => a + i.layers.length, 0) + canvasLayers.length} · Group: ${items.length}</span><span>${pm ? 'Heap JS' : 'Anggaran'}</span></div>`;
+}
+$('statusbar').onclick = () => $('statusbar').classList.toggle('open');
+setInterval(updateStatus, 1200);
+
+// ===== DIRTY / TUTUP =====
+let isDirty = false;
+function refreshTitle() { document.title = (isDirty ? '● ' : '') + (currentProjectName || 'Design Baru') + ' — Pro Designer 3D'; }
+function setDirty(v) { isDirty = !!v; $('dirtyDot').style.display = v ? 'inline-block' : 'none'; refreshTitle(); }
+$('projectNameInput').addEventListener('change', () => { currentProjectName = $('projectNameInput').value.trim() || 'Design Baru'; setDirty(true); });
+window.addEventListener('beforeunload', e => { if (isDirty) { e.preventDefault(); e.returnValue = ''; return ''; } });
+function requestQuit() {
+  if (isRecording || isPreviewing) { showToast('Hentikan rakaman / preview dahulu', true); return; }
+  if (!isDirty) { doQuit(); return; }
+  $('cmName').textContent = 'Projek: "' + ($('projectNameInput').value.trim() || 'Design Baru') + '"';
+  $('closeModal').classList.add('show');
+}
+function doQuit() {
+  isDirty = false;
+  $('closeModal').classList.remove('show');
+  try { window.close(); } catch (e) {}
+  setTimeout(() => { $('closedScreen').style.display = 'flex'; }, 250);
+}
+$('btnQuit').onclick = requestQuit;
+$('cmX').onclick = $('cmCancel').onclick = () => $('closeModal').classList.remove('show');
+$('cmDiscard').onclick = doQuit;
+$('cmSave').onclick = async () => { $('cmSave').disabled = true; const ok = await saveProject(); $('cmSave').disabled = false; if (ok) doQuit(); };
+$('reopenBtn').onclick = () => location.reload();
+
+// ===== JPEG TRANSCODER =====
+function jpegTranscode(src, opts) {
+  opts = opts || {};
+  const progressive = !!opts.progressive, optimize = !!opts.optimize || progressive;
+  if (!optimize) return src;
+  try { return _jpegTranscode(src, progressive); } catch (e) { console.warn('JPEG transcode gagal, guna asal:', e); return src; }
+}
+function _jpegTranscode(d, progressive) {
+  if (d[0] !== 0xFF || d[1] !== 0xD8) throw new Error('bukan JPEG');
+  let p = 2;
+  const keep = [];
+  const dqt = [];
+  const dc = [], ac = [];
+  let frame = null, ri = 0, scan = null, ecsStart = -1;
+  while (p < d.length) {
+    if (d[p] !== 0xFF) { p++; continue; }
+    const m = d[p + 1];
+    if (m === 0xFF) { p++; continue; }
+    if (m === 0xD8 || m === 0x01 || (m >= 0xD0 && m <= 0xD7)) { p += 2; continue; }
+    if (m === 0xD9) break;
+    const len = (d[p + 2] << 8) | d[p + 3];
+    const seg = d.subarray(p, p + 2 + len);
+    const body = d.subarray(p + 4, p + 2 + len);
+    if (m === 0xDB) dqt.push(seg);
+    else if (m === 0xC0 || m === 0xC1) {
+      if (body[0] !== 8) throw new Error('presisi != 8');
+      frame = { h: (body[1] << 8) | body[2], w: (body[3] << 8) | body[4], comps: [] };
+      const n = body[5];
+      for (let i = 0; i < n; i++) frame.comps.push({ id: body[6 + i * 3], h: body[7 + i * 3] >> 4, v: body[7 + i * 3] & 15, tq: body[8 + i * 3] });
+    } else if (m === 0xC2 || (m >= 0xC3 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC)) throw new Error('bukan baseline');
+    else if (m === 0xC4) {
+      let q = 0;
+      while (q < body.length) {
+        const tc = body[q] >> 4, th = body[q] & 15;
+        const counts = body.subarray(q + 1, q + 17);
+        let tot = 0; for (let i = 0; i < 16; i++) tot += counts[i];
+        const vals = body.subarray(q + 17, q + 17 + tot);
+        (tc === 0 ? dc : ac)[th] = buildDecode(counts, vals);
+        q += 17 + tot;
+      }
+    } else if (m === 0xDD) ri = (body[0] << 8) | body[1];
+    else if (m === 0xDA) {
+      scan = { n: body[0], comps: [] };
+      for (let i = 0; i < body[0]; i++) scan.comps.push({ id: body[1 + i * 2], td: body[2 + i * 2] >> 4, ta: body[2 + i * 2] & 15 });
+      ecsStart = p + 2 + len;
+      break;
+    } else if ((m >= 0xE0 && m <= 0xEF) || m === 0xFE) keep.push(seg);
+    p += 2 + len;
+  }
+  if (!frame || !scan || scan.n !== frame.comps.length) throw new Error('struktur tidak disokong');
+  const comps = frame.comps;
+  const hmax = Math.max(...comps.map(c => c.h)), vmax = Math.max(...comps.map(c => c.v));
+  const single = comps.length === 1;
+  const mcusX = single ? Math.ceil(frame.w / 8) : Math.ceil(frame.w / (8 * hmax));
+  const mcusY = single ? Math.ceil(frame.h / 8) : Math.ceil(frame.h / (8 * vmax));
+  comps.forEach(c => {
+    if (single) { c.h = 1; c.v = 1; }
+    c.bw = mcusX * c.h; c.bh = mcusY * c.v;
+    c.cw = single ? Math.ceil(frame.w / 8) : Math.ceil(Math.ceil(frame.w * c.h / hmax) / 8);
+    c.ch = single ? Math.ceil(frame.h / 8) : Math.ceil(Math.ceil(frame.h * c.v / vmax) / 8);
+    c.coef = new Int16Array(c.bw * c.bh * 64);
+  });
+  scan.comps.forEach(sc => { sc.c = comps.find(c => c.id === sc.id); if (!sc.c) throw new Error('komponen tiada'); });
+  let pos = ecsStart, bitBuf = 0, bitCnt = 0, hitMarker = false;
+  function readBit() {
+    if (bitCnt === 0) {
+      if (hitMarker || pos >= d.length) { bitBuf = 0; bitCnt = 8; }
+      else {
+        let b = d[pos++];
+        if (b === 0xFF) {
+          const b2 = d[pos];
+          if (b2 === 0) pos++;
+          else { pos--; hitMarker = true; b = 0; }
+        }
+        bitBuf = b; bitCnt = 8;
+      }
+    }
+    bitCnt--;
+    return (bitBuf >> bitCnt) & 1;
+  }
+  function decodeSym(t) {
+    let code = 0;
+    for (let l = 1; l <= 16; l++) {
+      code = (code << 1) | readBit();
+      if (t.maxcode[l] >= 0 && code <= t.maxcode[l] && code >= t.mincode[l]) return t.vals[t.valptr[l] + code - t.mincode[l]];
+    }
+    throw new Error('kod Huffman rosak');
+  }
+  function receiveExtend(s) {
+    if (s === 0) return 0;
+    let v = 0;
+    for (let i = 0; i < s; i++) v = (v << 1) | readBit();
+    return v < (1 << (s - 1)) ? v - (1 << s) + 1 : v;
+  }
+  const pred = new Int32Array(comps.length);
+  let mcuCount = 0;
+  for (let my = 0; my < mcusY; my++) {
+    for (let mx = 0; mx < mcusX; mx++) {
+      if (ri && mcuCount > 0 && mcuCount % ri === 0) {
+        bitCnt = 0; hitMarker = false;
+        while (pos < d.length && !(d[pos] === 0xFF && d[pos + 1] >= 0xD0 && d[pos + 1] <= 0xD7)) pos++;
+        pos += 2; pred.fill(0);
+      }
+      for (let ci = 0; ci < scan.comps.length; ci++) {
+        const sc = scan.comps[ci], c = sc.c, dct = dc[sc.td], act = ac[sc.ta];
+        if (!dct || !act) throw new Error('jadual hilang');
+        for (let vy = 0; vy < c.v; vy++) for (let hx = 0; hx < c.h; hx++) {
+          const bx = mx * c.h + hx, by = my * c.v + vy;
+          const o = (by * c.bw + bx) * 64;
+          const s = decodeSym(dct);
+          pred[ci] += receiveExtend(s);
+          c.coef[o] = pred[ci];
+          let k = 1;
+          while (k < 64) {
+            const rs = decodeSym(act), r = rs >> 4, ss = rs & 15;
+            if (ss === 0) { if (r === 15) { k += 16; continue; } break; }
+            k += r;
+            if (k > 63) break;
+            c.coef[o + k] = receiveExtend(ss);
+            k++;
+          }
+        }
+      }
+      mcuCount++;
+    }
+  }
+  let out = new Uint8Array(1 << 16), op = 0;
+  function ensure(n) { if (op + n > out.length) { const t = new Uint8Array(Math.max(out.length * 2, op + n)); t.set(out.subarray(0, op)); out = t; } }
+  function wb(b) { ensure(1); out[op++] = b; }
+  function w16(v) { wb(v >> 8); wb(v & 255); }
+  function wbytes(a) { ensure(a.length); out.set(a, op); op += a.length; }
+  let wBuf = 0, wCnt = 0;
+  function putBits(v, n) {
+    if (n === 0) return;
+    wBuf = (wBuf << n) | (v & ((1 << n) - 1)); wCnt += n;
+    while (wCnt >= 8) {
+      const b = (wBuf >> (wCnt - 8)) & 255;
+      wb(b); if (b === 0xFF) wb(0);
+      wCnt -= 8;
+    }
+    wBuf &= (1 << wCnt) - 1;
+  }
+  function flushBits() { if (wCnt > 0) putBits(0x7F, 8 - wCnt); wBuf = 0; wCnt = 0; }
+  function nbits(v) { v = v < 0 ? -v : v; let n = 0; while (v) { n++; v >>= 1; } return n; }
+  function genTable(freqIn) {
+    const freq = Float64Array.from(freqIn); freq[256] = 1;
+    const codesize = new Int32Array(257), others = new Int32Array(257).fill(-1);
+    for (;;) {
+      let c1 = -1, v = Infinity;
+      for (let i = 0; i <= 256; i++) if (freq[i] > 0 && freq[i] <= v) { v = freq[i]; c1 = i; }
+      let c2 = -1; v = Infinity;
+      for (let i = 0; i <= 256; i++) if (freq[i] > 0 && freq[i] <= v && i !== c1) { v = freq[i]; c2 = i; }
+      if (c2 < 0) break;
+      freq[c1] += freq[c2]; freq[c2] = 0;
+      codesize[c1]++; while (others[c1] >= 0) { c1 = others[c1]; codesize[c1]++; }
+      others[c1] = c2;
+      codesize[c2]++; while (others[c2] >= 0) { c2 = others[c2]; codesize[c2]++; }
+    }
+    const bits = new Int32Array(40);
+    for (let i = 0; i <= 256; i++) if (codesize[i]) bits[codesize[i]]++;
+    for (let i = 39; i > 16; i--) {
+      while (bits[i] > 0) {
+        let j = i - 2; while (bits[j] === 0) j--;
+        bits[i] -= 2; bits[i - 1]++; bits[j + 1] += 2; bits[j]--;
+      }
+    }
+    let i = 16; while (bits[i] === 0) i--; bits[i]--;
+    const vals = [];
+    for (let l = 1; l <= 40; l++) for (let s = 0; s < 256; s++) if (codesize[s] === l) vals.push(s);
+    const co = new Int32Array(256), si = new Int32Array(256);
+    let code = 0, k = 0;
+    for (let l = 1; l <= 16; l++) {
+      for (let n = 0; n < bits[l]; n++) { co[vals[k]] = code; si[vals[k]] = l; code++; k++; }
+      code <<= 1;
+    }
+    return { bits, vals, co, si };
+  }
+  function writeDHT(cls, id, t) {
+    wb(0xFF); wb(0xC4); w16(2 + 1 + 16 + t.vals.length);
+    wb((cls << 4) | id);
+    for (let l = 1; l <= 16; l++) wb(t.bits[l]);
+    for (const v of t.vals) wb(v);
+  }
+  function runScan(job, tables, stats) {
+    const emitSym = (tid, s) => { if (stats) stats[tid][s]++; else { const t = tables[tid]; putBits(t.co[s], t.si[s]); } };
+    const emitBits = (v, n) => { if (!stats) putBits(v, n); };
+    job(emitSym, emitBits);
+  }
+  function twoPass(job, nTables) {
+    const stats = []; for (let i = 0; i < nTables; i++) stats.push(new Float64Array(257));
+    runScan(job, null, stats);
+    const tables = stats.map(s => genTable(s));
+    return tables;
+  }
+  const mcuOrder = (fn) => { for (let my = 0; my < mcusY; my++) for (let mx = 0; mx < mcusX; mx++) fn(mx, my); };
+  function baselineJob(emitSym, emitBits) {
+    const pr = new Int32Array(comps.length);
+    mcuOrder((mx, my) => {
+      comps.forEach((c, ci) => {
+        const dt = ci === 0 ? 0 : 1, at = ci === 0 ? 2 : 3;
+        for (let vy = 0; vy < c.v; vy++) for (let hx = 0; hx < c.h; hx++) {
+          const o = ((my * c.v + vy) * c.bw + (mx * c.h + hx)) * 64;
+          const diff = c.coef[o] - pr[ci]; pr[ci] = c.coef[o];
+          const s = nbits(diff);
+          emitSym(dt, s); if (s) emitBits(diff < 0 ? diff + (1 << s) - 1 : diff, s);
+          let r = 0;
+          for (let k = 1; k < 64; k++) {
+            const v = c.coef[o + k];
+            if (v === 0) { r++; continue; }
+            while (r > 15) { emitSym(at, 0xF0); r -= 16; }
+            const sz = nbits(v);
+            emitSym(at, (r << 4) | sz); emitBits(v < 0 ? v + (1 << sz) - 1 : v, sz);
+            r = 0;
+          }
+          if (r > 0) emitSym(at, 0x00);
+        }
+      });
+    });
+  }
+  function dcFirstJob(emitSym, emitBits) {
+    const pr = new Int32Array(comps.length);
+    mcuOrder((mx, my) => {
+      comps.forEach((c, ci) => {
+        const dt = ci === 0 ? 0 : 1;
+        for (let vy = 0; vy < c.v; vy++) for (let hx = 0; hx < c.h; hx++) {
+          const o = ((my * c.v + vy) * c.bw + (mx * c.h + hx)) * 64;
+          const diff = c.coef[o] - pr[ci]; pr[ci] = c.coef[o];
+          const s = nbits(diff);
+          emitSym(dt, s); if (s) emitBits(diff < 0 ? diff + (1 << s) - 1 : diff, s);
+        }
+      });
+    });
+  }
+  function acFirstJob(c, ss, se) {
+    return (emitSym, emitBits) => {
+      let eobrun = 0;
+      const flushEob = () => {
+        if (eobrun > 0) {
+          let n = 0, t = eobrun; while (t > 1) { t >>= 1; n++; }
+          emitSym(0, n << 4);
+          if (n) emitBits(eobrun & ((1 << n) - 1), n);
+          eobrun = 0;
+        }
+      };
+      for (let by = 0; by < c.ch; by++) for (let bx = 0; bx < c.cw; bx++) {
+        const o = (by * c.bw + bx) * 64;
+        let r = 0;
+        for (let k = ss; k <= se; k++) {
+          const v = c.coef[o + k];
+          if (v === 0) { r++; continue; }
+          flushEob();
+          while (r > 15) { emitSym(0, 0xF0); r -= 16; }
+          const sz = nbits(v);
+          emitSym(0, (r << 4) | sz); emitBits(v < 0 ? v + (1 << sz) - 1 : v, sz);
+          r = 0;
+        }
+        if (r > 0) { eobrun++; if (eobrun === 0x7FFF) flushEob(); }
+      }
+      flushEob();
+    };
+  }
+  wb(0xFF); wb(0xD8);
+  keep.forEach(wbytes);
+  dqt.forEach(wbytes);
+  wb(0xFF); wb(progressive ? 0xC2 : 0xC0);
+  w16(8 + comps.length * 3); wb(8); w16(frame.h); w16(frame.w); wb(comps.length);
+  comps.forEach(c => { wb(c.id); wb((c.h << 4) | c.v); wb(c.tq); });
+  function writeSOS(list, ss, se, ah, al) {
+    wb(0xFF); wb(0xDA); w16(6 + list.length * 2); wb(list.length);
+    list.forEach(e => { wb(e.c.id); wb((e.td << 4) | e.ta); });
+    wb(ss); wb(se); wb((ah << 4) | al);
+  }
+  if (!progressive) {
+    const tables = twoPass(baselineJob, 4);
+    writeDHT(0, 0, tables[0]); writeDHT(1, 0, tables[2]);
+    if (!single) { writeDHT(0, 1, tables[1]); writeDHT(1, 1, tables[3]); }
+    writeSOS(comps.map((c, i) => ({ c, td: i === 0 ? 0 : 1, ta: i === 0 ? 0 : 1 })), 0, 63, 0, 0);
+    runScan(baselineJob, tables, null);
+    flushBits();
+  } else {
+    {
+      const t = twoPass(dcFirstJob, 2);
+      writeDHT(0, 0, t[0]); if (!single) writeDHT(0, 1, t[1]);
+      writeSOS(comps.map((c, i) => ({ c, td: i === 0 ? 0 : 1, ta: 0 })), 0, 0, 0, 0);
+      runScan(dcFirstJob, t, null); flushBits();
+    }
+    const acScan = (c, ss, se) => {
+      const job = acFirstJob(c, ss, se);
+      const t = twoPass(job, 1);
+      writeDHT(1, 0, t[0]);
+      writeSOS([{ c, td: 0, ta: 0 }], ss, se, 0, 0);
+      runScan(job, t, null); flushBits();
+    };
+    acScan(comps[0], 1, 5);
+    if (!single) { acScan(comps[2] || comps[1], 1, 63); if (comps[2]) acScan(comps[1], 1, 63); }
+    acScan(comps[0], 6, 63);
+  }
+  wb(0xFF); wb(0xD9);
+  return out.slice(0, op);
+}
+function buildDecode(counts, vals) {
+  let code = 0, k = 0;
+  const mincode = new Int32Array(18), maxcode = new Int32Array(18).fill(-1), valptr = new Int32Array(18);
+  for (let l = 1; l <= 16; l++) {
+    const n = counts[l - 1];
+    valptr[l] = k; mincode[l] = code;
+    code += n; k += n;
+    maxcode[l] = n ? code - 1 : -1;
+    code <<= 1;
+  }
+  return { mincode, maxcode, valptr, vals: Uint8Array.from(vals) };
+}
+
+// ===== EXPORT DIALOG =====
+const EXP = {
+  src: null, name: 'design', token: 0, blob: null, fmt: 'jpeg', jmode: 'progressive', q: 82, auto: true, maxKB: 900,
+  scale: 1, w: 0, h: 0, sharp: 25, matte: '#ffffff', hasAlpha: false, fit: true,
+  work: null, workKey: '', timer: null, bitmap: null, srcW: 0, srcH: 0, lastQ: 82, preset: 'wa'
+};
+const EXP_PRESETS = {
+  wa:    { fmt: 'jpeg', jmode: 'progressive', q: 82, auto: true, maxKB: 900, px: 2048, sharp: 25 },
+  wastd: { fmt: 'jpeg', jmode: 'progressive', q: 85, auto: true, maxKB: 500, px: 1600, sharp: 20 },
+  wahd:  { fmt: 'jpeg', jmode: 'progressive', q: 82, auto: true, maxKB: 1800, px: 2560, sharp: 25 },
+  web:   { fmt: 'jpeg', jmode: 'progressive', q: 80, auto: true, maxKB: 400, px: 1600, sharp: 15 },
+  max:   { fmt: 'jpeg', jmode: 'optimized', q: 95, auto: false, maxKB: 5000, px: 'orig', sharp: 0 },
+  png:   { fmt: 'png', jmode: 'progressive', q: 100, auto: false, maxKB: 5000, px: 'orig', sharp: 0 }
+};
+const canvasBlob = (cv, type, q) => new Promise(res => cv.toBlob(res, type, q));
+const webpOK = (() => { try { return document.createElement('canvas').toDataURL('image/webp').startsWith('data:image/webp'); } catch (e) { return false; } })();
+const safeName = n => String(n || 'design').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '-').slice(0, 80) || 'design';
+function openExportDialog(canvas, baseName) {
+  EXP.src = canvas; EXP.srcW = canvas.width; EXP.srcH = canvas.height;
+  EXP.hasAlpha = !!isTransparentBg;
+  EXP.work = null; EXP.workKey = '';
+  const proj = safeName($('projectNameInput').value.trim() || 'design');
+  $('expName').value = proj + '-' + safeName(baseName.replace(/^design-?/, '') || 'imej') + '-' + new Date().toISOString().slice(0, 10);
+  $('expShare').style.display = (navigator.canShare && navigator.share) ? '' : 'none';
+  $('expFormat').querySelector('[data-v=webp]').disabled = !webpOK;
+  EXP.fit = true; $('expPrevWrap').classList.add('fit');
+  $('expViewFit').classList.add('active'); $('expView100').classList.remove('active');
+  expApplyPreset(EXP.hasAlpha ? 'png' : 'wa', true);
+  $('exportModal').classList.add('show');
+  expSchedule(60);
+}
+function closeExport() {
+  $('exportModal').classList.remove('show');
+  EXP.token++; clearTimeout(EXP.timer);
+  EXP.src = null; EXP.work = null; EXP.blob = null;
+  if (EXP.bitmap) { try { EXP.bitmap.close(); } catch (e) {} EXP.bitmap = null; }
+  $('expPrevCanvas').width = 1; $('expPrevCanvas').height = 1;
+}
+function expApplyPreset(key, silent) {
+  EXP.preset = key;
+  $('expPreset').value = key;
+  const p = EXP_PRESETS[key];
+  if (p) {
+    EXP.fmt = (p.fmt === 'webp' && !webpOK) ? 'jpeg' : p.fmt;
+    EXP.jmode = p.jmode; EXP.q = p.q; EXP.auto = p.auto; EXP.maxKB = p.maxKB; EXP.sharp = p.sharp;
+    const long = Math.max(EXP.srcW, EXP.srcH);
+    EXP.scale = p.px === 'orig' ? 1 : Math.min(1, p.px / long);
+  }
+  expSyncUI();
+  if (!silent) expSchedule();
+}
+function expMarkCustom() { if (EXP.preset !== 'custom') { EXP.preset = 'custom'; $('expPreset').value = 'custom'; } }
+function expSetScale(s) { EXP.scale = clamp(s, 0.05, 1); expSyncUI(); }
+function expSyncUI() {
+  EXP.w = Math.max(16, Math.round(EXP.srcW * EXP.scale));
+  EXP.h = Math.max(16, Math.round(EXP.srcH * EXP.scale));
+  document.querySelectorAll('#expFormat button').forEach(b => b.classList.toggle('active', b.dataset.v === EXP.fmt));
+  document.querySelectorAll('#expJmode button').forEach(b => b.classList.toggle('active', b.dataset.v === EXP.jmode));
+  const isJpeg = EXP.fmt === 'jpeg', lossy = EXP.fmt !== 'png';
+  $('expJpegMode').style.display = isJpeg ? '' : 'none';
+  $('expQualityGroup').style.display = lossy ? '' : 'none';
+  $('expMatteGroup').style.display = (isJpeg && EXP.hasAlpha) ? '' : 'none';
+  $('expJmodeNote').textContent = {
+    baseline: 'Baseline: dimuat dari atas ke bawah. Serasi dengan semua aplikasi.',
+    optimized: 'Baseline Optimum: sama seperti Baseline tetapi jadual Huffman dioptimumkan.',
+    progressive: 'Progressive: imej muncul kabur→jelas semasa dimuat (sesuai WhatsApp/web).'
+  }[EXP.jmode];
+  $('expQ').value = EXP.q; $('expQV').textContent = EXP.q;
+  document.querySelectorAll('#expQPresets button').forEach(b => b.classList.toggle('active', +b.dataset.q === EXP.q));
+  $('expAuto').checked = EXP.auto; $('expAutoRow').style.display = (EXP.auto && lossy) ? '' : 'none';
+  $('expMaxKB').value = EXP.maxKB;
+  $('expScale').value = Math.round(EXP.scale * 100); $('expScaleV').textContent = Math.round(EXP.scale * 100) + '%';
+  $('expW').value = EXP.w; $('expH').value = EXP.h; $('expW').max = EXP.srcW; $('expH').max = EXP.srcH;
+  $('expOrigNote').textContent = `Asal: ${EXP.srcW} × ${EXP.srcH} px → Output: ${EXP.w} × ${EXP.h} px`;
+  $('expSharp').value = EXP.sharp; $('expSharpV').textContent = EXP.sharp;
+  $('expMatte').value = EXP.matte;
+  const long = Math.max(EXP.srcW, EXP.srcH);
+  document.querySelectorAll('#expScalePresets button').forEach(b => {
+    const px = b.dataset.px === 'orig' ? long : +b.dataset.px;
+    b.classList.toggle('active', Math.abs(Math.max(EXP.w, EXP.h) - Math.min(px, long)) <= 1);
+  });
+}
+function expSchedule(delay = 220) {
+  clearTimeout(EXP.timer);
+  $('expBusy').style.display = 'block';
+  EXP.timer = setTimeout(expRender, delay);
+}
+function unsharp(ctx, w, h, amount) {
+  const id = ctx.getImageData(0, 0, w, h), d = id.data, a = amount / 100 * 1.1;
+  const tmp = new Uint16Array(w * h * 3), blur = new Uint16Array(w * h * 3);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const xm = x > 0 ? x - 1 : x, xp = x < w - 1 ? x + 1 : x, o = (y * w + x) * 3;
+    for (let c = 0; c < 3; c++) tmp[o + c] = d[(y * w + xm) * 4 + c] + d[(y * w + x) * 4 + c] + d[(y * w + xp) * 4 + c];
+  }
+  for (let y = 0; y < h; y++) {
+    const ym = y > 0 ? y - 1 : y, yp = y < h - 1 ? y + 1 : y;
+    for (let x = 0; x < w; x++) {
+      const o = (y * w + x) * 3;
+      for (let c = 0; c < 3; c++) blur[o + c] = (tmp[(ym * w + x) * 3 + c] + tmp[o + c] + tmp[(yp * w + x) * 3 + c]) / 9;
+    }
+  }
+  for (let i = 0, p = 0; i < w * h; i++, p += 4) {
+    const o = i * 3;
+    for (let c = 0; c < 3; c++) { const v = d[p + c]; d[p + c] = v + a * (v - blur[o + c]); }
+  }
+  ctx.putImageData(id, 0, 0);
+}
+function expMakeWork() {
+  const w = EXP.w, h = EXP.h, src = EXP.src;
+  const matte = EXP.fmt === 'jpeg';
+  let cur = src, cw = src.width, ch = src.height;
+  while (cw >= w * 2 && ch >= h * 2) {
+    const nw = Math.max(w, Math.ceil(cw / 2)), nh = Math.max(h, Math.ceil(ch / 2));
+    const t = document.createElement('canvas'); t.width = nw; t.height = nh;
+    const tc = t.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(cur, 0, 0, nw, nh);
+    cur = t; cw = nw; ch = nh;
+  }
+  const out = document.createElement('canvas'); out.width = w; out.height = h;
+  const ctx = out.getContext('2d', { willReadFrequently: EXP.sharp > 0 });
+  if (matte) { ctx.fillStyle = EXP.matte; ctx.fillRect(0, 0, w, h); }
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(cur, 0, 0, w, h);
+  if (EXP.sharp > 0) unsharp(ctx, w, h, EXP.sharp);
+  return out;
+}
+async function expEncode(work, token) {
+  const type = EXP.fmt === 'jpeg' ? 'image/jpeg' : 'image/webp';
+  const base = q => canvasBlob(work, type, q / 100);
+  const finish = async b => {
+    if (EXP.fmt !== 'jpeg' || EXP.jmode === 'baseline') return b;
+    try {
+      const out = jpegTranscode(new Uint8Array(await b.arrayBuffer()), { progressive: EXP.jmode === 'progressive', optimize: true });
+      return new Blob([out], { type: 'image/jpeg' });
+    } catch (e) { console.warn('Progressive gagal, guna baseline:', e); return b; }
+  };
+  if (!EXP.auto) return { blob: await finish(await base(EXP.q)), q: EXP.q, over: false };
+  const target = EXP.maxKB * 1024, loQ = 30;
+  const b0 = await base(EXP.q);
+  let best = await finish(b0);
+  if (best.size <= target) return { blob: best, q: EXP.q, over: false };
+  const ratio = best.size / b0.size;
+  let lo = loQ, hi = EXP.q - 1, bestQ = loQ;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1, b = await base(mid);
+    if (token !== EXP.token) return null;
+    if (b.size * ratio <= target) { bestQ = mid; lo = mid + 1; } else hi = mid - 1;
+  }
+  let q = bestQ, out = await finish(await base(q));
+  while (out.size > target && q > loQ) { q = Math.max(loQ, q - 2); out = await finish(await base(q)); if (token !== EXP.token) return null; }
+  return { blob: out, q, over: out.size > target };
+}
+async function expRender() {
+  if (!EXP.src) return;
+  const token = ++EXP.token;
+  try {
+    const key = [EXP.w, EXP.h, EXP.sharp, EXP.fmt === 'jpeg' ? EXP.matte : 'a', EXP.fmt === 'jpeg'].join('|');
+    if (EXP.workKey !== key || !EXP.work) { EXP.work = expMakeWork(); EXP.workKey = key; await nextFrame(); }
+    if (token !== EXP.token) return;
+    let res;
+    if (EXP.fmt === 'png') res = { blob: await canvasBlob(EXP.work, 'image/png'), q: 100, over: false };
+    else res = await expEncode(EXP.work, token);
+    if (!res || token !== EXP.token) return;
+    EXP.blob = res.blob; EXP.lastQ = res.q;
+    const bmp = await createImageBitmap(res.blob);
+    if (token !== EXP.token) { bmp.close(); return; }
+    if (EXP.bitmap) { try { EXP.bitmap.close(); } catch (e) {} }
+    EXP.bitmap = bmp;
+    expDraw(false);
+    expShowSize(res);
+  } catch (err) {
+    console.error(err);
+    $('expSize').textContent = 'Ralat'; $('expSizeNote').textContent = 'Gagal memproses imej.';
+  } finally {
+    if (token === EXP.token) $('expBusy').style.display = 'none';
+  }
+}
+function expDraw(orig) {
+  const cv = $('expPrevCanvas'), src = orig ? EXP.work : EXP.bitmap;
+  if (!src) return;
+  const w = src.width, h = src.height;
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  const c = cv.getContext('2d'); c.clearRect(0, 0, w, h); c.drawImage(src, 0, 0);
+  cv.style.width = EXP.fit ? '' : w + 'px'; cv.style.height = EXP.fit ? '' : h + 'px';
+}
+function expShowSize(res) {
+  const size = res.blob.size, el = $('expSize');
+  el.textContent = fmtBytes(size);
+  const mb = size / 1048576;
+  el.className = mb <= 1.2 ? '' : mb <= 2.5 ? 'warn' : 'bad';
+  const ext = { jpeg: 'JPEG', png: 'PNG', webp: 'WebP' }[EXP.fmt];
+  const secs = (size * 8 / 5e6).toFixed(1);
+  let note = `${ext}${EXP.fmt === 'jpeg' ? ' ' + { baseline: 'Baseline', optimized: 'Baseline Optimum', progressive: 'Progressive' }[EXP.jmode] : ''} · ${EXP.w} × ${EXP.h} px`;
+  if (EXP.fmt !== 'png') note += ` · kualiti ${res.q}${EXP.auto && res.q < EXP.q ? ' (auto)' : ''}`;
+  note += `<br>≈ ${secs}s pada 5 Mbps`;
+  const long = Math.max(EXP.w, EXP.h);
+  if (res.over) note += `<br>⚠ Tidak dapat capai had ${EXP.maxKB} KB — kecilkan sekala imej.`;
+  else if (mb <= 1.2) note += `<br>✔ Sesuai untuk WhatsApp`;
+  else if (mb <= 2.5) note += `<br>⚠ Agak besar — WhatsApp akan memampat semula`;
+  else note += `<br>✖ Terlalu besar untuk WhatsApp — kurangkan kualiti/sekala`;
+  if (long > 1600 && EXP.fmt !== 'png') note += `<br>ℹ WhatsApp (mod foto) biasanya mengecilkan ke ±1600px; hantar sebagai <b>Dokumen</b> untuk kekalkan butiran penuh.`;
+  $('expSizeNote').innerHTML = note;
+  $('expPrevInfo').textContent = `${EXP.w} × ${EXP.h} px · ${fmtBytes(size)}`;
+}
+$('expPreset').onchange = e => { if (e.target.value === 'custom') { EXP.preset = 'custom'; } else expApplyPreset(e.target.value); };
+$('expFormat').onclick = e => { const b = e.target.closest('button'); if (!b || b.disabled) return; EXP.fmt = b.dataset.v; expMarkCustom(); expSyncUI(); expSchedule(); };
+$('expJmode').onclick = e => { const b = e.target.closest('button'); if (!b) return; EXP.jmode = b.dataset.v; expMarkCustom(); expSyncUI(); expSchedule(80); };
+$('expQPresets').onclick = e => { const b = e.target.closest('button'); if (!b) return; EXP.q = +b.dataset.q; expMarkCustom(); expSyncUI(); expSchedule(); };
+$('expQ').oninput = e => { EXP.q = +e.target.value; expMarkCustom(); expSyncUI(); expSchedule(); };
+$('expAuto').onchange = e => { EXP.auto = e.target.checked; expMarkCustom(); expSyncUI(); expSchedule(); };
+$('expMaxKB').oninput = e => { EXP.maxKB = clamp(+e.target.value || 900, 50, 50000); expMarkCustom(); expSchedule(350); };
+$('expScalePresets').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const long = Math.max(EXP.srcW, EXP.srcH);
+  expSetScale(b.dataset.px === 'orig' ? 1 : Math.min(1, +b.dataset.px / long)); expMarkCustom(); expSchedule();
+};
+$('expScale').oninput = e => { expSetScale(+e.target.value / 100); expMarkCustom(); expSchedule(); };
+$('expW').onchange = e => { expSetScale((+e.target.value || EXP.srcW) / EXP.srcW); expMarkCustom(); expSchedule(); };
+$('expH').onchange = e => { expSetScale((+e.target.value || EXP.srcH) / EXP.srcH); expMarkCustom(); expSchedule(); };
+$('expSharp').oninput = e => { EXP.sharp = +e.target.value; expMarkCustom(); expSyncUI(); expSchedule(300); };
+$('expMatte').oninput = e => { EXP.matte = e.target.value; expSchedule(250); };
+$('expViewFit').onclick = () => { EXP.fit = true; $('expPrevWrap').classList.add('fit'); $('expViewFit').classList.add('active'); $('expView100').classList.remove('active'); expDraw(false); };
+$('expView100').onclick = () => { EXP.fit = false; $('expPrevWrap').classList.remove('fit'); $('expView100').classList.add('active'); $('expViewFit').classList.remove('active'); expDraw(false); };
+const origBtn = $('expViewOrig');
+origBtn.onpointerdown = () => expDraw(true);
+['pointerup', 'pointerleave'].forEach(ev => origBtn.addEventListener(ev, () => expDraw(false)));
+(function () {
+  const w = $('expPrevWrap'); let d = null;
+  w.addEventListener('pointerdown', e => { if (EXP.fit) return; d = { x: e.clientX, y: e.clientY, sx: w.scrollLeft, sy: w.scrollTop }; w.setPointerCapture(e.pointerId); });
+  w.addEventListener('pointermove', e => { if (!d) return; w.scrollLeft = d.sx - (e.clientX - d.x); w.scrollTop = d.sy - (e.clientY - d.y); });
+  w.addEventListener('pointerup', () => d = null);
+})();
+$('expClose').onclick = $('expCancel').onclick = closeExport;
+$('expSave').onclick = () => {
+  if (!EXP.blob) return;
+  const ext = { jpeg: 'jpg', png: 'png', webp: 'webp' }[EXP.fmt];
+  const name = safeName($('expName').value) + '.' + ext;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(EXP.blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  showToast(`✅ ${name} (${fmtBytes(EXP.blob.size)}) disimpan`);
+  closeExport();
+};
+$('expShare').onclick = async () => {
+  if (!EXP.blob) return;
+  const ext = { jpeg: 'jpg', png: 'png', webp: 'webp' }[EXP.fmt];
+  const f = new File([EXP.blob], safeName($('expName').value) + '.' + ext, { type: EXP.blob.type });
+  try {
+    if (navigator.canShare({ files: [f] })) await navigator.share({ files: [f], title: 'Design baju 3D' });
+    else showToast('Kongsi fail tidak disokong', true);
+  } catch (e) { if (e.name !== 'AbortError') showToast('Gagal kongsi', true); }
+};
+
+// ===== KEYBOARD =====
 window.addEventListener('keydown', e => {
   const tag = document.activeElement?.tagName;
   const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  if (document.querySelector('.modal-back.show')) {
+    if (e.key === 'Escape') { if ($('exportModal').classList.contains('show')) closeExport(); else $('closeModal').classList.remove('show'); }
+    return;
+  }
   if (cropSession) {
     if (e.key === 'Escape') closeSaveCrop();
     if (e.key === 'Enter' && !isEditing) $('scOk').click();
@@ -3993,6 +5041,10 @@ window.addEventListener('keydown', e => {
     if (k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); }
     else if (k === 'y') { e.preventDefault(); redo(); }
     else if (k === 's') { e.preventDefault(); $('btnSaveProject').click(); }
+    else if (k === '0') { e.preventDefault(); fitAll(); }
+    else if (k === '1') { e.preventDefault(); dollyTo(fitDist); }
+    else if (k === '=' || k === '+') { e.preventDefault(); zoomBy(1.25); }
+    else if (k === '-') { e.preventDefault(); zoomBy(1 / 1.25); }
     else if (k === 'd') {
       e.preventDefault();
       if (selectionKind === 'layer' && activeDummy) $('btnDuplicate').click();
@@ -4001,6 +5053,15 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (isEditing) return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (document.activeElement?.tagName === 'BUTTON') document.activeElement.blur();
+    if (!handSpace) { handSpace = true; applyHandMode(); }
+    return;
+  }
+  if (e.key === 'l' || e.key === 'L') { setLoupe(!loupeOn); return; }
+  if (e.key === '+' || e.key === '=') { zoomBy(1.25); return; }
+  if (e.key === '-' || e.key === '_') { zoomBy(1 / 1.25); return; }
   if ((e.key === 'Delete' || e.key === 'Backspace')) {
     if (selectionKind === 'layer' && activeDummy) { e.preventDefault(); deleteLayer(activeDummy); }
     else if (selectionKind === 'item' && activeItem) { e.preventDefault(); deleteItem(activeItem); }
@@ -4018,32 +5079,23 @@ window.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') deselectAll();
 });
+window.addEventListener('keyup', e => { if (e.code === 'Space' && handSpace) { handSpace = false; applyHandMode(); } });
+window.addEventListener('blur', () => { if (handSpace) { handSpace = false; applyHandMode(); } });
 
-// ===== LOOP (throttle mengikut kualiti) =====
-let _frameCounter = 0;
+// ===== LOOP =====
 function animate(now) {
   requestAnimationFrame(animate);
-  _frameCounter++;
-  const q = QUALITY_PRESETS[qualityMode] || QUALITY_PRESETS.medium;
-
+  updateZoomLabel();
   if (yawTween && !isPreviewing && !isRecording) stepYawTween(now || performance.now());
-
   if (!isRecording && !isPreviewing) {
     controls.update();
     renderer.render(scene, camera);
-
+    if (loupeOn) drawLoupe();
     if (activeDummy && ftEl.classList.contains('active') && !ftDragging && !isExporting) {
-      if (_frameCounter % q.throttleFtSig === 0) {
-        const sig = ftSignature();
-        if (sig !== _ftSig) { _ftSig = sig; updateFreeTransformHandles(); }
-      }
+      const sig = ftSignature();
+      if (sig !== _ftSig) { _ftSig = sig; updateFreeTransformHandles(); }
     }
-
-    if (selectionKind !== 'item' || !activeItem) {
-      gbox.style.display = 'none';
-    } else if (_frameCounter % q.throttleGroupBox === 0) {
-      updateGroupBox();
-    }
+    updateGroupBox();
   } else gbox.style.display = 'none';
 }
 requestAnimationFrame(animate);
@@ -4054,6 +5106,7 @@ window.addEventListener('resize', () => {
   updateCropFrame();
 });
 
+// ===== MULA =====
 async function init() {
   try { customModels = await dbModelList(); } catch (err) { console.error(err); customModels = []; }
   populateModelSelects();
@@ -4063,14 +5116,6 @@ async function init() {
   updateCropFrame();
   markBgDirty();
   renderLayerPanel();
-
-  // Restore quality mode (Low/Medium/High)
-  try {
-    const saved = localStorage.getItem('pd3d_quality');
-    if (saved && QUALITY_PRESETS[saved]) applyQuality(saved);
-    else applyQuality('medium');
-  } catch (e) { applyQuality('medium'); }
-
   try {
     const projects = await dbGetAll().catch(() => []);
     if (projects.length) {
@@ -4082,6 +5127,9 @@ async function init() {
   history = [snapshot()]; historyIndex = 0;
   updateUndoRedoButtons();
   loadProjectList();
+  if (activeItem) syncPartsUI(activeItem);
+  setDirty(false);
+  updateStatus();
   const loadingEl = $('loading');
   if (loadingEl) { loadingEl.style.opacity = '0'; setTimeout(() => loadingEl.remove(), 400); }
 }
